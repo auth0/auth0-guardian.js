@@ -1,0 +1,27 @@
+{
+  "env": {
+    "mocha": true
+  },
+  "plugins": [
+    "mocha"
+  ],
+  "rules": {
+    // Allow using devDependencies
+    "import/no-extraneous-dependencies": "off",
+
+    // Error for non-exlusive-tests
+    "mocha/no-exclusive-tests": "error",
+
+    // Chai use lots of unused expressions as part
+    // of its assertions
+    "no-unused-expressions": "off",
+
+    // Anonymous functions are the easiest way of writting test cb
+    // and in this case the stack is pretty clear
+    "func-names": "off",
+
+    // Mocha team recomends not to use arrow blocks
+    // in test to keep `this` meaning
+    "prefer-arrow-callback": "off"
+  }
+}
