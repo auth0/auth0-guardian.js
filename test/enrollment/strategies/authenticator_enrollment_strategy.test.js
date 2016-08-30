@@ -16,7 +16,7 @@ describe('enrollment/strategies/authenticator_enrollment_strategy', function() {
 
         }, null, {
 
-        }).enroll().then).to.be.a('function');
+        }).enroll()).to.be.rejectedWith(errors.OperationNotAllowedError);
     });
   });
 
