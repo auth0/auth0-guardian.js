@@ -1,0 +1,49 @@
+{
+  "name": "guardian.js",
+  "version": "1.0.0",
+  "description": "Interface",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "bluebird": "^3.4.1",
+    "chai": "^3.5.0",
+    "electrolyte": "^0.2.6",
+    "lodash.camelcase": "^4.3.0",
+    "lodash.create": "^4.2.0",
+    "lodash.identity": "^3.0.0",
+    "lodash.isobject": "^3.0.2",
+    "lodash.reduce": "^4.6.0",
+    "lodash.snakecase": "^4.1.1",
+    "lodash.some": "^4.6.0",
+    "socket.io-client": "^1.4.8",
+    "superagent": "^2.2.0",
+    "superagent-promise": "^1.1.0",
+    "url-join": "^1.1.0"
+  },
+  "devDependencies": {
+    "mocha": "^3.0.2"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/auth0/guardian.js.git"
+  },
+  "keywords": [
+    "Guardian",
+    "Guadian",
+    "Headless",
+    "Auth0",
+    "Auth0",
+    "Guardian"
+  ],
+  "author": "Auth0",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/auth0/guardian.js/issues"
+  },
+  "homepage": "https://github.com/auth0/guardian.js#readme"
+}

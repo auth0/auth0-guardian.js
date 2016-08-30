@@ -21,7 +21,7 @@ tx.canEnroll();
 tx.startAuth();
 tx.startEnrollment();
 
-const enroller = tx.startEnrollment(type): EnrollmentFlow throws AlreadyEnrolledException, FactorNotAllowedException
+const enroller = tx.startEnrollment(): EnrollmentFlow throws AlreadyEnrolledException, FactorNotAllowedException
 enroller.getFlow(type): {Type}EnrollmentFlow
 enroller.getRecoveryCode() throws InvalidStateException
 
