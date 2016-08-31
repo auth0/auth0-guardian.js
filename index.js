@@ -2,6 +2,7 @@ const EventEmitter = require('events').EventEmitter;
 const Transaction = require('./lib/transaction');
 const guardianHttpClient = require('/lib/utils/guardian_request');
 
+
 class GuardianJS {
 
   /**
@@ -9,16 +10,21 @@ class GuardianJS {
    */
   constructor(options) {
     this.events = new EventEmitter();
+    this.tenant = this.options.tenant;
 
     this.guardianClient = guardianHttpClient({ baseUri: options.baseUri });
   }
 
+  /**
+   * Starts a Guardian login transaction
+   */
   start() {
     return this.guardianClient.post('/start-flow')
       .then((txData) => {
 
         const tx = new Transaction({
           enrollment: txData.deviceAccount,
+          tenant: this.tenant,
           transactionToken: txData.transactionToken,
           recoveryCode: txData.deviceAccount.recoveryCode,
           enrollmentTxId: txData.deviceAccount.enrollmentTxId,
@@ -33,12 +39,6 @@ class GuardianJS {
         }, null, {
           guardianClient: this.guardianClient,
         });
-
-        tx.events.once('enrollment-complete',
-          this.events.emit.bind(this.events, 'enrollment-complete'));
-
-        tx.events.once('auth-complete',
-          this.events.emit.bind(this.events, 'auth-complete'));
 
         return tx;
       });
