@@ -1,3 +1,5 @@
+'use strict';
+
 const expect = require('chai').expect;
 const EnrollmentFlow = require('../../lib/enrollment/enrollment_flow');
 const AuthenticatorEnrollmentStrategy = require('../../lib/enrollment/strategies/authenticator_enrollment_strategy');
@@ -106,6 +108,42 @@ describe('enrollment/enrollment_flow', function() {
             }
           }).canEnrollWithFactor('invalid');
         }).to.throw(errors.FactorNotFoundError);
+      });
+    });
+  });
+
+  describe('#getAvailableFactors', function() {
+    describe('for type pushNotification', function() {
+      it('returns authenticator and push', function() {
+        expect(new EnrollmentFlow({
+          factors: {
+            sms: {
+              enabled: false
+            },
+            pushNotification: {
+              enabled: true
+            }
+          }
+        })
+        .getAvailableFactors())
+        .to.eql(['pushNotification', 'authenticator']);
+      });
+    });
+
+    describe('for type sms and push', function() {
+      it('returns authenticator, push and authenticator', function() {
+        expect(new EnrollmentFlow({
+          factors: {
+            sms: {
+              enabled: true
+            },
+            pushNotification: {
+              enabled: true
+            }
+          }
+        })
+        .getAvailableFactors())
+        .to.eql(['sms', 'pushNotification', 'authenticator']);
       });
     });
   });
