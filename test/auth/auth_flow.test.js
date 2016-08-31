@@ -2,7 +2,7 @@
 
 const expect = require('chai').expect;
 const AuthFlow = require('../../lib/auth/auth_flow');
-const ManualAuthenticatorStrategy = require('../../lib/auth/strategies/manual_authenticator_strategy');
+const OTPAuthenticatorStrategy = require('../../lib/auth/strategies/otp_authenticator_strategy');
 const PNAuthenticatorStrategy = require('../../lib/auth/strategies/pn_authenticator_strategy');
 const RecoveryCodeAuthenticatorStrategy = require('../../lib/auth/strategies/recovery_code_authenticator_strategy');
 const SMSAuthenticatorStrategy = require('../../lib/auth/strategies/sms_authenticator_strategy');
@@ -24,7 +24,7 @@ describe('auth/auth_flow', function() {
     });
 
     describe('when push credentials are available', function() {
-      it('returns pushNotification', function() {
+      it('returns push', function() {
         expect(new AuthFlow({
           transactionToken: '123',
           enrollment: {
@@ -33,24 +33,24 @@ describe('auth/auth_flow', function() {
               service: 'APNS'
             }
           }
-        }, null, {}).getDefaultFactor()).to.equal('pushNotification');
+        }, null, {}).getDefaultFactor()).to.equal('push');
       });
     });
 
     describe('when no phone number and not push credentials are available', function() {
-      it('returns authenticator', function() {
+      it('returns authenticaotptor', function() {
         expect(new AuthFlow({
           transactionToken: '123',
           enrollment: {}
-        }, null, {}).getDefaultFactor()).to.equal('authenticator');
+        }, null, {}).getDefaultFactor()).to.equal('otp');
       });
     });
   });
 
   describe('#forFactor', function() {
-    describe('for pushNotification', function() {
+    describe('for push', function() {
       describe('for manual mode', function() {
-        it('returns ManualAuthenticatorStrategy', function() {
+        it('returns OTPAuthenticatorStrategy', function() {
           const strategy = new AuthFlow({
               transactionToken: '123',
               enrollment: {
@@ -62,9 +62,9 @@ describe('auth/auth_flow', function() {
             }, null, {
               guardianClient
             })
-            .forFactor('pushNotification', true);
+            .forFactor('otp');
 
-          expect(strategy).to.be.an.instanceOf(ManualAuthenticatorStrategy);
+          expect(strategy).to.be.an.instanceOf(OTPAuthenticatorStrategy);
           expect(strategy.data.enrollment).to.eql({
             pushCredentials: {
               token: '1222',
@@ -88,7 +88,7 @@ describe('auth/auth_flow', function() {
             }, null, {
               guardianClient
             })
-            .forFactor('pushNotification');
+            .forFactor('push');
 
           expect(strategy).to.be.an.instanceOf(PNAuthenticatorStrategy);
           expect(strategy.data.enrollment).to.eql({
@@ -120,17 +120,17 @@ describe('auth/auth_flow', function() {
         });
     });
 
-    describe('for authenticator', function() {
-      it('returns ManualAuthenticatorStrategy', function() {
+    describe('for otp', function() {
+      it('returns OTPAuthenticatorStrategy', function() {
         const strategy = new AuthFlow({
             transactionToken: '123',
             enrollment: {}
           }, null, {
             guardianClient
           })
-          .forFactor('authenticator');
+          .forFactor('otp');
 
-        expect(strategy).to.be.an.instanceOf(ManualAuthenticatorStrategy);
+        expect(strategy).to.be.an.instanceOf(OTPAuthenticatorStrategy);
         expect(strategy.data.enrollment).to.eql({});
         expect(strategy.data.transactionToken).to.equal('123');
       });
@@ -144,7 +144,7 @@ describe('auth/auth_flow', function() {
           }, null, {
             guardianClient
           })
-          .forFactor('recoveryCode');
+          .forRecoveryCode();
 
         expect(strategy).to.be.an.instanceOf(RecoveryCodeAuthenticatorStrategy);
       });

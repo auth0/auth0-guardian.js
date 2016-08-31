@@ -4,7 +4,7 @@ const RecoveryCodeAuthenticatorStrategy = require('../../../lib/auth/strategies/
 const errors = require('../../../lib/errors');
 const sinon = require('sinon');
 
-describe('auth/auth_flow/manual_authenticator_strategy', function() {
+describe('auth/auth_flow/otp_authenticator_strategy', function() {
 
   describe('#request', function() {
     it('rejects the promise', function() {

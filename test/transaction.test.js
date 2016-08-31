@@ -80,7 +80,7 @@ describe('transaction', function() {
           transactionToken: '123.123.123',
           factors: {
             sms: { enabled: true },
-            pushNotification: { enabled: true },
+            push: { enabled: true },
           }
         }, null, {}).startAuth();
 
@@ -92,7 +92,7 @@ describe('transaction', function() {
           },
           factors: {
             sms: { enabled: true },
-            pushNotification: { enabled: true },
+            push: { enabled: true },
           }
         });
       });
@@ -112,7 +112,7 @@ describe('transaction', function() {
         transactionToken: '123.123.123',
         factors: {
           sms: { enabled: true },
-          pushNotification: { enabled: true }
+          push: { enabled: true }
         }
       }, null, {}).startEnrollment();
 
@@ -127,7 +127,7 @@ describe('transaction', function() {
         recoveryCode: '1234',
         factors: {
           sms: { enabled: true },
-          pushNotification: { enabled: true }
+          push: { enabled: true }
         }
       });
     });
@@ -146,30 +146,10 @@ describe('transaction', function() {
             transactionToken: '123.123.123',
             factors: {
               sms: { enabled: true },
-              pushNotification: { enabled: true }
+              push: { enabled: true }
             }
           }, null, {}).startEnrollment()
         }).to.throw(errors.EnrollmentNotAllowedError);
-      });
-    });
-
-    describe('when all features are disabled', function() {
-      it('throws an error', function() {
-        expect(() => {
-          new Transaction({
-            enrollment: {
-              status: 'confirmation_pending',
-              recoveryCode: '1234'
-            },
-            recoveryCode: '1234',
-            enrollmentTxId: '1234',
-            transactionToken: '123.123.123',
-            factors: {
-              sms: { enabled: false },
-              pushNotification: { enabled: false }
-            }
-          }, null, {}).startEnrollment()
-        }).to.throw(errors.AllFactorsDisabledError);
       });
     });
   });

@@ -1,18 +1,20 @@
 const EventEmitter = require('events').EventEmitter;
 const Transaction = require('./lib/transaction');
 const guardianHttpClient = require('/lib/utils/guardian_request');
+const errors = require('./lib/errors');
+const factorEntity = require('./lib/entities/factor');
+const enrollmentEntity = require('./lib/entities/enrollment');
 
-
-class GuardianJS {
+module.exports = class GuardianJS {
 
   /**
-   * @param {string} baseUri
+   * @param {string} serviceDomain
    */
   constructor(options) {
     this.events = new EventEmitter();
     this.tenant = this.options.tenant;
 
-    this.guardianClient = guardianHttpClient({ baseUri: options.baseUri });
+    this.guardianClient = guardianHttpClient({ serviceDomain: options.serviceDomain });
   }
 
   /**
@@ -21,21 +23,29 @@ class GuardianJS {
   start() {
     return this.guardianClient.post('/start-flow')
       .then((txData) => {
+        const factors = {
+          sms: {
+            enabled: txData.featureSwitches.mfa_sms.enroll
+          },
+          push: {
+            enabled: txData.featureSwitches.mfa_app.enroll
+          }
+        };
+
+        const enrollment = txData.deviceAccount;
+
+        if (!factorEntity.isAnyFactorEnabled(factors) &&
+            !enrollmentEntity.isEnrollmentConfirmed(enrollment)) {
+          return Promise.reject(errors.EnrollmentNotAllowedError());
+        }
 
         const tx = new Transaction({
-          enrollment: txData.deviceAccount,
+          enrollment: enrollment,
           tenant: this.tenant,
           transactionToken: txData.transactionToken,
           recoveryCode: txData.deviceAccount.recoveryCode,
           enrollmentTxId: txData.deviceAccount.enrollmentTxId,
-          factors: {
-            sms: {
-              enabled: txData.featureSwitches.mfa_sms.enroll
-            },
-            pushNotification: {
-              enabled: txData.featureSwitches.mfa_app.enroll
-            }
-          }
+          factors: factors
         }, null, {
           guardianClient: this.guardianClient,
         });
@@ -43,8 +53,4 @@ class GuardianJS {
         return tx;
       });
   }
-}
-
-module.exports = function guardianjs(options) {
-  return new GuardianJS(options);
 };

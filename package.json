@@ -12,6 +12,7 @@
     "electrolyte": "^0.2.6",
     "lodash.camelcase": "^4.3.0",
     "lodash.create": "^4.2.0",
+    "lodash.foreach": "^4.5.0",
     "lodash.identity": "^3.0.0",
     "lodash.isobject": "^3.0.2",
     "lodash.reduce": "^4.6.0",

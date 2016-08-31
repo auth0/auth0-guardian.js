@@ -2,7 +2,7 @@
 
 const expect = require('chai').expect;
 const EnrollmentFlow = require('../../lib/enrollment/enrollment_flow');
-const AuthenticatorEnrollmentStrategy = require('../../lib/enrollment/strategies/authenticator_enrollment_strategy');
+const OTPEnrollmentStrategy = require('../../lib/enrollment/strategies/otp_enrollment_strategy');
 const PNEnrollmentStrategy = require('../../lib/enrollment/strategies/pn_enrollment_strategy');
 const SMSEnrollmentStrategy = require('../../lib/enrollment/strategies/sms_enrollment_strategy');
 const errors = require('../../lib/errors');
@@ -19,16 +19,16 @@ describe('enrollment/enrollment_flow', function() {
   });
 
   describe('#canEnrollWithFactor', function() {
-    describe('for type authenticator', function() {
+    describe('for type otp', function() {
       describe('when push notification factor is enabled', function() {
         it('returns true', function() {
           expect(new EnrollmentFlow({
             factors: {
-              pushNotification: {
+              push: {
                 enabled: true
               }
             }
-          }).canEnrollWithFactor('authenticator')).to.be.true;
+          }).canEnrollWithFactor('otp')).to.be.true;
         });
       });
 
@@ -36,25 +36,25 @@ describe('enrollment/enrollment_flow', function() {
         it('returns false', function() {
           expect(new EnrollmentFlow({
             factors: {
-              pushNotification: {
+              push: {
                 enabled: false
               }
             }
-          }).canEnrollWithFactor('authenticator')).to.be.false;
+          }).canEnrollWithFactor('otp')).to.be.false;
         });
       });
     });
 
-    describe('for type pushNotification', function() {
+    describe('for type push', function() {
       describe('when push notification factor is enabled', function() {
         it('returns true', function() {
           expect(new EnrollmentFlow({
             factors: {
-              pushNotification: {
+              push: {
                 enabled: true
               }
             }
-          }).canEnrollWithFactor('pushNotification')).to.be.true;
+          }).canEnrollWithFactor('push')).to.be.true;
         });
       });
 
@@ -62,11 +62,11 @@ describe('enrollment/enrollment_flow', function() {
         it('returns false', function() {
           expect(new EnrollmentFlow({
             factors: {
-              pushNotification: {
+              push: {
                 enabled: false
               }
             }
-          }).canEnrollWithFactor('pushNotification')).to.be.false;
+          }).canEnrollWithFactor('push')).to.be.false;
         });
       });
     });
@@ -113,37 +113,37 @@ describe('enrollment/enrollment_flow', function() {
   });
 
   describe('#getAvailableFactors', function() {
-    describe('for type pushNotification', function() {
+    describe('for type push', function() {
       it('returns authenticator and push', function() {
         expect(new EnrollmentFlow({
           factors: {
             sms: {
               enabled: false
             },
-            pushNotification: {
+            push: {
               enabled: true
             }
           }
         })
         .getAvailableFactors())
-        .to.eql(['pushNotification', 'authenticator']);
+        .to.eql(['push', 'otp']);
       });
     });
 
     describe('for type sms and push', function() {
-      it('returns authenticator, push and authenticator', function() {
+      it('returns authenticator, push and otp', function() {
         expect(new EnrollmentFlow({
           factors: {
             sms: {
               enabled: true
             },
-            pushNotification: {
+            push: {
               enabled: true
             }
           }
         })
         .getAvailableFactors())
-        .to.eql(['sms', 'pushNotification', 'authenticator']);
+        .to.eql(['sms', 'push', 'otp']);
       });
     });
   });
@@ -205,11 +205,11 @@ describe('enrollment/enrollment_flow', function() {
       });
     });
 
-    describe('for authenticator', function() {
+    describe('for otp', function() {
       it('returns authenticator strategy', function() {
         const flow = new EnrollmentFlow({
             factors: {
-              pushNotification: {
+              push: {
                 enabled: true
               }
             },
@@ -220,9 +220,9 @@ describe('enrollment/enrollment_flow', function() {
             }
           }, null, {
             guardianClient
-          }).forFactor('authenticator');
+          }).forFactor('otp');
 
-        expect(flow).to.be.an.instanceOf(AuthenticatorEnrollmentStrategy);
+        expect(flow).to.be.an.instanceOf(OTPEnrollmentStrategy);
         expect(flow.data).to.eql({
             enrollmentTxId: '1234',
             transactionToken: '12345',
@@ -237,7 +237,7 @@ describe('enrollment/enrollment_flow', function() {
       it('returns push notification strategy', function() {
         const flow = new EnrollmentFlow({
             factors: {
-              pushNotification: {
+              push: {
                 enabled: true
               }
             },
@@ -248,7 +248,7 @@ describe('enrollment/enrollment_flow', function() {
             }
           }, null, {
             guardianClient
-          }).forFactor('pushNotification');
+          }).forFactor('push');
 
         expect(flow).to.be.an.instanceOf(PNEnrollmentStrategy);
         expect(flow.data).to.eql({

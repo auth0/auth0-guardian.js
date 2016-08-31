@@ -1,14 +1,14 @@
 
 const expect = require('chai').expect;
-const ManualAuthenticatorStrategy = require('../../../lib/auth/strategies/manual_authenticator_strategy');
+const OTPAuthenticatorStrategy = require('../../../lib/auth/strategies/otp_authenticator_strategy');
 const errors = require('../../../lib/errors');
 const sinon = require('sinon');
 
-describe('auth/auth_flow/manual_authenticator_strategy', function() {
+describe('auth/auth_flow/otp_authenticator_strategy', function() {
 
   describe('#request', function() {
-    it('rejects the promise', function() {
-      expect(new ManualAuthenticatorStrategy({
+    it('resolves the promise', function() {
+      expect(new OTPAuthenticatorStrategy({
       }, null, {
         guardianClient: {}
       }).request()).to.be.rejectedWith(errors.OperationNotAllowedError);
@@ -18,7 +18,7 @@ describe('auth/auth_flow/manual_authenticator_strategy', function() {
   describe('#verify', function() {
     describe('when verificationData is not provided', function() {
       it('rejects with field required error', function() {
-        expect(new ManualAuthenticatorStrategy({
+        expect(new OTPAuthenticatorStrategy({
           transactionToken: '123'
         }, null, {
           guardianClient: {}
@@ -28,7 +28,7 @@ describe('auth/auth_flow/manual_authenticator_strategy', function() {
 
     describe('when otpCode is not provided', function() {
       it('rejects with field required error', function() {
-        expect(new ManualAuthenticatorStrategy({
+        expect(new OTPAuthenticatorStrategy({
           transactionToken: '123'
         }, null, {
           guardianClient: {}
@@ -41,7 +41,7 @@ describe('auth/auth_flow/manual_authenticator_strategy', function() {
       it('fulfills the promise', function() {
         const post = sinon.stub().returns(Promise.resolve());
 
-        return expect(new ManualAuthenticatorStrategy({
+        return expect(new OTPAuthenticatorStrategy({
             transactionToken: '123.123.123'
           }, null, {
             guardianClient: { post }

@@ -1,5 +1,5 @@
 const chai = require('chai');
-const AuthenticatorEnrollmentStrategy = require('../../../lib/enrollment/strategies/authenticator_enrollment_strategy');
+const OTPEnrollmentStrategy = require('../../../lib/enrollment/strategies/otp_enrollment_strategy');
 const sinon = require('sinon');
 const chaiAsPromised = require("chai-as-promised");
 const errors = require('../../../lib/errors');
@@ -8,11 +8,11 @@ const expect = chai.expect;
 
 chai.use(chaiAsPromised);
 
-describe('enrollment/strategies/authenticator_enrollment_strategy', function() {
+describe('enrollment/strategies/otp_enrollment_strategy', function() {
 
   describe('#enroll', function() {
     it('is callable and returns a promise', function() {
-      expect(new AuthenticatorEnrollmentStrategy({
+      expect(new OTPEnrollmentStrategy({
 
         }, null, {
 
@@ -25,7 +25,7 @@ describe('enrollment/strategies/authenticator_enrollment_strategy', function() {
       it('throws an error', function() {
         const post = sinon.stub().returns(Promise.resolve());
 
-        const flow = new AuthenticatorEnrollmentStrategy({
+        const flow = new OTPEnrollmentStrategy({
           transactionToken: '1234'
         }, null, {
           guardianClient: { post }
@@ -39,7 +39,7 @@ describe('enrollment/strategies/authenticator_enrollment_strategy', function() {
       it('fulfills the promise', function() {
         const post = sinon.stub().returns(Promise.resolve());
 
-        const flow = new AuthenticatorEnrollmentStrategy({
+        const flow = new OTPEnrollmentStrategy({
             transactionToken: '1234'
           }, null, {
             guardianClient: { post }
@@ -53,7 +53,7 @@ describe('enrollment/strategies/authenticator_enrollment_strategy', function() {
       it('fulfills the promise', function() {
         const post = sinon.stub().returns(Promise.reject(new Error()));
 
-        const flow = new AuthenticatorEnrollmentStrategy({
+        const flow = new OTPEnrollmentStrategy({
             transactionToken: '1234'
           }, null, {
             guardianClient: { post }
@@ -69,7 +69,7 @@ describe('enrollment/strategies/authenticator_enrollment_strategy', function() {
     it('returns the correct url', function() {
       const post = sinon.stub().returns(Promise.reject(new Error()));
 
-      const flow = new AuthenticatorEnrollmentStrategy({
+      const flow = new OTPEnrollmentStrategy({
           transactionToken: '1234',
           enrollment: {
             otpSecret: '1234555'
