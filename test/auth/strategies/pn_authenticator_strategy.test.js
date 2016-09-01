@@ -7,11 +7,11 @@ const sinon = require('sinon');
 describe('auth/auth_flow/pn_authenticator_strategy', function() {
 
   describe('#verify', function() {
-    it('rejects the promise', function() {
-      expect(new PNAuthenticatorStrategy({
+    it('resolves the promise', function() {
+      return expect(new PNAuthenticatorStrategy({
       }, null, {
         guardianClient: {}
-      }).verify()).to.be.rejectedWith(errors.OperationNotAllowedError);
+      }).verify()).to.be.fulfilled;
     });
   });
 

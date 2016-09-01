@@ -8,17 +8,17 @@ describe('auth/auth_flow/otp_authenticator_strategy', function() {
 
   describe('#request', function() {
     it('resolves the promise', function() {
-      expect(new OTPAuthenticatorStrategy({
+      return expect(new OTPAuthenticatorStrategy({
       }, null, {
         guardianClient: {}
-      }).request()).to.be.rejectedWith(errors.OperationNotAllowedError);
+      }).request()).to.be.fulfilled;
     });
   });
 
   describe('#verify', function() {
     describe('when verificationData is not provided', function() {
       it('rejects with field required error', function() {
-        expect(new OTPAuthenticatorStrategy({
+        return expect(new OTPAuthenticatorStrategy({
           transactionToken: '123'
         }, null, {
           guardianClient: {}

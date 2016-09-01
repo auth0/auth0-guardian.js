@@ -12,11 +12,11 @@ describe('enrollment/strategies/otp_enrollment_strategy', function() {
 
   describe('#enroll', function() {
     it('is callable and returns a promise', function() {
-      expect(new OTPEnrollmentStrategy({
+      return expect(new OTPEnrollmentStrategy({
 
         }, null, {
 
-        }).enroll()).to.be.rejectedWith(errors.OperationNotAllowedError);
+        }).enroll()).to.be.fulfilled;
     });
   });
 

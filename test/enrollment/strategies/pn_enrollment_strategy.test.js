@@ -12,21 +12,21 @@ describe('enrollment/strategies/pn_enrollment_strategy', function() {
 
   describe('#confirm', function() {
     it('is callable and returns a promise', function() {
-      expect(new PNEnrollmentStrategy({
+      return expect(new PNEnrollmentStrategy({
 
         }, null, {
 
-        }).confirm()).to.be.rejectedWith(errors.OperationNotAllowedError)
+        }).confirm()).to.be.fulfilled;
     });
   });
 
   describe('#enroll', function() {
     it('is callable and returns a promise', function() {
-      expect(new PNEnrollmentStrategy({
+      return expect(new PNEnrollmentStrategy({
 
         }, null, {
 
-        }).confirm()).to.be.rejectedWith(errors.OperationNotAllowedError)
+        }).confirm()).to.be.fulfilled;
     });
   });
 

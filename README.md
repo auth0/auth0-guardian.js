@@ -12,10 +12,77 @@ even when the backend api still uses the old names.
 
 ## Installation
 ```javascript
-	npm install guardian.js
+npm install guardian.js
+```
+## Basic Usage
+
+### Push notification auth example
+Asuming that the enrollment is confirmed
+
+```javascript
+const GuardianJS = require('guardian-js');
+const guardian = new GuardianJS({
+	requestToken: //...,
+	serviceDomain: //...,
+	tenant: {
+		name: //...,
+		friendlyName: //...
+	}
+});
+
+guardian.start().then((transaction) => {
+	if (transaction.isEnrolled()) {
+		return transaction.startAuthForDefaultFactor().request();
+	} else {
+		// Handle enrollment
+	}
+})
+.catch(err => {
+	console.error(err);
+});
+
+guardian.once('auth-complete', ({ loginToken }) => {
+	console.log('login token', loginToken); // Here you have to send the token to the server
+});
 ```
 
-## Usage
+### Push notification enrollment example
+Asuming that the enrollment is not confirmed
+
+```javascript
+const GuardianJS = require('guardian-js');
+const guardian = new GuardianJS({
+	requestToken: //...,
+	serviceDomain: //...,
+	tenant: {
+		name: //...,
+		friendlyName: //...
+	}
+});
+
+guardian.start().then((transaction) => {
+	if (transaction.isEnrolled()) {
+		// Handle enrollment (see above)
+	} else {
+		const uri = transaction.startEnrollment().forFactor('push').getUri();
+
+		// At this point you should render QR, once the QR is scanned the rest of
+		// the enrollment process is handled by your phone, as a convenience and
+		// to handle all flows in an isomorphic way, the #enroll() and #verify()
+		// methods are available and return a promise but they are NOOP methods.
+	}
+})
+.catch(err => {
+	console.error(err);
+});
+
+// TODO: We probably need more context on this event
+guardian.once('enrollment-confirmed', () => {
+	// Enrollment complete
+});
+```
+
+## Full API Usage
 First of all you need to instantiate the library
 
 ```javascript
@@ -65,14 +132,22 @@ you can start the auth flow
 const authFlow = transaction.startAuth();
 ```
 
+As a shorthand you can start a transaction directly with the default factor
+```javascript
+const defaultFactorAuth = transaction.startAuthForDefaultFactor();
+
+// Then you can do defaultFactorAuth.request()
+// and defaultFactorAuth.verify()
+```
+
 ### Events
 ```javascript
-guardian.events.on('enrollment-complete', function() {
+guardian.events.on('enrollment-confirmed', function() {
 	// Enrollment confirmed
 });
 
 guardian.events.on('auth-complete', function({ loginToken }) {
-	// Enrollment confirmed
+	// Auth complete
 });
 
 guardian.events.on('transaction-timeout', function() {
@@ -115,7 +190,7 @@ authenticatorEnrollment.confirm({ otpCode: '123456' })
 	.then(() => { ... });
 ```
 
-#### Authenticator enrollment
+#### OTP enrollment
 Get URI to generate enrollment QR
 ```javascript
 authenticatorEnrollment.getUri();
@@ -145,7 +220,7 @@ Get default factor
 authFlow.getDefaultFactor() // === sms|authenticator|pushNotification
 ```
 
-Start auth for factor
+Start auth for a factor
 ```javascript
 const pushNotificationAuth = authFlow.forFactor('push');
 const smsAuth = authFlow.forFactor('sms');
@@ -180,16 +255,7 @@ pushNotificationAuth.request()
 	});
 ```
 
-#### Manual Guardian auth
-Confirm login manually entering the otp code
-```javascript
-guardianAuthManual.verify({ otpCode: '123456' })
-	.then(() => {
-		//...
-	});
-```
-
-#### Authenticator auth
+#### OTP Auth
 Confirm login manually entering the otp code
 ```javascript
 authenticatorAuth.verify({ otpCode: '123456' })

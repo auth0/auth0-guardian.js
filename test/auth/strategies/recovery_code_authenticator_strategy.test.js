@@ -7,11 +7,11 @@ const sinon = require('sinon');
 describe('auth/auth_flow/otp_authenticator_strategy', function() {
 
   describe('#request', function() {
-    it('rejects the promise', function() {
-      expect(new RecoveryCodeAuthenticatorStrategy({
+    it('resolves the promise', function() {
+      return expect(new RecoveryCodeAuthenticatorStrategy({
       }, null, {
         guardianClient: {}
-      }).request()).to.be.rejectedWith(errors.OperationNotAllowedError);
+      }).request()).to.be.fulfilled;
     });
   });
 
