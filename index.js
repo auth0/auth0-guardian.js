@@ -1,6 +1,8 @@
+'use strict';
+
 const EventEmitter = require('events').EventEmitter;
 const Transaction = require('./lib/transaction');
-const guardianHttpClient = require('/lib/utils/guardian_request');
+const guardianHttpClient = require('./lib/utils/guardian_request');
 const errors = require('./lib/errors');
 const factorEntity = require('./lib/entities/factor');
 const enrollmentEntity = require('./lib/entities/enrollment');
@@ -8,13 +10,19 @@ const enrollmentEntity = require('./lib/entities/enrollment');
 module.exports = class GuardianJS {
 
   /**
-   * @param {string} serviceDomain
+   * @param {string} options.serviceDomain
+   * @param {string} options.tenant.name
+   * @param {string} options.tenant.friendlyName
+   *
+   * @param {GuardianClient} dependencies.guardianClient
    */
-  constructor(options) {
-    this.events = new EventEmitter();
-    this.tenant = this.options.tenant;
+  constructor(options, configuration, dependencies) {
+    dependencies = dependencies || {};
 
-    this.guardianClient = guardianHttpClient({ serviceDomain: options.serviceDomain });
+    this.events = new EventEmitter();
+    this.tenant = options.tenant;
+
+    this.guardianClient = dependencies.guardianClient || guardianHttpClient({ serviceDomain: options.serviceDomain });
   }
 
   /**
@@ -25,10 +33,10 @@ module.exports = class GuardianJS {
       .then((txData) => {
         const factors = {
           sms: {
-            enabled: txData.featureSwitches.mfa_sms.enroll
+            enabled: txData.featureSwitches.mfaSms.enroll
           },
           push: {
-            enabled: txData.featureSwitches.mfa_app.enroll
+            enabled: txData.featureSwitches.mfaApp.enroll
           }
         };
 
@@ -36,7 +44,7 @@ module.exports = class GuardianJS {
 
         if (!factorEntity.isAnyFactorEnabled(factors) &&
             !enrollmentEntity.isEnrollmentConfirmed(enrollment)) {
-          return Promise.reject(errors.EnrollmentNotAllowedError());
+          return Promise.reject(new errors.EnrollmentNotAllowedError());
         }
 
         const tx = new Transaction({
@@ -44,7 +52,7 @@ module.exports = class GuardianJS {
           tenant: this.tenant,
           transactionToken: txData.transactionToken,
           recoveryCode: txData.deviceAccount.recoveryCode,
-          enrollmentTxId: txData.deviceAccount.enrollmentTxId,
+          enrollmentTxId: txData.enrollmentTxId,
           factors: factors
         }, null, {
           guardianClient: this.guardianClient,
