@@ -11,6 +11,7 @@ module.exports = class GuardianJS {
 
   /**
    * @param {string} options.serviceDomain
+   * @param {string} options.requestToken
    * @param {string} options.tenant.name
    * @param {string} options.tenant.friendlyName
    *
@@ -21,6 +22,7 @@ module.exports = class GuardianJS {
 
     this.events = new EventEmitter();
     this.tenant = options.tenant;
+    this.requestToken = options.requestToken;
 
     this.guardianClient = dependencies.guardianClient || guardianHttpClient({ serviceDomain: options.serviceDomain });
   }
@@ -29,7 +31,7 @@ module.exports = class GuardianJS {
    * Starts a Guardian login transaction
    */
   start() {
-    return this.guardianClient.post('/start-flow')
+    return this.guardianClient.post('/start-flow', this.requestToken)
       .then((txData) => {
         const factors = {
           sms: {
@@ -47,14 +49,27 @@ module.exports = class GuardianJS {
           return Promise.reject(new errors.EnrollmentNotAllowedError());
         }
 
-        const tx = new Transaction({
+        this.guardianClient.listenTo('login-complete', this.requestToken, this.events.emit.bind(this.events, 'login-complete'));
+        this.guardianClient.listenTo('login-rejected', this.requestToken, this.events.emit.bind(this.events, 'login-rejected'));
+        this.guardianClient.listenTo('enrollment-complete', this.requestToken, this.events.emit.bind(this.events, 'enrollment-complete'));
+        this.guardianClient.listenTo('error', this.requestToken, this.events.emit.bind(this.events, 'error'));
+
+        const data = {
           enrollment: enrollment,
           tenant: this.tenant,
           transactionToken: txData.transactionToken,
-          recoveryCode: txData.deviceAccount.recoveryCode,
-          enrollmentTxId: txData.enrollmentTxId,
           factors: factors
-        }, null, {
+        };
+
+        if (txData.deviceAccount.recoveryCode) {
+          data.recoveryCode = txData.deviceAccount.recoveryCode;
+        }
+
+        if (txData.enrollmentTxId) {
+          data.enrollmentTxId = txData.enrollmentTxId;
+        }
+
+        const tx = new Transaction(data, null, {
           guardianClient: this.guardianClient,
         });
 
