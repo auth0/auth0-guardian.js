@@ -74,15 +74,15 @@ describe('enrollment/strategies/otp_enrollment_strategy', function() {
           enrollment: {
             otpSecret: '1234555'
           },
-          tenant: {
+          issuer: {
             name: 'mistery',
-            friendlyName: 'Mistery'
+            label: 'Mistery'
           }
         }, null, {
           guardianClient: { post }
         });
 
-      expect(flow.getUri()).to.equal('otpauth://totp/mistery%3AMistery?secret=1234555');
+      expect(flow.getUri()).to.equal('otpauth://totp/Mistery?secret=1234555');
     });
   });
 });

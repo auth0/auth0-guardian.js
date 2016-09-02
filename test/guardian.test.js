@@ -30,9 +30,9 @@ describe('Guardian.js', function() {
           const guardianJS = new GuardianJS({
             serviceDomain: 'awesome.guardian.auth0.com',
             requestToken: '123.123.123',
-            tenant: {
+            issuer: {
               name: 'awesome',
-              friendlyName: 'Awesome',
+              label: 'Awesome',
             },
           }, null, {
             guardianClient: { post }
@@ -63,9 +63,9 @@ describe('Guardian.js', function() {
           const guardianJS = new GuardianJS({
             serviceDomain: 'awesome.guardian.auth0.com',
             requestToken: '123.123.123',
-            tenant: {
+            issuer: {
               name: 'awesome',
-              friendlyName: 'Awesome',
+              label: 'Awesome',
             },
           }, null, {
             guardianClient: { post, listenTo }
@@ -80,9 +80,9 @@ describe('Guardian.js', function() {
                 otpSecret: '12345',
                 recoveryCode: '123456789',
               },
-              tenant: {
+              issuer: {
                 name: 'awesome',
-                friendlyName: 'Awesome',
+                label: 'Awesome',
               },
               transactionToken: '123.123.123',
               recoveryCode: '123456789',
@@ -128,9 +128,9 @@ describe('Guardian.js', function() {
         const guardianJS = new GuardianJS({
           serviceDomain: 'awesome.guardian.auth0.com',
           requestToken: '123.123.123',
-          tenant: {
+          issuer: {
             name: 'awesome',
-            friendlyName: 'Awesome',
+            label: 'Awesome',
           },
         }, null, {
           guardianClient: { post, listenTo }
@@ -142,9 +142,9 @@ describe('Guardian.js', function() {
             enrollment: {
               status: 'confirmed',
             },
-            tenant: {
+            issuer: {
               name: 'awesome',
-              friendlyName: 'Awesome',
+              label: 'Awesome',
             },
             transactionToken: '123.123.123',
             factors: {

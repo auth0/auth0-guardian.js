@@ -42,15 +42,15 @@ describe('enrollment/strategies/pn_enrollment_strategy', function() {
             otpSecret: '1234555'
           },
           enrollmentTxId: '1234',
-          tenant: {
+          issuer: {
             name: 'mistery',
-            friendlyName: 'Mistery'
+            label: 'Mistery'
           }
         }, null, {
           guardianClient: { getBaseUri }
         });
 
-      expect(flow.getUri()).to.equal('otpauth://totp/mistery:Mistery?secret=1234555&enrollment_tx_id=1234' +
+      expect(flow.getUri()).to.equal('otpauth://totp/Mistery?secret=1234555&enrollment_tx_id=1234' +
         '&issuer=mistery&id=AAA&base_url=https%3A%2F%2Fme.guardian.com&algorithm=sha1&digits=6&counter=0&period=30');
     });
   });

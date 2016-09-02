@@ -13,8 +13,8 @@ module.exports = class GuardianJS {
   /**
    * @param {string} options.serviceDomain
    * @param {string} options.requestToken
-   * @param {string} options.tenant.name
-   * @param {string} options.tenant.friendlyName
+   * @param {string} options.issuer.label
+   * @param {string} options.issuer.name
    *
    * @param {GuardianClient} dependencies.guardianClient
    */
@@ -22,7 +22,7 @@ module.exports = class GuardianJS {
     dependencies = dependencies || {};
 
     this.events = new EventEmitter();
-    this.tenant = options.tenant;
+    this.issuer = options.issuer;
     this.requestToken = options.requestToken;
 
     this.guardianClient = dependencies.guardianClient || guardianHttpClient({ serviceDomain: options.serviceDomain });
@@ -57,7 +57,7 @@ module.exports = class GuardianJS {
 
         const data = {
           enrollment: enrollment,
-          tenant: this.tenant,
+          issuer: this.issuer,
           transactionToken: txData.transactionToken,
           factors: factors
         };

@@ -24,9 +24,9 @@ const GuardianJS = require('guardian-js');
 const guardian = new GuardianJS({
 	requestToken: //...,
 	serviceDomain: //...,
-	tenant: {
+	issuer: {
 		name: //...,
-		friendlyName: //...
+		label: //...
 	}
 });
 
@@ -54,9 +54,9 @@ const GuardianJS = require('guardian-js');
 const guardian = new GuardianJS({
 	requestToken: //...,
 	serviceDomain: //...,
-	tenant: {
+	issuer: {
 		name: //...,
-		friendlyName: //...
+		label: //...
 	}
 });
 
@@ -90,7 +90,7 @@ const GuardianJS = require('guardian-js');
 const guardian = new GuardianJS({
 	requestToken: //...,
 	serviceDomain: //...,
-	tenant: {
+	issuer: {
 		name: //...,
 		friendlyName: //...
 	}
