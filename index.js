@@ -6,6 +6,7 @@ const guardianHttpClient = require('./lib/utils/guardian_request');
 const errors = require('./lib/errors');
 const factorEntity = require('./lib/entities/factor');
 const enrollmentEntity = require('./lib/entities/enrollment');
+const Promise = require('bluebird');
 
 module.exports = class GuardianJS {
 
