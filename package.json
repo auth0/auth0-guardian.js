@@ -22,13 +22,15 @@
     "url-join": "^1.1.0"
   },
   "devDependencies": {
+    "chai": "^3.5.0",
     "chai-as-promised": "^5.3.0",
     "mocha": "^3.0.2",
-    "chai": "^3.5.0",
-    "sinon": "^1.17.5"
+    "sinon": "^1.17.5",
+    "webpack": "^1.13.2"
   },
   "scripts": {
-    "test": "mocha --recursive test"
+    "test": "mocha --recursive test",
+    "build": "webpack ./index.js bundle.js"
   },
   "repository": {
     "type": "git",

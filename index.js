@@ -8,7 +8,7 @@ const factorEntity = require('./lib/entities/factor');
 const enrollmentEntity = require('./lib/entities/enrollment');
 const Promise = require('bluebird');
 
-module.exports = class GuardianJS {
+global.GuardianJS = module.exports = class GuardianJS {
 
   /**
    * @param {string} options.serviceDomain
@@ -50,10 +50,10 @@ module.exports = class GuardianJS {
           return Promise.reject(new errors.EnrollmentNotAllowedError());
         }
 
-        this.guardianClient.listenTo('login-complete', this.requestToken, this.events.emit.bind(this.events, 'login-complete'));
-        this.guardianClient.listenTo('login-rejected', this.requestToken, this.events.emit.bind(this.events, 'login-rejected'));
-        this.guardianClient.listenTo('enrollment-complete', this.requestToken, this.events.emit.bind(this.events, 'enrollment-complete'));
-        this.guardianClient.listenTo('error', this.requestToken, this.events.emit.bind(this.events, 'error'));
+        this.guardianClient.listenTo('login-complete', txData.transactionToken, this.events.emit.bind(this.events, 'login-complete'));
+        this.guardianClient.listenTo('login-rejected', txData.transactionToken, this.events.emit.bind(this.events, 'login-rejected'));
+        this.guardianClient.listenTo('enrollment-complete', txData.transactionToken, this.events.emit.bind(this.events, 'enrollment-complete'));
+        this.guardianClient.listenTo('error', txData.transactionToken, this.events.emit.bind(this.events, 'error'));
 
         const data = {
           enrollment: enrollment,
@@ -78,3 +78,4 @@ module.exports = class GuardianJS {
       });
   }
 };
+
