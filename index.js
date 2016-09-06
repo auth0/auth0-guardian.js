@@ -7,6 +7,7 @@ const errors = require('./lib/errors');
 const factorEntity = require('./lib/entities/factor');
 const enrollmentEntity = require('./lib/entities/enrollment');
 const Promise = require('bluebird');
+const JWTToken = require('./lib/utils/jwt_token');
 
 global.GuardianJS = module.exports = class GuardianJS {
 
@@ -57,10 +58,13 @@ global.GuardianJS = module.exports = class GuardianJS {
           .listenTo('enrollment-complete', this.events.emit.bind(this.events, 'enrollment-complete'))
           .listenTo('error', this.events.emit.bind(this.events, 'error'));
 
+        const transactionToken = new JWTToken(txData.transactionToken)
+        transactionToken.events.once('token-expired', this.events.emit.bind(this.events, 'timeout'));
+
         const data = {
           enrollment: enrollment,
           issuer: this.issuer,
-          transactionToken: txData.transactionToken,
+          transactionToken: transactionToken,
           factors: factors
         };
 

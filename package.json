@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "bluebird": "^3.4.5",
+    "jwt-decode": "^2.1.0",
     "lodash.camelcase": "^4.3.0",
     "lodash.create": "^4.2.0",
     "lodash.foreach": "^4.5.0",
