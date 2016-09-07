@@ -24,7 +24,7 @@ global.GuardianJS = module.exports = class GuardianJS {
 
     this.events = new EventEmitter();
     this.issuer = options.issuer;
-    this.requestToken = options.requestToken;
+    this.requestToken = new JWTToken(options.requestToken);
 
     this.guardianClient = dependencies.guardianClient || guardianHttpClient({ serviceDomain: options.serviceDomain });
   }
@@ -33,7 +33,9 @@ global.GuardianJS = module.exports = class GuardianJS {
    * Starts a Guardian login transaction
    */
   start() {
-    return this.guardianClient.post('/start-flow', this.requestToken)
+    this.requestToken.once('token-expired', () => this.hub.emit('timeout'));
+
+    return this.guardianClient.post('/start-flow', this.requestToken.getToken())
       .then((txData) => {
         const factors = {
           sms: {
@@ -51,15 +53,9 @@ global.GuardianJS = module.exports = class GuardianJS {
           return Promise.reject(new errors.EnrollmentNotAllowedError());
         }
 
-        this.guardianClient.socket()
-          .open(txData.transactionToken)
-          .listenTo('login-complete', this.events.emit.bind(this.events, 'login-complete'))
-          .listenTo('login-rejected', this.events.emit.bind(this.events, 'login-rejected'))
-          .listenTo('enrollment-complete', this.events.emit.bind(this.events, 'enrollment-complete'))
-          .listenTo('error', this.events.emit.bind(this.events, 'error'));
-
+        this.requestToken.removeAllListeners();
         const transactionToken = new JWTToken(txData.transactionToken)
-        transactionToken.events.once('token-expired', this.events.emit.bind(this.events, 'timeout'));
+        transactionToken.once('token-expired', () => this.hub.emit('timeout'));
 
         const data = {
           enrollment: enrollment,
@@ -78,6 +74,7 @@ global.GuardianJS = module.exports = class GuardianJS {
 
         const tx = new Transaction(data, null, {
           guardianClient: this.guardianClient,
+          hub: this.events
         });
 
         return tx;
