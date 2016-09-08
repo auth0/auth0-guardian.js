@@ -2,17 +2,20 @@ language: node_js
 node_js:
 - '4.2'
 env:
-  - CXX=g++-4.8
+- CXX=g++-4.8
 sudo: false
 addons:
   apt:
     sources:
-      - ubuntu-toolchain-r-test
+    - ubuntu-toolchain-r-test
     packages:
-      - g++-4.8
+    - g++-4.8
 branches:
   only:
   - master
 cache:
   directories:
-    - node_modules
+  - node_modules
+notifications:
+  slack:
+    secure: KK072he/V6VyEYhVeCIfs0D+zHk9b7UI6JojpXYmntSmrnYNrUoYM7IldymT0swbCLyrlskAA+sTlbkEymEZkj9+3J3eNvw9PDTbL/0ECwv9SBBM/WUP03tRNo/HjAFcZQjQxvLRc0CEmzs3Xc4+BdwIkj3hPc3s9ZV01+JQSziGCW2LfuoVNPHaNA2JD0kUpeJGq0tPrGn0AlYWoFxLA0hZIykgkl/5Ti1OAwebFqxybQZ+Io47gkwHc6I0eBNJk460UG2XEXGAA1Ev6DgH01ahleaNwmNhVn3EV6FVkJy/XrIoHp7g9x1miSoUK3Q9+U04ZJdH/P6uZHnI7xSQiEBDdAtRCJmW2pfPXfyABChSw1PinxXdeNDakRRhOOL/NDhskyrYQ7lTebXkO9d2Vgc0TrU6KGAoxE3D6LJ684Vj4HN8fuZfL/LV2o6ZCo9bMhUsuqO/cvLjqZOex9/xwlss4WvBEVMAP26V5m+2+L0WUMi3NnGdHhUbBMyUU25dX8ItqiP6f3CsoFuXBeCdKcn0c1PfbVKFYBCiY04QII0HNLkbCPC6gl52ZKYkmGYYqLLWxniS2bqwFvLLfROhfCaD3UGu6eECoPqq0crzXP3s2cY+VPl3yl0NYowATpboq3tTeJ2TxEz6zAybEZBPyeXUBIo39FXvcG2gws6PXyI=
