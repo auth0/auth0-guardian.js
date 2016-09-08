@@ -8,6 +8,7 @@ const factorEntity = require('./lib/entities/factor');
 const enrollmentEntity = require('./lib/entities/enrollment');
 const Promise = require('bluebird');
 const JWTToken = require('./lib/utils/jwt_token');
+const asyncEmit = require('./lib/utils/async_emit');
 
 global.GuardianJS = module.exports = class GuardianJS {
 
@@ -22,11 +23,18 @@ global.GuardianJS = module.exports = class GuardianJS {
   constructor(options, configuration, dependencies) {
     dependencies = dependencies || {};
 
+    this.hub = new EventEmitter();
     this.events = new EventEmitter();
     this.issuer = options.issuer;
     this.requestToken = new JWTToken(options.requestToken);
 
     this.guardianClient = dependencies.guardianClient || guardianHttpClient({ serviceDomain: options.serviceDomain });
+
+    this.hub.on('login-complete', asyncEmit(this.events, 'login-complete'));
+    this.hub.on('login-rejected', asyncEmit(this.events, 'login-rejected'));
+    this.hub.on('enrollment-complete', asyncEmit(this.events, 'enrollment-complete'));
+    this.hub.on('timeout', asyncEmit(this.events, 'timeout'));
+    this.hub.on('error', asyncEmit(this.events, 'error'));
   }
 
   /**
@@ -74,7 +82,7 @@ global.GuardianJS = module.exports = class GuardianJS {
 
         const tx = new Transaction(data, null, {
           guardianClient: this.guardianClient,
-          hub: this.events
+          hub: this.hub
         });
 
         return tx;
