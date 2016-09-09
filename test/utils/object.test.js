@@ -217,6 +217,60 @@ describe('utils/object', function() {
     });
   });
 
+  describe('#toArray', function() {
+    describe('when input is not provided', function() {
+      it('returns the input object', function() {
+        expect(object.toArray(null)).to.be.null;
+        expect(object.toArray(undefined)).to.be.undefined;
+      });
+    });
+
+    describe('when an array-like object is provided', function() {
+      it('returns an array', function() {
+        expect(object.toArray({
+          0: 'a',
+          1: 'b',
+          length: 2
+        })).to.be.instanceOf(Array).and.eql([
+          'a',
+          'b',
+        ]);
+      });
+    });
+  });
+
+  describe('#isIntegerString', function() {
+    describe('for integer as strings', function() {
+      it('returns true', function() {
+        expect(object.isIntegerString('123456')).to.be.true;
+      });
+    });
+
+    describe('for integers', function() {
+      it('returns true', function() {
+        expect(object.isIntegerString(123)).to.be.true;
+      });
+    });
+
+    describe('for integer+numbers as strings', function() {
+      it('returns false', function() {
+        expect(object.isIntegerString('1234abc123s')).to.be.false;
+      });
+    });
+
+    describe('for floats as strings (comma separated)', function() {
+      it('returns false', function() {
+        expect(object.isIntegerString('1234,12')).to.be.false;
+      });
+    });
+
+    describe('for floats as strings (dot separated)', function() {
+      it('returns false', function() {
+        expect(object.isIntegerString('1234.12')).to.be.false;
+      });
+    });
+  });
+
   describe('#mapKeyValue', function() {
 
     describe('for array', function() {

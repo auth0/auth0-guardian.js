@@ -113,7 +113,8 @@ describe('auth/auth_flow', function() {
                 phoneNumber: '+54 122222222'
               }
             }, null, {
-              guardianClient
+              guardianClient,
+              socket
             })
             .forFactor('sms');
 

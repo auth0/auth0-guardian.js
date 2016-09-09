@@ -6,15 +6,23 @@ const OTPEnrollmentStrategy = require('../../lib/enrollment/strategies/otp_enrol
 const PNEnrollmentStrategy = require('../../lib/enrollment/strategies/pn_enrollment_strategy');
 const SMSEnrollmentStrategy = require('../../lib/enrollment/strategies/sms_enrollment_strategy');
 const errors = require('../../lib/errors');
+const EventEmitter = require('events').EventEmitter;
 
-describe('enrollment/enrollment_flow', function() {
+describe.only('enrollment/enrollment_flow', function() {
   const guardianClient = {};
+  let hub;
+  let socket;
+
+  beforeEach(function() {
+    hub = new EventEmitter();
+    socket = new EventEmitter();
+  });
 
   describe('#getRecoveryCode', function() {
     it('returns the recovery code', function() {
       expect(new EnrollmentFlow({
         recoveryCode: '12345'
-      }).getRecoveryCode()).to.equal('12345');
+      }, null, {}).getRecoveryCode()).to.equal('12345');
     });
   });
 
@@ -28,7 +36,7 @@ describe('enrollment/enrollment_flow', function() {
                 enabled: true
               }
             }
-          }).canEnrollWithFactor('otp')).to.be.true;
+          }, null, {}).canEnrollWithFactor('otp')).to.be.true;
         });
       });
 
@@ -40,7 +48,7 @@ describe('enrollment/enrollment_flow', function() {
                 enabled: false
               }
             }
-          }).canEnrollWithFactor('otp')).to.be.false;
+          }, null, {}).canEnrollWithFactor('otp')).to.be.false;
         });
       });
     });
@@ -54,7 +62,7 @@ describe('enrollment/enrollment_flow', function() {
                 enabled: true
               }
             }
-          }).canEnrollWithFactor('push')).to.be.true;
+          }, null, {}).canEnrollWithFactor('push')).to.be.true;
         });
       });
 
@@ -66,7 +74,7 @@ describe('enrollment/enrollment_flow', function() {
                 enabled: false
               }
             }
-          }).canEnrollWithFactor('push')).to.be.false;
+          }, null, {}).canEnrollWithFactor('push')).to.be.false;
         });
       });
     });
@@ -80,7 +88,7 @@ describe('enrollment/enrollment_flow', function() {
                 enabled: true
               }
             }
-          }).canEnrollWithFactor('sms')).to.be.true;
+          }, null, {}).canEnrollWithFactor('sms')).to.be.true;
         });
       });
 
@@ -92,7 +100,7 @@ describe('enrollment/enrollment_flow', function() {
                 enabled: false
               }
             }
-          }).canEnrollWithFactor('sms')).to.be.false;
+          }, null, {}).canEnrollWithFactor('sms')).to.be.false;
         });
       });
     });
@@ -106,7 +114,7 @@ describe('enrollment/enrollment_flow', function() {
                 enabled: false
               }
             }
-          }).canEnrollWithFactor('invalid');
+          }, null, {}).canEnrollWithFactor('invalid');
         }).to.throw(errors.FactorNotFoundError);
       });
     });
@@ -124,7 +132,7 @@ describe('enrollment/enrollment_flow', function() {
               enabled: true
             }
           }
-        })
+        }, null, {})
         .getAvailableFactors())
         .to.eql(['push', 'otp']);
       });
@@ -141,7 +149,7 @@ describe('enrollment/enrollment_flow', function() {
               enabled: true
             }
           }
-        })
+        }, null, {})
         .getAvailableFactors())
         .to.eql(['sms', 'push', 'otp']);
       });
@@ -158,7 +166,7 @@ describe('enrollment/enrollment_flow', function() {
                 enabled: true
               }
             }
-          }).forFactor('invalid');
+          }, null, {}).forFactor('invalid');
         }).to.throw(errors.FactorNotFoundError);
       });
     });
@@ -172,7 +180,7 @@ describe('enrollment/enrollment_flow', function() {
                 enabled: false
               }
             }
-          }).forFactor('sms');
+          }, null, {}).forFactor('sms');
         }).to.throw(errors.EnrollmentNotAllowedError);
       });
     });
@@ -185,19 +193,27 @@ describe('enrollment/enrollment_flow', function() {
                 enabled: true
               }
             },
+            issuer: {
+              label: '123'
+            },
             enrollmentTxId: '1234',
             transactionToken: '12345',
             enrollment: {
               id: '123'
             }
           }, null, {
-            guardianClient
+            guardianClient,
+            hub,
+            socket
           }).forFactor('sms');
 
         expect(flow).to.be.an.instanceOf(SMSEnrollmentStrategy);
         expect(flow.data).to.eql({
             enrollmentTxId: '1234',
             transactionToken: '12345',
+            issuer: {
+              label: '123'
+            },
             enrollment: {
               id: '123'
             }
@@ -213,19 +229,27 @@ describe('enrollment/enrollment_flow', function() {
                 enabled: true
               }
             },
+            issuer: {
+              label: '123'
+            },
             enrollmentTxId: '1234',
             transactionToken: '12345',
             enrollment: {
               id: '123'
             }
           }, null, {
-            guardianClient
+            guardianClient,
+            hub,
+            socket
           }).forFactor('otp');
 
         expect(flow).to.be.an.instanceOf(OTPEnrollmentStrategy);
         expect(flow.data).to.eql({
             enrollmentTxId: '1234',
             transactionToken: '12345',
+            issuer: {
+              label: '123'
+            },
             enrollment: {
               id: '123'
             }
@@ -241,19 +265,27 @@ describe('enrollment/enrollment_flow', function() {
                 enabled: true
               }
             },
+            issuer: {
+              label: '123'
+            },
             enrollmentTxId: '1234',
             transactionToken: '12345',
             enrollment: {
               id: '123'
             }
           }, null, {
-            guardianClient
+            guardianClient,
+            hub,
+            socket
           }).forFactor('push');
 
         expect(flow).to.be.an.instanceOf(PNEnrollmentStrategy);
         expect(flow.data).to.eql({
             enrollmentTxId: '1234',
             transactionToken: '12345',
+            issuer: {
+              label: '123'
+            },
             enrollment: {
               id: '123'
             }

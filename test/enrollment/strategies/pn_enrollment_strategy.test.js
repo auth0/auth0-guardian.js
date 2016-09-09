@@ -8,7 +8,7 @@ const expect = chai.expect;
 
 chai.use(chaiAsPromised);
 
-describe('enrollment/strategies/pn_enrollment_strategy', function() {
+describe.only('enrollment/strategies/pn_enrollment_strategy', function() {
 
   describe('#confirm', function() {
     it('is callable and returns a promise', function() {
