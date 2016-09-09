@@ -4,10 +4,11 @@ const expect = require('chai').expect;
 const GuardianJS = require('..');
 const errors = require('../lib/errors');
 const Transaction = require('../lib/transaction');
-
 const sinon = require('sinon');
 
 describe('Guardian.js', function() {
+  const getBaseUri = sinon.stub();
+
   describe('#start', function() {
     describe('when user is not enrolled', function() {
       describe('and there is no factor enabled', function() {
@@ -29,13 +30,13 @@ describe('Guardian.js', function() {
 
           const guardianJS = new GuardianJS({
             serviceDomain: 'awesome.guardian.auth0.com',
-            requestToken: '123.123.123',
+            requestToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIxMTEifQ.a_7u26PXc3Iv5J6eq9vGeZiKnoYWfBYqVJdz1Gtxh0s',
             issuer: {
               name: 'awesome',
               label: 'Awesome',
             },
           }, null, {
-            guardianClient: { post }
+            guardianClient: { post, getBaseUri }
           });
 
           return expect(guardianJS.start()).to.be.rejectedWith(errors.EnrollmentNotAllowedError);
@@ -68,7 +69,7 @@ describe('Guardian.js', function() {
               label: 'Awesome',
             },
           }, null, {
-            guardianClient: { post, listenTo }
+            guardianClient: { post, listenTo, getBaseUri }
           });
 
           return expect(guardianJS.start()).to.be.fulfilled.then(function(tx) {
@@ -127,13 +128,13 @@ describe('Guardian.js', function() {
 
         const guardianJS = new GuardianJS({
           serviceDomain: 'awesome.guardian.auth0.com',
-          requestToken: '123.123.123',
+          requestToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIxMTEifQ.a_7u26PXc3Iv5J6eq9vGeZiKnoYWfBYqVJdz1Gtxh0s',
           issuer: {
             name: 'awesome',
             label: 'Awesome',
           },
         }, null, {
-          guardianClient: { post, listenTo }
+          guardianClient: { post, listenTo, getBaseUri }
         });
 
         return expect(guardianJS.start()).to.be.fulfilled.then(function(tx) {

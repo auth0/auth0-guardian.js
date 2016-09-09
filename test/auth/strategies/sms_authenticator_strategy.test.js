@@ -5,6 +5,11 @@ const errors = require('../../../lib/errors');
 const sinon = require('sinon');
 
 describe('auth/auth_flow/pn_authenticator_strategy', function() {
+  let socket;
+
+  beforeEach(function() {
+    socket = { on: sinon.stub(), once: sinon.stub() };
+  });
 
   describe('#verify', function() {
     describe('when verificationData is not provided', function() {
@@ -12,7 +17,8 @@ describe('auth/auth_flow/pn_authenticator_strategy', function() {
         expect(new SMSAuthenticatorStrategy({
           transactionToken: '123'
         }, null, {
-          guardianClient: {}
+          guardianClient: {},
+          socket: socket
         }).verify()).to.be.rejectedWith(errors.FieldRequiredError)
       });
     });
@@ -35,7 +41,8 @@ describe('auth/auth_flow/pn_authenticator_strategy', function() {
         return expect(new SMSAuthenticatorStrategy({
             transactionToken: '123.123.123'
           }, null, {
-            guardianClient: { post }
+            guardianClient: { post },
+            socket: socket
           }).verify({ otpCode: '123456' })).to.be.fulfilled
           .then(() => {
             expect(post.called).to.be.true;
@@ -56,7 +63,8 @@ describe('auth/auth_flow/pn_authenticator_strategy', function() {
         return expect(new SMSAuthenticatorStrategy({
             transactionToken: '123.123.123'
           }, null, {
-            guardianClient: { post }
+            guardianClient: { post },
+            socket: socket
           }).request()).to.be.fulfilled
           .then(() => {
             expect(post.called).to.be.true;

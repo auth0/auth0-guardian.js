@@ -5,6 +5,11 @@ const errors = require('../../../lib/errors');
 const sinon = require('sinon');
 
 describe('auth/auth_flow/pn_authenticator_strategy', function() {
+  let socket;
+
+  beforeEach(function() {
+    socket = { on: sinon.stub(), once: sinon.stub() };
+  });
 
   describe('#verify', function() {
     it('resolves the promise', function() {

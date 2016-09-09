@@ -7,9 +7,15 @@ const PNAuthenticatorStrategy = require('../../lib/auth/strategies/pn_authentica
 const RecoveryCodeAuthenticatorStrategy = require('../../lib/auth/strategies/recovery_code_authenticator_strategy');
 const SMSAuthenticatorStrategy = require('../../lib/auth/strategies/sms_authenticator_strategy');
 const errors = require('../../lib/errors');
+const sinon = require('sinon');
 
 describe('auth/auth_flow', function() {
   const guardianClient = {};
+  let socket;
+
+  beforeEach(function() {
+    socket = { on: sinon.stub(), once: sinon.stub() };
+  });
 
   describe('#getDefaultFactor', function() {
     describe('when phone number is available', function() {
@@ -23,21 +29,20 @@ describe('auth/auth_flow', function() {
       });
     });
 
-    describe('when push credentials are available', function() {
+    describe('when push are enabled', function() {
       it('returns push', function() {
         expect(new AuthFlow({
           transactionToken: '123',
           enrollment: {
-            pushCredentials: {
-              token: '1222',
-              service: 'APNS'
+            pushNotifications: {
+              enabled: true
             }
           }
         }, null, {}).getDefaultFactor()).to.equal('push');
       });
     });
 
-    describe('when no phone number and not push credentials are available', function() {
+    describe('when no phone number and push are not available', function() {
       it('returns authenticaotptor', function() {
         expect(new AuthFlow({
           transactionToken: '123',
@@ -54,21 +59,20 @@ describe('auth/auth_flow', function() {
           const strategy = new AuthFlow({
               transactionToken: '123',
               enrollment: {
-                pushCredentials: {
-                  token: '1222',
-                  service: 'APNS'
+                pushNotifications: {
+                  enabled: true
                 }
               }
             }, null, {
-              guardianClient
+              guardianClient,
+              socket
             })
             .forFactor('otp');
 
           expect(strategy).to.be.an.instanceOf(OTPAuthenticatorStrategy);
           expect(strategy.data.enrollment).to.eql({
-            pushCredentials: {
-              token: '1222',
-              service: 'APNS'
+            pushNotifications: {
+              enabled: true
             }
           });
           expect(strategy.data.transactionToken).to.equal('123');
@@ -80,21 +84,20 @@ describe('auth/auth_flow', function() {
           const strategy = new AuthFlow({
               transactionToken: '123',
               enrollment: {
-                pushCredentials: {
-                  token: '1222',
-                  service: 'APNS'
+                pushNotifications: {
+                  enabled: true
                 }
               }
             }, null, {
-              guardianClient
+              guardianClient,
+              socket
             })
             .forFactor('push');
 
           expect(strategy).to.be.an.instanceOf(PNAuthenticatorStrategy);
           expect(strategy.data.enrollment).to.eql({
-            pushCredentials: {
-              token: '1222',
-              service: 'APNS'
+            pushNotifications: {
+              enabled: true
             }
           });
           expect(strategy.data.transactionToken).to.equal('123');
@@ -126,7 +129,8 @@ describe('auth/auth_flow', function() {
             transactionToken: '123',
             enrollment: {}
           }, null, {
-            guardianClient
+            guardianClient,
+            socket
           })
           .forFactor('otp');
 
@@ -142,7 +146,8 @@ describe('auth/auth_flow', function() {
             transactionToken: '123',
             enrollment: {}
           }, null, {
-            guardianClient
+            guardianClient,
+            socket
           })
           .forRecoveryCode();
 

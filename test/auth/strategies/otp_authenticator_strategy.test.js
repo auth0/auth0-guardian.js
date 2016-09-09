@@ -5,6 +5,11 @@ const errors = require('../../../lib/errors');
 const sinon = require('sinon');
 
 describe('auth/auth_flow/otp_authenticator_strategy', function() {
+  let socket;
+
+  beforeEach(function() {
+    socket = { on: sinon.stub(), once: sinon.stub() };
+  });
 
   describe('#request', function() {
     it('resolves the promise', function() {
@@ -21,7 +26,8 @@ describe('auth/auth_flow/otp_authenticator_strategy', function() {
         return expect(new OTPAuthenticatorStrategy({
           transactionToken: '123'
         }, null, {
-          guardianClient: {}
+          guardianClient: {},
+          socket: socket
         }).verify()).to.be.rejectedWith(errors.FieldRequiredError)
       });
     });
@@ -31,7 +37,8 @@ describe('auth/auth_flow/otp_authenticator_strategy', function() {
         expect(new OTPAuthenticatorStrategy({
           transactionToken: '123'
         }, null, {
-          guardianClient: {}
+          guardianClient: {},
+          socket: socket
         }).verify({})).to.be.rejectedWith(errors.FieldRequiredError)
       });
     });
@@ -44,7 +51,8 @@ describe('auth/auth_flow/otp_authenticator_strategy', function() {
         return expect(new OTPAuthenticatorStrategy({
             transactionToken: '123.123.123'
           }, null, {
-            guardianClient: { post }
+            guardianClient: { post },
+            socket: socket
           }).verify({ otpCode: '123456' })).to.be.fulfilled
           .then(() => {
             expect(post.called).to.be.true;

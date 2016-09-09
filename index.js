@@ -3,6 +3,7 @@
 const EventEmitter = require('events').EventEmitter;
 const Transaction = require('./lib/transaction');
 const guardianHttpClient = require('./lib/utils/guardian_request');
+const GuardianSocket = require('./lib/utils/guardian_socket');
 const errors = require('./lib/errors');
 const factorEntity = require('./lib/entities/factor');
 const enrollmentEntity = require('./lib/entities/enrollment');
@@ -29,6 +30,7 @@ global.GuardianJS = module.exports = class GuardianJS {
     this.requestToken = new JWTToken(options.requestToken);
 
     this.guardianClient = dependencies.guardianClient || guardianHttpClient({ serviceDomain: options.serviceDomain });
+    this.guardianSocket = dependencies.guardianSocket || new GuardianSocket({ baseUri: this.guardianClient.getBaseUri() });
 
     this.hub.on('login-complete', asyncEmit(this.events, 'login-complete'));
     this.hub.on('login-rejected', asyncEmit(this.events, 'login-rejected'));
@@ -82,7 +84,8 @@ global.GuardianJS = module.exports = class GuardianJS {
 
         const tx = new Transaction(data, null, {
           guardianClient: this.guardianClient,
-          hub: this.hub
+          guardianSocket: this.guardianSocket,
+          hub: this.hub,
         });
 
         return tx;

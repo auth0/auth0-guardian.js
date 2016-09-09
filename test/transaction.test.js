@@ -5,8 +5,21 @@ const Transaction = require('../lib/transaction');
 const AuthFlow = require('../lib/auth/auth_flow');
 const EnrollmentFlow = require('../lib/enrollment/enrollment_flow');
 const errors = require('../lib/errors');
+const sinon = require('sinon');
 
 describe('transaction', function() {
+  let guardianSocket;
+  let transactionToken;
+
+  beforeEach(function() {
+    guardianSocket  = {
+      open: sinon.stub()
+    };
+
+    transactionToken = {
+      getToken: sinon.stub().returns('1234')
+    };
+  });
 
   describe('#isEnrolled', function() {
 
@@ -16,8 +29,10 @@ describe('transaction', function() {
         expect(new Transaction({
           enrollment: {
             status: 'confirmed'
-          }
-        }, null, {}).isEnrolled()).to.be.true
+          },
+        }, null, {
+          guardianSocket
+        }).isEnrolled()).to.be.true
       });
     });
 
@@ -27,8 +42,10 @@ describe('transaction', function() {
         expect(new Transaction({
           enrollment: {
             status: 'confirmation_pending'
-          }
-        }, null, {}).isEnrolled()).to.be.false
+          },
+        }, null, {
+          guardianSocket
+        }).isEnrolled()).to.be.false
       });
     });
   });
@@ -41,8 +58,10 @@ describe('transaction', function() {
         expect(new Transaction({
           enrollment: {
             status: 'confirmation_pending'
-          }
-        }, null, {}).canEnroll()).to.be.true;
+          },
+        }, null, {
+          guardianSocket
+        }).canEnroll()).to.be.true;
       });
     });
 
@@ -52,8 +71,10 @@ describe('transaction', function() {
         expect(new Transaction({
           enrollment: {
             status: 'confirmed'
-          }
-        }, null, {}).canEnroll()).to.be.false
+          },
+        }, null, {
+          guardianSocket
+        }).canEnroll()).to.be.false
       });
     });
   });
@@ -66,8 +87,12 @@ describe('transaction', function() {
             enrollment: {
               status: 'confirmation_pending'
             },
-          }, null, {}).startAuth();
+          }, null, {
+            guardianSocket
+          }).startAuth();
         }).to.throw(errors.NotEnrolledError);
+
+        expect(guardianSocket.open.called).to.be.true;
       });
     });
 
@@ -77,12 +102,14 @@ describe('transaction', function() {
           enrollment: {
             status: 'confirmed'
           },
-          transactionToken: '123.123.123',
+          transactionToken: transactionToken,
           factors: {
             sms: { enabled: true },
             push: { enabled: true },
           }
-        }, null, {}).startAuth();
+        }, null, {
+          guardianSocket
+        }).startAuth();
 
         expect(flow).to.be.an.instanceOf(AuthFlow);
         expect(flow.data).to.eql({
@@ -102,33 +129,38 @@ describe('transaction', function() {
   describe('#startEnrollment', function() {
 
     describe('when user not is enrolled', function() {
-      const flow = new Transaction({
-        enrollment: {
-          status: 'confirmation_pending',
-          recoveryCode: '1234'
-        },
-        recoveryCode: '1234',
-        enrollmentTxId: '1234',
-        transactionToken: '123.123.123',
-        factors: {
-          sms: { enabled: true },
-          push: { enabled: true }
-        }
-      }, null, {}).startEnrollment();
 
-      expect(flow).to.be.an.instanceOf(EnrollmentFlow);
-      expect(flow.data).to.eql({
-        transactionToken: '123.123.123',
-        enrollmentTxId: '1234',
-        enrollment: {
-          status: 'confirmation_pending',
-          recoveryCode: '1234'
-        },
-        recoveryCode: '1234',
-        factors: {
-          sms: { enabled: true },
-          push: { enabled: true }
-        }
+      it('returns an enrollment flow', function() {
+        const flow = new Transaction({
+          enrollment: {
+            status: 'confirmation_pending',
+            recoveryCode: '1234'
+          },
+          recoveryCode: '1234',
+          enrollmentTxId: '1234',
+          transactionToken: transactionToken,
+          factors: {
+            sms: { enabled: true },
+            push: { enabled: true }
+          }
+        }, null, {
+          guardianSocket
+        }).startEnrollment();
+
+        expect(flow).to.be.an.instanceOf(EnrollmentFlow);
+        expect(flow.data).to.eql({
+          transactionToken: '123.123.123',
+          enrollmentTxId: '1234',
+          enrollment: {
+            status: 'confirmation_pending',
+            recoveryCode: '1234'
+          },
+          recoveryCode: '1234',
+          factors: {
+            sms: { enabled: true },
+            push: { enabled: true }
+          }
+        });
       });
     });
 
@@ -143,12 +175,14 @@ describe('transaction', function() {
             },
             recoveryCode: '1234',
             enrollmentTxId: '1234',
-            transactionToken: '123.123.123',
+            transactionToken: transactionToken,
             factors: {
               sms: { enabled: true },
               push: { enabled: true }
             }
-          }, null, {}).startEnrollment()
+          }, null, {
+            guardianSocket
+          }).startEnrollment()
         }).to.throw(errors.EnrollmentNotAllowedError);
       });
     });
