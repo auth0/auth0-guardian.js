@@ -155,5 +155,22 @@ describe('auth/auth_flow', function() {
         expect(strategy).to.be.an.instanceOf(RecoveryCodeAuthenticatorStrategy);
       });
     });
+
+    describe('for and invalid factor', function() {
+      it('throws an error', function() {
+        expect(() => {
+            const strategy = new AuthFlow({
+              transactionToken: '123',
+              enrollment: {
+                phoneNumber: '+54 122222222'
+              }
+            }, null, {
+              guardianClient,
+              socket
+            })
+            .forFactor('invalid');
+          }).to.throw(errors.FactorNotFoundError);
+      });
+    });
   });
 });

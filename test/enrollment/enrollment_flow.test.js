@@ -292,5 +292,19 @@ describe('enrollment/enrollment_flow', function() {
           });
       });
     });
+
+    describe('for invalid type', function() {
+      it('throws an error', function() {
+        expect(() => {
+          new EnrollmentFlow({
+            factors: {
+              sms: {
+                enabled: false
+              }
+            }
+          }, null, {}).forFactor('invalid');
+        }).to.throw(errors.FactorNotFoundError);
+      });
+    });
   });
 });
