@@ -1,3 +1,5 @@
+'use strict';
+
 const chai = require('chai');
 const PNEnrollmentStrategy = require('../../../lib/enrollment/strategies/pn_enrollment_strategy');
 const sinon = require('sinon');

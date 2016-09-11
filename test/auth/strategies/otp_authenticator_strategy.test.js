@@ -1,3 +1,4 @@
+'use strict';
 
 const expect = require('chai').expect;
 const OTPAuthenticatorStrategy = require('../../../lib/auth/strategies/otp_authenticator_strategy');

@@ -1,3 +1,4 @@
+'use strict';
 
 const expect = require('chai').expect;
 const RecoveryCodeAuthenticatorStrategy = require('../../../lib/auth/strategies/recovery_code_authenticator_strategy');

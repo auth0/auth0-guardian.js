@@ -1,3 +1,5 @@
+'use strict';
+
 const chai = require('chai');
 const OTPEnrollmentStrategy = require('../../../lib/enrollment/strategies/otp_enrollment_strategy');
 const sinon = require('sinon');

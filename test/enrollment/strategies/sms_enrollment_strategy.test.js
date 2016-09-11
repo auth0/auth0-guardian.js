@@ -1,3 +1,5 @@
+'use strict';
+
 const chai = require('chai');
 const SMSEnrollmentStrategy = require('../../../lib/enrollment/strategies/sms_enrollment_strategy');
 const sinon = require('sinon');

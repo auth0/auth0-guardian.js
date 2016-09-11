@@ -1,3 +1,4 @@
+'use strict';
 
 const expect = require('chai').expect;
 const SMSAuthenticatorStrategy = require('../../../lib/auth/strategies/sms_authenticator_strategy');

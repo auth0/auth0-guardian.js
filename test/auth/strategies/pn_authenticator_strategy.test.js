@@ -1,3 +1,4 @@
+'use strict';
 
 const expect = require('chai').expect;
 const PNAuthenticatorStrategy = require('../../../lib/auth/strategies/pn_authenticator_strategy');
