@@ -8,6 +8,13 @@ const sinon = require('sinon');
 
 describe('Guardian.js', function() {
   const getBaseUri = sinon.stub();
+  let transactionTokenString;
+  let requestTokenString;
+
+  beforeEach(function() {
+    transactionTokenString = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIxMTEifQ.a_7u26PXc3Iv5J6eq9vGeZiKnoYWfBYqVJdz1Gtxh0s';
+    requestTokenString = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIxMTEifQ.a_7u26PXc3Iv5J6eq9vGeZiKnoYWfBYqVJdz1Gtxh0s';
+  });
 
   describe('#start', function() {
     describe('when user is not enrolled', function() {
@@ -20,7 +27,7 @@ describe('Guardian.js', function() {
               otpSecret: '12345',
               recoveryCode: '123456789'
             },
-            transactionToken: '123.123.123',
+            transactionToken: transactionTokenString,
             enrollmentTxId: 'aaa',
             featureSwitches: {
               mfaSms: { enroll: false },
@@ -30,7 +37,7 @@ describe('Guardian.js', function() {
 
           const guardianJS = new GuardianJS({
             serviceDomain: 'awesome.guardian.auth0.com',
-            requestToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIxMTEifQ.a_7u26PXc3Iv5J6eq9vGeZiKnoYWfBYqVJdz1Gtxh0s',
+            requestToken: requestTokenString,
             issuer: {
               name: 'awesome',
               label: 'Awesome',
@@ -53,7 +60,7 @@ describe('Guardian.js', function() {
               otpSecret: '12345',
               recoveryCode: '123456789'
             },
-            transactionToken: '123.123.123',
+            transactionToken: transactionTokenString,
             enrollmentTxId: 'aaa',
             featureSwitches: {
               mfaSms: { enroll: false },
@@ -63,17 +70,21 @@ describe('Guardian.js', function() {
 
           const guardianJS = new GuardianJS({
             serviceDomain: 'awesome.guardian.auth0.com',
-            requestToken: '123.123.123',
+            requestToken: requestTokenString,
             issuer: {
               name: 'awesome',
               label: 'Awesome',
             },
           }, null, {
-            guardianClient: { post, listenTo, getBaseUri }
+            guardianClient: { post, getBaseUri }
           });
 
           return expect(guardianJS.start()).to.be.fulfilled.then(function(tx) {
             expect(tx).to.be.instanceOf(Transaction);
+            expect(tx.data.transactionToken.getToken()).to.equal(transactionTokenString);
+
+            delete tx.data.transactionToken;
+
             expect(tx.data).to.eql({
               enrollment: {
                 id: '123',
@@ -85,7 +96,6 @@ describe('Guardian.js', function() {
                 name: 'awesome',
                 label: 'Awesome',
               },
-              transactionToken: '123.123.123',
               recoveryCode: '123456789',
               enrollmentTxId: 'aaa',
               factors: {
@@ -97,16 +107,6 @@ describe('Guardian.js', function() {
                 },
               },
             });
-
-            expect(listenTo.called).to.be.true;
-            expect(listenTo.getCall(0).args[0]).to.equal('login-complete');
-            expect(listenTo.getCall(0).args[1]).to.equal('123.123.123');
-            expect(listenTo.getCall(1).args[0]).to.equal('login-rejected');
-            expect(listenTo.getCall(1).args[1]).to.equal('123.123.123');
-            expect(listenTo.getCall(2).args[0]).to.equal('enrollment-complete');
-            expect(listenTo.getCall(2).args[1]).to.equal('123.123.123');
-            expect(listenTo.getCall(3).args[0]).to.equal('error');
-            expect(listenTo.getCall(3).args[1]).to.equal('123.123.123');
           });
         });
       });
@@ -119,7 +119,7 @@ describe('Guardian.js', function() {
           deviceAccount: {
             status: 'confirmed',
           },
-          transactionToken: '123.123.123',
+          transactionToken: transactionTokenString,
           featureSwitches: {
             mfaSms: { enroll: false },
             mfaApp: { enroll: true },
@@ -139,6 +139,10 @@ describe('Guardian.js', function() {
 
         return expect(guardianJS.start()).to.be.fulfilled.then(function(tx) {
           expect(tx).to.be.instanceOf(Transaction);
+          expect(tx.data.transactionToken.getToken()).to.equal(transactionTokenString);
+
+          delete tx.data.transactionToken;
+
           expect(tx.data).to.eql({
             enrollment: {
               status: 'confirmed',
@@ -147,7 +151,6 @@ describe('Guardian.js', function() {
               name: 'awesome',
               label: 'Awesome',
             },
-            transactionToken: '123.123.123',
             factors: {
               sms: {
                 enabled: false
@@ -157,16 +160,6 @@ describe('Guardian.js', function() {
               },
             },
           });
-
-          expect(listenTo.called).to.be.true;
-          expect(listenTo.getCall(0).args[0]).to.equal('login-complete');
-          expect(listenTo.getCall(0).args[1]).to.equal('123.123.123');
-          expect(listenTo.getCall(1).args[0]).to.equal('login-rejected');
-          expect(listenTo.getCall(1).args[1]).to.equal('123.123.123');
-          expect(listenTo.getCall(2).args[0]).to.equal('enrollment-complete');
-          expect(listenTo.getCall(2).args[1]).to.equal('123.123.123');
-          expect(listenTo.getCall(3).args[0]).to.equal('error');
-          expect(listenTo.getCall(3).args[1]).to.equal('123.123.123');
         });
       });
     });

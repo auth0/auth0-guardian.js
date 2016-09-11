@@ -6,10 +6,12 @@ const AuthFlow = require('../lib/auth/auth_flow');
 const EnrollmentFlow = require('../lib/enrollment/enrollment_flow');
 const errors = require('../lib/errors');
 const sinon = require('sinon');
+const EventEmitter = require('events').EventEmitter;
 
 describe('transaction', function() {
   let guardianSocket;
   let transactionToken;
+  let hub;
 
   beforeEach(function() {
     guardianSocket  = {
@@ -19,6 +21,8 @@ describe('transaction', function() {
     transactionToken = {
       getToken: sinon.stub().returns('1234')
     };
+
+    hub = new EventEmitter();
   });
 
   describe('#isEnrolled', function() {
@@ -92,7 +96,7 @@ describe('transaction', function() {
           }).startAuth();
         }).to.throw(errors.NotEnrolledError);
 
-        expect(guardianSocket.open.called).to.be.true;
+        expect(guardianSocket.open.called).to.be.false;
       });
     });
 
@@ -108,12 +112,13 @@ describe('transaction', function() {
             push: { enabled: true },
           }
         }, null, {
-          guardianSocket
+          guardianSocket,
+          hub
         }).startAuth();
 
         expect(flow).to.be.an.instanceOf(AuthFlow);
         expect(flow.data).to.eql({
-          transactionToken: '123.123.123',
+          transactionToken: transactionToken,
           enrollment: {
             status: 'confirmed',
           },
@@ -136,6 +141,9 @@ describe('transaction', function() {
             status: 'confirmation_pending',
             recoveryCode: '1234'
           },
+          issuer: {
+            name: '123'
+          },
           recoveryCode: '1234',
           enrollmentTxId: '1234',
           transactionToken: transactionToken,
@@ -144,13 +152,17 @@ describe('transaction', function() {
             push: { enabled: true }
           }
         }, null, {
-          guardianSocket
+          guardianSocket,
+          hub
         }).startEnrollment();
 
         expect(flow).to.be.an.instanceOf(EnrollmentFlow);
         expect(flow.data).to.eql({
-          transactionToken: '123.123.123',
+          transactionToken: transactionToken,
           enrollmentTxId: '1234',
+          issuer: {
+            name: '123'
+          },
           enrollment: {
             status: 'confirmation_pending',
             recoveryCode: '1234'

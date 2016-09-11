@@ -8,7 +8,7 @@ const SMSEnrollmentStrategy = require('../../lib/enrollment/strategies/sms_enrol
 const errors = require('../../lib/errors');
 const EventEmitter = require('events').EventEmitter;
 
-describe.only('enrollment/enrollment_flow', function() {
+describe('enrollment/enrollment_flow', function() {
   const guardianClient = {};
   let hub;
   let socket;

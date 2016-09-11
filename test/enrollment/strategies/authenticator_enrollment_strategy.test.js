@@ -3,12 +3,23 @@ const OTPEnrollmentStrategy = require('../../../lib/enrollment/strategies/otp_en
 const sinon = require('sinon');
 const chaiAsPromised = require("chai-as-promised");
 const errors = require('../../../lib/errors');
+const JWTToken = require('../../../lib/utils/jwt_token');
+const EventEmitter = require('events').EventEmitter;
 
 const expect = chai.expect;
 
 chai.use(chaiAsPromised);
 
 describe('enrollment/strategies/otp_enrollment_strategy', function() {
+  let socket;
+  let transactionToken;
+  let transactionTokenString;
+
+  beforeEach(function() {
+    socket = new EventEmitter();
+    transactionTokenString = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIxMTEifQ.a_7u26PXc3Iv5J6eq9vGeZiKnoYWfBYqVJdz1Gtxh0s';
+    transactionToken = new JWTToken(transactionTokenString);
+  });
 
   describe('#enroll', function() {
     it('is callable and returns a promise', function() {
@@ -26,9 +37,10 @@ describe('enrollment/strategies/otp_enrollment_strategy', function() {
         const post = sinon.stub().returns(Promise.resolve());
 
         const flow = new OTPEnrollmentStrategy({
-          transactionToken: '1234'
+          transactionToken: transactionToken
         }, null, {
-          guardianClient: { post }
+          guardianClient: { post },
+          socket
         });
 
         return expect(flow.confirm({ otpCode: null })).to.be.rejectedWith(errors.FieldRequiredError);
@@ -40,9 +52,10 @@ describe('enrollment/strategies/otp_enrollment_strategy', function() {
         const post = sinon.stub().returns(Promise.resolve());
 
         const flow = new OTPEnrollmentStrategy({
-            transactionToken: '1234'
+            transactionToken: transactionToken
           }, null, {
-            guardianClient: { post }
+            guardianClient: { post },
+            socket
           });
 
         return expect(flow.confirm({ otpCode: '123456' })).to.be.fulfilled;
@@ -54,9 +67,10 @@ describe('enrollment/strategies/otp_enrollment_strategy', function() {
         const post = sinon.stub().returns(Promise.reject(new Error()));
 
         const flow = new OTPEnrollmentStrategy({
-            transactionToken: '1234'
+            transactionToken: transactionToken
           }, null, {
-            guardianClient: { post }
+            guardianClient: { post },
+            socket
           });
 
         return expect(flow.confirm({ otpCode: '123456' })).to.be.rejectedWith(Error);
@@ -70,7 +84,7 @@ describe('enrollment/strategies/otp_enrollment_strategy', function() {
       const post = sinon.stub().returns(Promise.reject(new Error()));
 
       const flow = new OTPEnrollmentStrategy({
-          transactionToken: '1234',
+          transactionToken: transactionToken,
           enrollment: {
             otpSecret: '1234555'
           },
@@ -79,10 +93,47 @@ describe('enrollment/strategies/otp_enrollment_strategy', function() {
             label: 'Mistery'
           }
         }, null, {
-          guardianClient: { post }
+          guardianClient: { post },
+          socket
         });
 
       expect(flow.getUri()).to.equal('otpauth://totp/Mistery?secret=1234555');
+    });
+  });
+
+  describe('#onCompletion', function() {
+    describe('when socket emits login-complete', function() {
+      it('calls the cb', function(done) {
+        const post = sinon.stub().returns(Promise.resolve());
+        const payload = { signature: '123' };
+
+        const strategy = new OTPEnrollmentStrategy({
+          transactionToken: transactionToken,
+          enrollment: {
+            otpSecret: '1234555'
+          },
+          issuer: {
+            name: 'mistery',
+            label: 'Mistery'
+          }
+        }, null, {
+          guardianClient: { post },
+          socket
+        });
+
+        strategy.onCompletion(function(loginPayload) {
+          expect(loginPayload).to.eql({
+            factor: 'otp',
+            enrollment: { status: 'confirmed' },
+            transactionComplete: true,
+            loginPayload: { signature: '123' }
+          });
+
+          done();
+        });
+
+        socket.emit('login-complete', payload);
+      });
     });
   });
 });
