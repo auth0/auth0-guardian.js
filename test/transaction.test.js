@@ -9,20 +9,12 @@ const sinon = require('sinon');
 const EventEmitter = require('events').EventEmitter;
 
 describe('transaction', function() {
-  let guardianSocket;
   let transactionToken;
-  let hub;
 
   beforeEach(function() {
-    guardianSocket  = {
-      open: sinon.stub()
-    };
-
     transactionToken = {
       getToken: sinon.stub().returns('1234')
     };
-
-    hub = new EventEmitter();
   });
 
   describe('#isEnrolled', function() {
@@ -34,9 +26,7 @@ describe('transaction', function() {
           enrollment: {
             status: 'confirmed'
           },
-        }, null, {
-          guardianSocket
-        }).isEnrolled()).to.be.true
+        }, null, {}).isEnrolled()).to.be.true
       });
     });
 
@@ -47,9 +37,7 @@ describe('transaction', function() {
           enrollment: {
             status: 'confirmation_pending'
           },
-        }, null, {
-          guardianSocket
-        }).isEnrolled()).to.be.false
+        }, null, {}).isEnrolled()).to.be.false
       });
     });
   });
@@ -63,9 +51,7 @@ describe('transaction', function() {
           enrollment: {
             status: 'confirmation_pending'
           },
-        }, null, {
-          guardianSocket
-        }).canEnroll()).to.be.true;
+        }, null, {}).canEnroll()).to.be.true;
       });
     });
 
@@ -76,9 +62,7 @@ describe('transaction', function() {
           enrollment: {
             status: 'confirmed'
           },
-        }, null, {
-          guardianSocket
-        }).canEnroll()).to.be.false
+        }, null, {}).canEnroll()).to.be.false
       });
     });
   });
@@ -91,12 +75,8 @@ describe('transaction', function() {
             enrollment: {
               status: 'confirmation_pending'
             },
-          }, null, {
-            guardianSocket
-          }).startAuth();
+          }, null, {}).startAuth();
         }).to.throw(errors.NotEnrolledError);
-
-        expect(guardianSocket.open.called).to.be.false;
       });
     });
 
@@ -111,10 +91,7 @@ describe('transaction', function() {
             sms: { enabled: true },
             push: { enabled: true },
           }
-        }, null, {
-          guardianSocket,
-          hub
-        }).startAuth();
+        }, null, {}).startAuth();
 
         expect(flow).to.be.an.instanceOf(AuthFlow);
         expect(flow.data).to.eql({
@@ -151,10 +128,7 @@ describe('transaction', function() {
             sms: { enabled: true },
             push: { enabled: true }
           }
-        }, null, {
-          guardianSocket,
-          hub
-        }).startEnrollment();
+        }, null, {}).startEnrollment();
 
         expect(flow).to.be.an.instanceOf(EnrollmentFlow);
         expect(flow.data).to.eql({
@@ -192,9 +166,7 @@ describe('transaction', function() {
               sms: { enabled: true },
               push: { enabled: true }
             }
-          }, null, {
-            guardianSocket
-          }).startEnrollment()
+          }, null, {}).startEnrollment()
         }).to.throw(errors.EnrollmentNotAllowedError);
       });
     });

@@ -89,34 +89,4 @@ describe('auth/auth_flow/otp_authenticator_strategy', function() {
       });
     });
   });
-
-  describe('#onCompletion', function() {
-    describe('when socket emits login-complete', function() {
-      it('calls the cb', function(done) {
-        const post = sinon.stub().returns(Promise.resolve());
-        const payload = { signature: '123' };
-
-        const strategy = new RecoveryCodeAuthenticatorStrategy({
-            transactionToken: transactionToken
-          }, null, {
-            guardianClient: { post },
-            socket: socket,
-            hub: hub
-          });
-
-        strategy.onCompletion(function(loginPayload) {
-          expect(loginPayload).to.eql({
-            factor: null,
-            recovery: true,
-            accepted: true,
-            loginPayload: payload
-          });
-
-          done();
-        });
-
-        socket.emit('login-complete', payload);
-      });
-    });
-  });
 });

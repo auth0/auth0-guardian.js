@@ -10,13 +10,6 @@ const EventEmitter = require('events').EventEmitter;
 
 describe('enrollment/enrollment_flow', function() {
   const guardianClient = {};
-  let hub;
-  let socket;
-
-  beforeEach(function() {
-    hub = new EventEmitter();
-    socket = new EventEmitter();
-  });
 
   describe('#getRecoveryCode', function() {
     it('returns the recovery code', function() {
@@ -203,8 +196,6 @@ describe('enrollment/enrollment_flow', function() {
             }
           }, null, {
             guardianClient,
-            hub,
-            socket
           }).forFactor('sms');
 
         expect(flow).to.be.an.instanceOf(SMSEnrollmentStrategy);
@@ -239,8 +230,6 @@ describe('enrollment/enrollment_flow', function() {
             }
           }, null, {
             guardianClient,
-            hub,
-            socket
           }).forFactor('otp');
 
         expect(flow).to.be.an.instanceOf(OTPEnrollmentStrategy);
@@ -275,8 +264,6 @@ describe('enrollment/enrollment_flow', function() {
             }
           }, null, {
             guardianClient,
-            hub,
-            socket
           }).forFactor('push');
 
         expect(flow).to.be.an.instanceOf(PNEnrollmentStrategy);

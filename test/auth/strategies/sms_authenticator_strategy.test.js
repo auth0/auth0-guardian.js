@@ -82,34 +82,4 @@ describe('auth/auth_flow/sms_authenticator_strategy', function() {
       });
     });
   });
-
-  describe('#onCompletion', function() {
-    describe('when socket emits login-complete', function() {
-      it('calls the cb', function(done) {
-        const post = sinon.stub().returns(Promise.resolve());
-        const payload = { signature: '123' };
-
-        const strategy = new SMSAuthenticatorStrategy({
-            transactionToken: transactionToken
-          }, null, {
-            guardianClient: { post },
-            socket: socket
-          });
-
-        strategy.onCompletion(function(loginPayload) {
-          expect(loginPayload).to.eql({
-            factor: 'sms',
-            recovery: false,
-            accepted: true,
-            loginPayload: payload,
-            transactionComplete: true
-          });
-
-          done();
-        });
-
-        socket.emit('login-complete', payload);
-      });
-    });
-  });
 });

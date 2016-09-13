@@ -8,12 +8,10 @@ const JWTToken = require('../../../lib/utils/jwt_token');
 const EventEmitter = require('events').EventEmitter;
 
 describe('auth/auth_flow/otp_authenticator_strategy', function() {
-  let socket;
   let transactionToken;
   let transactionTokenString;
 
   beforeEach(function() {
-    socket = new EventEmitter();
     transactionTokenString = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIxMTEifQ.a_7u26PXc3Iv5J6eq9vGeZiKnoYWfBYqVJdz1Gtxh0s';
     transactionToken = new JWTToken(transactionTokenString);
   });
@@ -33,8 +31,7 @@ describe('auth/auth_flow/otp_authenticator_strategy', function() {
         return expect(new OTPAuthenticatorStrategy({
           transactionToken: transactionToken
         }, null, {
-          guardianClient: {},
-          socket: socket
+          guardianClient: {}
         }).verify()).to.be.rejectedWith(errors.FieldRequiredError)
       });
     });
@@ -44,8 +41,7 @@ describe('auth/auth_flow/otp_authenticator_strategy', function() {
         expect(new OTPAuthenticatorStrategy({
           transactionToken: transactionToken
         }, null, {
-          guardianClient: {},
-          socket: socket
+          guardianClient: {}
         })
         .verify({ otpCode: '123456a' }))
         .to.be.rejectedWith(errors.OTPValidationError)
@@ -57,8 +53,7 @@ describe('auth/auth_flow/otp_authenticator_strategy', function() {
         expect(new OTPAuthenticatorStrategy({
           transactionToken: transactionToken
         }, null, {
-          guardianClient: {},
-          socket: socket
+          guardianClient: {}
         }).verify({})).to.be.rejectedWith(errors.FieldRequiredError)
       });
     });
@@ -71,8 +66,7 @@ describe('auth/auth_flow/otp_authenticator_strategy', function() {
         return expect(new OTPAuthenticatorStrategy({
             transactionToken: transactionToken
           }, null, {
-            guardianClient: { post },
-            socket: socket
+            guardianClient: { post }
           }).verify({ otpCode: '123456' })).to.be.fulfilled
           .then(() => {
             expect(post.called).to.be.true;

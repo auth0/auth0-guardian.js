@@ -7,7 +7,7 @@ const GuardianSocket = require('./lib/utils/guardian_socket');
 const errors = require('./lib/errors');
 const factorEntity = require('./lib/entities/factor');
 const enrollmentEntity = require('./lib/entities/enrollment');
-const Promise = require('bluebird');
+const Promise = require('promise-polyfill');
 const JWTToken = require('./lib/utils/jwt_token');
 const asyncEmit = require('./lib/utils/async_emit');
 const object = require('./lib/utils/object');
@@ -44,6 +44,8 @@ global.GuardianJS = module.exports = class GuardianJS {
     this.handleTransactionTimeout = this.handleTransactionTimeout.bind(this);
     this.handleError = this.handleError.bind(this);
 
+    this.requestToken.once('token-expired', this.handleRequestTimeout);
+
     this.transaction = null;
   }
 
@@ -77,10 +79,10 @@ global.GuardianJS = module.exports = class GuardianJS {
           transactionComplete: true
         };
 
+        this.transaction.markEnrolled(enrollmentPayload);
+
         // Remove once api/issues/291 get solved
         this.events.emit('enrollment-complete', enrollmentPayload);
-
-        this.transaction.markEnrolled(enrollmentPayload);
       }
     } else {
       factor = this.transaction.getCurrentFactor();
@@ -90,7 +92,7 @@ global.GuardianJS = module.exports = class GuardianJS {
       this.events.emit('login-complete', {
         factor: factor,
         wasEnrollment: wasEnrollment,
-        recovery: !!factor,
+        recovery: !factor,
         accepted: true,
         loginPayload: loginPayload
       });
@@ -107,6 +109,7 @@ global.GuardianJS = module.exports = class GuardianJS {
    * When: when login was rejected for CURRENT transaction
    */
   handleLoginRejected() {
+    // The only factor that supports rejection right now is push
     this.events.emit('login-rejected', {
         factor: 'push',
         recovery: false,
@@ -128,7 +131,7 @@ global.GuardianJS = module.exports = class GuardianJS {
    *
    * When: when enrollment was completed from ANY transaction (see comment above)
    */
-  handleEnrollmentComplete() {
+  handleEnrollmentComplete(data) {
     const enrollmentPayload = {
       factor: 'push',
       transactionComplete: false,
@@ -138,11 +141,10 @@ global.GuardianJS = module.exports = class GuardianJS {
       }, data.enrollment)
     };
 
-    // We should ignore the event if there isn't an active transaction
-    // the updated data will come when the transaction gets started
-    if (this.transaction) {
-      this.transaction.markEnrolled(enrollmentPayload);
-    }
+    // There will be always an active transaction if we
+    // receive socket events, we don't listen for them before
+    // transaction have been created
+    this.transaction.markEnrolled(enrollmentPayload);
 
     this.events.emit('enrollment-complete', enrollmentPayload);
   }
@@ -155,7 +157,7 @@ global.GuardianJS = module.exports = class GuardianJS {
    * @private
    */
   handleTransactionTimeout() {
-    this.events.emit('timeout', errors.TransactionTokenExpired());
+    this.events.emit('timeout', new errors.TransactionTokenExpired());
   }
 
   /**
@@ -166,7 +168,7 @@ global.GuardianJS = module.exports = class GuardianJS {
    * @private
    */
   handleRequestTimeout() {
-    this.events.emit('timeout', errors.RequestTokenExpired());
+    this.events.emit('timeout', new errors.RequestTokenExpired());
   }
 
   /**
@@ -183,7 +185,7 @@ global.GuardianJS = module.exports = class GuardianJS {
    *
    * @private
    */
-  startListening() {
+  startListening(transactionToken) {
     this.guardianSocket.on('login-complete', this.handleLoginComplete);
     this.guardianSocket.on('login-rejected', this.handleLoginRejected);
     this.guardianSocket.on('enrollment-complete', this.handleEnrollmentComplete);
@@ -205,8 +207,6 @@ global.GuardianJS = module.exports = class GuardianJS {
     }
 
     this.startingTransaction = true;
-
-    this.requestToken.once('token-expired', this.handleTimeout);
 
     if (this.requestToken.isExpired()) {
       return Promise.reject(new errors.RequestTokenExpired());
@@ -250,6 +250,7 @@ global.GuardianJS = module.exports = class GuardianJS {
           data.recoveryCode = txData.deviceAccount.recoveryCode;
         }
 
+        // enrollmentTxId will only be present on enrollments
         if (txData.enrollmentTxId) {
           data.enrollmentTxId = txData.enrollmentTxId;
         }
@@ -260,12 +261,22 @@ global.GuardianJS = module.exports = class GuardianJS {
 
         this.transaction = tx;
 
-        this.startListening();
+        // Before the transaction have started we are not interested
+        // in the events since before that point we won't even known
+        // if the device it enrolled
+        this.startListening(transactionToken);
+
+        // finally
+        this.startingTransaction = false;
 
         return tx;
       })
-      .finally(() => {
+      .catch((err) => {
+
+        // finally
         this.startingTransaction = false;
+
+        return Promise.reject(err);
       });
   }
 
