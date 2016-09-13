@@ -11,6 +11,7 @@ const Promise = require('promise-polyfill');
 const JWTToken = require('./lib/utils/jwt_token');
 const asyncEmit = require('./lib/utils/async_emit');
 const object = require('./lib/utils/object');
+const NullSocket = require('./lib/utils/null_socket');
 
 global.GuardianJS = module.exports = class GuardianJS {
 
@@ -23,6 +24,7 @@ global.GuardianJS = module.exports = class GuardianJS {
    * @param {string} options.requestToken
    * @param {string} options.issuer.label
    * @param {string} options.issuer.name
+   * @param {boolean} [options.disableSocket=false]
    *
    * @param {GuardianClient} dependencies.guardianClient
    * @param {GuardianSocket} dependencies.guardianSocket
@@ -35,7 +37,9 @@ global.GuardianJS = module.exports = class GuardianJS {
     this.requestToken = new JWTToken(options.requestToken);
 
     this.guardianClient = dependencies.guardianClient || guardianHttpClient({ serviceDomain: options.serviceDomain });
-    this.guardianSocket = dependencies.guardianSocket || new GuardianSocket({ baseUri: this.guardianClient.getBaseUri() });
+
+    const socket = options.disableSocket ? new NullSocket() : new GuardianSocket({ baseUri: this.guardianClient.getBaseUri() });
+    this.guardianSocket = dependencies.guardianSocket || socket;
 
     this.handleLoginComplete = this.handleLoginComplete.bind(this);
     this.handleLoginRejected = this.handleLoginRejected.bind(this);
