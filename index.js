@@ -12,8 +12,9 @@ const JWTToken = require('./lib/utils/jwt_token');
 const asyncEmit = require('./lib/utils/async_emit');
 const object = require('./lib/utils/object');
 const NullSocket = require('./lib/utils/null_socket');
+const formPostCallbackPlugin = require('./lib/plugins/form_post_callback');
 
-global.GuardianJS = module.exports = class GuardianJS {
+class Auth0GuardianJS {
 
   /**
    * Creates a new instance of the client. The client is mostly based on the
@@ -297,3 +298,8 @@ global.GuardianJS = module.exports = class GuardianJS {
   }
 };
 
+Auth0GuardianJS.plugins = {
+  formPostCallback: formPostCallbackPlugin
+};
+
+global.GuardianJS = module.exports = Auth0GuardianJS;

@@ -26,7 +26,7 @@ describe('plugins/form_post_callback', function() {
 
         formPostCallback({ events });
 
-        events.emit('login-complete', { signature: '123.123.123' });
+        events.emit('login-complete', { loginPayload: { signature: '123.123.123' } });
       });
     });
 
@@ -46,7 +46,7 @@ describe('plugins/form_post_callback', function() {
 
         formPostCallback({ events });
 
-        events.emit('login-complete', { signature: '123.123.123' });
+        events.emit('login-complete', { loginPayload: { signature: '123.123.123' } });
       });
     });
   });
