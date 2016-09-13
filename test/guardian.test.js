@@ -41,7 +41,9 @@ describe('Guardian.js', function() {
               label: 'Awesome',
             },
           }, null, {
-            guardianClient: {},
+            guardianClient: {
+              getBaseUri: sinon.stub().returns('http://www.awesome.com')
+            },
             guardianSocket
           });
 
@@ -70,7 +72,8 @@ describe('Guardian.js', function() {
                   mfaSms: { enroll: true }
                 },
                 deviceAccount: {}
-              }))
+              })),
+              getBaseUri: sinon.stub().returns('http://www.awesome.com')
             },
             guardianSocket
           });
@@ -105,7 +108,8 @@ describe('Guardian.js', function() {
                   mfaSms: { enroll: true }
                 },
                 deviceAccount: {}
-              }))
+              })),
+              getBaseUri: sinon.stub().returns('http://www.awesome.com')
             },
             guardianSocket
           })
@@ -145,7 +149,8 @@ describe('Guardian.js', function() {
                   mfaSms: { enroll: true }
                 },
                 deviceAccount: {}
-              }))
+              })),
+              getBaseUri: sinon.stub().returns('http://www.awesome.com')
             },
             guardianSocket
           })
@@ -193,7 +198,8 @@ describe('Guardian.js', function() {
                   mfaSms: { enroll: true }
                 },
                 deviceAccount: {}
-              }))
+              })),
+              getBaseUri: sinon.stub().returns('http://www.awesome.com')
             },
             guardianSocket
           })
@@ -260,7 +266,8 @@ describe('Guardian.js', function() {
                   mfaSms: { enroll: true }
                 },
                 deviceAccount: {}
-              }))
+              })),
+              getBaseUri: sinon.stub().returns('http://www.awesome.com')
             },
             guardianSocket
           });
@@ -337,7 +344,8 @@ describe('Guardian.js', function() {
                     mfaSms: { enroll: true }
                   },
                   deviceAccount: {}
-                }))
+                })),
+                getBaseUri: sinon.stub().returns('http://www.awesome.com')
               },
               guardianSocket
             });
@@ -413,7 +421,8 @@ describe('Guardian.js', function() {
                     mfaSms: { enroll: true }
                   },
                   deviceAccount: {}
-                }))
+                })),
+                getBaseUri: sinon.stub().returns('http://www.awesome.com')
               },
               guardianSocket
             });
