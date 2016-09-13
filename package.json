@@ -7,10 +7,10 @@
     "test": "test"
   },
   "dependencies": {
-    "bluebird": "^3.4.5",
     "jwt-decode": "^2.1.0",
     "lodash.camelcase": "^4.3.0",
     "lodash.snakecase": "^4.1.1",
+    "promise-polyfill": "^6.0.2",
     "socket.io-client": "^1.4.8",
     "superagent": "^2.2.0",
     "superagent-promise": "^1.1.0",
