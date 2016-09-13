@@ -1,3 +1,5 @@
+'use strict';
+
 const expect = require('chai').expect;
 const formPostCallbackBuilder = require('../../lib/plugins/form_post_callback');
 const sinon = require('sinon');

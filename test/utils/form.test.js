@@ -1,3 +1,5 @@
+'use strict';
+
 const expect = require('chai').expect;
 const formBuilder = require('../../lib/utils/form');
 const Document = require('../support/document');
