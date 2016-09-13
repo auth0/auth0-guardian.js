@@ -7,7 +7,7 @@ const Transaction = require('../lib/transaction');
 const sinon = require('sinon');
 
 describe('Guardian.js', function() {
-  const getBaseUri = sinon.stub();
+  const getBaseUri = sinon.stub().returns('http://myauth0.com');
   let transactionTokenString;
   let requestTokenString;
 
@@ -134,7 +134,7 @@ describe('Guardian.js', function() {
             label: 'Awesome',
           },
         }, null, {
-          guardianClient: { post, listenTo, getBaseUri }
+          guardianClient: { post, getBaseUri }
         });
 
         return expect(guardianJS.start()).to.be.fulfilled.then(function(tx) {

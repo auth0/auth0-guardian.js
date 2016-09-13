@@ -101,7 +101,8 @@ describe('auth/auth_flow/sms_authenticator_strategy', function() {
             factor: 'sms',
             recovery: false,
             accepted: true,
-            loginPayload: payload
+            loginPayload: payload,
+            transactionComplete: true
           });
 
           done();

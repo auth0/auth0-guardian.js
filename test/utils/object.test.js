@@ -5,6 +5,30 @@ const object = require('../../lib/utils/object');
 
 describe('utils/object', function() {
 
+  describe('#assign', function() {
+    it('assigns new values to root objects', function() {
+      const root = { a: 1, b: 2 };
+
+      expect(object.assign(root, {
+        c: 3,
+        d: 4
+      }, {
+        e: 5
+      }, {
+        f: 6,
+        g: 7
+      })).to.eql({
+        a: 1,
+        b: 2,
+        c: 3,
+        d: 4,
+        e: 5,
+        f: 6,
+        g: 7
+      });
+    });
+  });
+
   describe('#isObject', function() {
     describe('when passing an object', function() {
       it('returns true', function() {

@@ -3,7 +3,7 @@
 const expect = require('chai').expect;
 const validations = require('../../lib/utils/validations');
 
-describe('utils/object', function() {
+describe('utils/validations', function() {
   describe('#validateOtp', function() {
     describe('when otp has less than 6 digits', function() {
       it('returns false', function() {
