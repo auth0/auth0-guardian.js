@@ -33,6 +33,8 @@ class Auth0GuardianJS {
   constructor(options, configuration, dependencies) {
     dependencies = dependencies || {};
 
+    this.plugins = {};
+
     this.events = new EventEmitter();
     this.issuer = options.issuer;
     this.requestToken = new JWTToken(options.requestToken);
@@ -137,9 +139,12 @@ class Auth0GuardianJS {
    * When: when enrollment was completed from ANY transaction (see comment above)
    */
   handleEnrollmentComplete(data) {
+    const enrollmentFactor = this.transaction.getCurrentFactor();
+
     const enrollmentPayload = {
       factor: 'push',
       transactionComplete: false,
+      recoveryCode: this.transaction.data.recoveryCode,
       enrollment: object.assign({
         status: 'confirmed',
         pushNotifications: { enabled: true }

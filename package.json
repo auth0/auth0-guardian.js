@@ -1,5 +1,5 @@
 {
-  "name": "guardian.js",
+  "name": "auth0-guardian-js",
   "version": "1.0.0",
   "description": "Interface",
   "main": "index.js",

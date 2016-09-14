@@ -30,6 +30,10 @@ const guardian = new GuardianJS({
 	}
 });
 
+// Browser: when enrollment is complete post the result onto a server
+Auth0GuardianJS.plugins
+	.formPostCallback({ callbackUrl: "..." })(guardianjs);
+
 guardian.start().then((transaction) => {
 	if (transaction.isEnrolled()) {
 		return transaction.startAuthForDefaultFactor().request();
@@ -40,18 +44,14 @@ guardian.start().then((transaction) => {
 .catch(err => {
 	console.error(err);
 });
-
-guardian.once('auth-complete', ({ loginToken }) => {
-	console.log('login token', loginToken); // Here you have to send the token to the server
-});
 ```
 
 ### Push notification enrollment example
 Asuming that the enrollment is not confirmed
 
 ```javascript
-const GuardianJS = require('guardian-js');
-const guardian = new GuardianJS({
+const Auth0GuardianJS = require('auth0-guardian-js');
+const guardian = new Auth0GuardianJS({
 	requestToken: //...,
 	serviceDomain: //...,
 	issuer: {
@@ -142,15 +142,15 @@ const defaultFactorAuth = transaction.startAuthForDefaultFactor();
 
 ### Events
 ```javascript
-guardian.events.on('enrollment-confirmed', function() {
+guardian.events.on('enrollment-complete', function() {
 	// Enrollment confirmed
 });
 
-guardian.events.on('auth-complete', function({ loginToken }) {
+guardian.events.on('login-complete', function({ loginPayload }) {
 	// Auth complete
 });
 
-guardian.events.on('transaction-timeout', function() {
+guardian.events.on('timeout', function() {
 	// Transaction time out
 });
 

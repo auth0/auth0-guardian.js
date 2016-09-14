@@ -174,7 +174,7 @@ describe('Guardian.js', function() {
        });
     });
 
-    describe('when socket login-rejected is emitted', function() {
+    describe('when socket enrollment-complete is emitted', function() {
         let guardianJS;
         let guardianSocket;
 
@@ -197,7 +197,9 @@ describe('Guardian.js', function() {
                   mfaApp: { enroll: true },
                   mfaSms: { enroll: true }
                 },
-                deviceAccount: {}
+                deviceAccount: {
+                  recoveryCode: '1234567890'
+                }
               })),
               getBaseUri: sinon.stub().returns('http://www.awesome.com')
             },
@@ -217,6 +219,7 @@ describe('Guardian.js', function() {
             const enrollmentPayload = {
               factor: 'push',
               transactionComplete: false,
+              recoveryCode: '1234567890',
               enrollment: {
                 status: 'confirmed',
                 pushNotifications: { enabled: true },
