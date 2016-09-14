@@ -31,6 +31,12 @@ Auth0GuardianJS.plugins
   .formPostCallback({
     callbackUrl: "{{ postActionURL }}" // Callback url where to POST the result
   })(guardianjs);
+
+// This plugin exposes a method to trigger the post whenever you want,
+// when you want to do so just call, if login-complete has already complete
+// it will trigger the post automatically, otherwise it will do so as soon
+// as the login-complete event get received
+guardianjs.plugins.formPostCallback();
 ```
 
 ### Errors and timeout handling
@@ -155,8 +161,17 @@ requesting an authentication doesn't have any effect, the method is
 provided just as a convenience.
 
 ```js
-var authFactor = transaction.startAuthForDefaultFactor();
+var authFlow = transaction.startAuth();
+var authFactor = transaction.forDefaultFactor();
+```
 
+Know what factor you are enrolled with
+```js
+var defaultFactor = authFactor.getDefaultFactor();
+```
+
+Execute the actual request
+```js
 authFactor.request()
   .then(function() {
     showMessage('Auth push/sms has been sent');

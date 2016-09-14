@@ -313,7 +313,6 @@ describe('Guardian.js', function() {
             expect(transaction.markEnrolled.called).to.be.false;
             expect(loginCompleteEventPayload).to.eql({
               factor: 'otp',
-              wasEnrollment: false,
               recovery: false,
               accepted: true,
               loginPayload: {
@@ -391,7 +390,6 @@ describe('Guardian.js', function() {
               expect(transaction.markEnrolled.called).to.be.false;
               expect(loginCompleteEventPayload).to.eql({
                 factor: 'push',
-                wasEnrollment: true,
                 recovery: false,
                 accepted: true,
                 loginPayload: {
@@ -423,7 +421,9 @@ describe('Guardian.js', function() {
                     mfaApp: { enroll: true },
                     mfaSms: { enroll: true }
                   },
-                  deviceAccount: {}
+                  deviceAccount: {
+                    recoveryCode: '1234'
+                  }
                 })),
                 getBaseUri: sinon.stub().returns('http://www.awesome.com')
               },
@@ -453,6 +453,7 @@ describe('Guardian.js', function() {
               const enrollmentPayload = {
                 factor: 'otp',
                 transactionComplete: true,
+                recoveryCode: '1234',
                 enrollment: {
                   status: 'confirmed'
                 }

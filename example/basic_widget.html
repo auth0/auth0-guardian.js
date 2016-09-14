@@ -35,7 +35,7 @@
   <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="   crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
   <!-- TODO: Replace by Auth0 cdn version -->
-  <script src="https://rawgit.com/dafortune/ecac93fbe831fc3f1480e4f7698af5ba/raw/5c1783dc2d834d5f8f191f1a383a0c9bf98642be/guardianjs.bundle.js"></script>
+  <script src="https://rawgit.com/dafortune/ecac93fbe831fc3f1480e4f7698af5ba/raw/01a4558157b65d238308545bd41fd538215938ab/guardianjs.bundle.js"></script>
 
   <style>
     .hidden {
@@ -61,7 +61,7 @@
 
   <div class="container">
     <div class="error hidden" data-error></div>
-    <div class="info hidden">
+    <div class="info hidden" data-recovery-report-container>
       <span data-recovery-report></span>
       <button type="button" data-saved-recovery>Got it!</button>
     </div>
@@ -129,6 +129,9 @@
         <input type="text" data-verify-field="otpCode" />
         <button type="submit">Login</button>
       </form>
+      <p>
+        <button type="button" data-show-recovery>Recovery</button>
+      </p>
     </div>
 
     <div class="hidden" data-screen data-login-confirm="push">
@@ -136,6 +139,9 @@
       <p data-request-done>We have sent a push notification to your phone</p>
       <button type="button" data-login-verify-show="otp">I don't have the device handy</button>
       <button type="button" data-request>Retry</button>
+      <p>
+        <button type="button" data-show-recovery>Recovery</button>
+      </p>
     </div>
 
     <div class="hidden" data-screen data-login-confirm="sms">
@@ -148,6 +154,9 @@
         <input type="text" data-verify-field="otpCode"/>
         <button type="submit">Login</button>
       </form>
+      <p>
+        <button type="button" data-show-recovery>Recovery</button>
+      </p>
     </div>
 
     <div class="hidden" data-screen data-recovery>
@@ -193,6 +202,8 @@
         };
       })();
 
+      var pendingReports = {};
+
       screen.transitionTo('[data-loading]');
 
       $root.off('click.saved-recovery')
@@ -203,7 +214,7 @@
       // --------------------- Setup Guardian JS ----------------------------
 
       var guardianjs = new Auth0GuardianJS({
-        serviceDomain: "{{ serviceDomain }}", // {name}.guardian.auth0.com
+        serviceDomain: "fortune-5.guardian.auth0.com", // {name}.guardian.auth0.com
         requestToken: "{{ requestToken }}",
         postActionURL: "{{ postActionURL }}",
 
@@ -246,12 +257,14 @@
           }
 
           if (p.recoveryCode) {
-            $('[data-recovery-report]').removeClass('hidden').text('Recovery code: ' + p.recoveryCode);
+            $('[data-recovery-report-container]').removeClass('hidden');
+            $('[data-recovery-report]').text('Recovery code: ' + p.recoveryCode);
+            pendingReports.recovery = true;
           }
         });
 
         guardianjs.events.on('login-complete', function(p) {
-          if (!p.wasEnrollment || p.recovery) {
+          if (Object.keys(pendingReports).length === 0) {
             // Login is complete and it is not enrolled, since we have setup the
             // `formPostCallback` plugin the result is going to be sent to the
             // callback url immediatelly (`formPostCallback` call). In case of
@@ -301,11 +314,12 @@
           .catch(showLocalError);
       }
 
-      function renderLogin(tx) {
-        var authFactor = tx.startAuthForDefaultFactor();
+      function renderLogin(tx, factor) {
+        var auth = tx.startAuth();
+        factor = factor || auth.getDefaultFactor();
+        var authFactor = auth.forFactor(factor);
 
-        screen.transitionTo('[data-login-confirm="' +
-                            auth.getDefaultFactor() + '"]');
+        screen.transitionTo('[data-login-confirm="' + factor + '"]');
 
         requestFactorAuth(authFactor);
 
@@ -325,11 +339,19 @@
           .on('submit.recovery-verify', '[data-recovery-verify]', function(evt) {
             evt.preventDefault();
 
+            delete pendingReports.recovery;
+
             var data = getData(screen.getActive(), '[data-recovery-field]',
                              'recovery-field');
 
             tx.startAuthForRecovery().verify(data).catch(showLocalError);
           });
+
+      $root
+        .off('click.login-verify-show')
+        .on('click.login-verify-show', '[data-login-verify-show]', function() {
+          renderLogin(tx, 'otp');
+        });
 
         $root
           .off('click.request')

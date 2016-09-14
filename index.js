@@ -83,6 +83,7 @@ class Auth0GuardianJS {
         const enrollmentPayload =  {
           factor: factor,
           enrollment: { status: 'confirmed' },
+          recoveryCode: this.transaction.data.recoveryCode,
           transactionComplete: true
         };
 
@@ -98,7 +99,6 @@ class Auth0GuardianJS {
     process.nextTick(() => {
       this.events.emit('login-complete', {
         factor: factor,
-        wasEnrollment: wasEnrollment,
         recovery: !factor,
         accepted: true,
         loginPayload: loginPayload
@@ -307,4 +307,4 @@ Auth0GuardianJS.plugins = {
   formPostCallback: formPostCallbackPlugin
 };
 
-global.GuardianJS = module.exports = Auth0GuardianJS;
+module.exports = Auth0GuardianJS;
