@@ -1,15 +1,5 @@
 'use strict';
 
-module.exports = class Document {
-  constructor() {
-    this.body = new Element('body');
-  }
-
-  createElement(type) {
-    return new Element(type);
-  }
-}
-
 class Element {
   constructor(type) {
     this.type = type;
@@ -35,3 +25,13 @@ class Element {
     this.submitted = true;
   }
 }
+
+module.exports = class Document {
+  constructor() {
+    this.body = new Element('body');
+  }
+
+  createElement(type) {
+    return new Element(type);
+  }
+};

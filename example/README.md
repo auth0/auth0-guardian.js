@@ -46,7 +46,7 @@ them as soon as posible.
 ```js
 // Let's start listening for timeout in case the user takes too long
 // to login and the transaction expires
-guardianjs.events.on('timeout', function() {
+guardianjs.events.on('timeout', function () {
   showError('Seems that you\'ve taken too long to login');
 });
 
@@ -119,7 +119,7 @@ you can use the `.enroll(data)` method to provide this information
 ```js
 var enrollmentFactor = enrollmentFlow.forFactor('sms');
 
-enrollmentFactor.enroll({ phoneNumber: '+1 341 5643333' }).then(function() {
+enrollmentFactor.enroll({ phoneNumber: '+1 341 5643333' }).then(function () {
   showSuccess('enrollment has started');
 })
 .catch(showLocalError);
@@ -173,7 +173,7 @@ var defaultFactor = authFactor.getDefaultFactor();
 Execute the actual request
 ```js
 authFactor.request()
-  .then(function() {
+  .then(function () {
     showMessage('Auth push/sms has been sent');
 
     return null;
@@ -205,7 +205,7 @@ and, if valid, get an auth payload on the `login-complete` event.
 
 ```js
 authFactor.verify({ recoveryCode: '123456789012345678901234' })
-  .then(function() {
+  .then(function () {
     showMessage('Code verified');
 
     return null;

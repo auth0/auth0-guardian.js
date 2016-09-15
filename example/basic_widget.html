@@ -175,10 +175,10 @@
   </div>
 
   <script>
-    (function() {
+    (function () {
       var $root = $('body');
 
-      var screen = (function() {
+      var screen = (function () {
         var $active;
 
         function transitionTo(to) {
@@ -207,7 +207,7 @@
       screen.transitionTo('[data-loading]');
 
       $root.off('click.saved-recovery')
-        .on('click.saved-recovery', '[data-saved-recovery]', function() {
+        .on('click.saved-recovery', '[data-saved-recovery]', function () {
           guardianjs.plugins.formPostCallback();
         });
 
@@ -304,7 +304,7 @@
         // enrolled with push, an sms if you have enrolled with sms, nothing
         // if you have enrolled with otp
         authFactor.request()
-          .then(function() {
+          .then(function () {
             var $active = screen.getActive();
             $active.find('[data-request-loading]').addClass('hidden');
             $active.find('[data-request-done]').removeClass('hidden');
@@ -349,19 +349,19 @@
 
       $root
         .off('click.login-verify-show')
-        .on('click.login-verify-show', '[data-login-verify-show]', function() {
+        .on('click.login-verify-show', '[data-login-verify-show]', function () {
           renderLogin(tx, 'otp');
         });
 
         $root
           .off('click.request')
-          .on('click.request', '[data-request]', function() {
+          .on('click.request', '[data-request]', function () {
             requestFactorAuth(authFactor)
           });
 
         $root
           .off('click.show-recovery')
-          .on('click.show-recovery', '[data-show-recovery]', function() {
+          .on('click.show-recovery', '[data-show-recovery]', function () {
             screen.transitionTo('[data-recovery]');
           });
       }
@@ -392,7 +392,7 @@
             // enrollment. You need to send phoneNumber for sms, the other
             // factors doesn't need sending data, but the method is a
             // NOOP that returns a promise just as a convenience
-            enrollmentFactor.enroll(data).then(function() {
+            enrollmentFactor.enroll(data).then(function () {
               screen.transitionTo('[data-enrollment-confirm]' +
                                   '[data-factor="' + factor + '"]');
 

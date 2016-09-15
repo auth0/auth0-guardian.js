@@ -6,23 +6,22 @@ const OTPEnrollmentStrategy = require('../../lib/enrollment/strategies/otp_enrol
 const PNEnrollmentStrategy = require('../../lib/enrollment/strategies/pn_enrollment_strategy');
 const SMSEnrollmentStrategy = require('../../lib/enrollment/strategies/sms_enrollment_strategy');
 const errors = require('../../lib/errors');
-const EventEmitter = require('events').EventEmitter;
 
-describe('enrollment/enrollment_flow', function() {
+describe('enrollment/enrollment_flow', function () {
   const guardianClient = {};
 
-  describe('#getRecoveryCode', function() {
-    it('returns the recovery code', function() {
+  describe('#getRecoveryCode', function () {
+    it('returns the recovery code', function () {
       expect(new EnrollmentFlow({
         recoveryCode: '12345'
       }, null, {}).getRecoveryCode()).to.equal('12345');
     });
   });
 
-  describe('#canEnrollWithFactor', function() {
-    describe('for type otp', function() {
-      describe('when push notification factor is enabled', function() {
-        it('returns true', function() {
+  describe('#canEnrollWithFactor', function () {
+    describe('for type otp', function () {
+      describe('when push notification factor is enabled', function () {
+        it('returns true', function () {
           expect(new EnrollmentFlow({
             factors: {
               push: {
@@ -33,8 +32,8 @@ describe('enrollment/enrollment_flow', function() {
         });
       });
 
-      describe('when push notification factor is disabled', function() {
-        it('returns false', function() {
+      describe('when push notification factor is disabled', function () {
+        it('returns false', function () {
           expect(new EnrollmentFlow({
             factors: {
               push: {
@@ -46,9 +45,9 @@ describe('enrollment/enrollment_flow', function() {
       });
     });
 
-    describe('for type push', function() {
-      describe('when push notification factor is enabled', function() {
-        it('returns true', function() {
+    describe('for type push', function () {
+      describe('when push notification factor is enabled', function () {
+        it('returns true', function () {
           expect(new EnrollmentFlow({
             factors: {
               push: {
@@ -59,8 +58,8 @@ describe('enrollment/enrollment_flow', function() {
         });
       });
 
-      describe('when push notification factor is disabled', function() {
-        it('returns false', function() {
+      describe('when push notification factor is disabled', function () {
+        it('returns false', function () {
           expect(new EnrollmentFlow({
             factors: {
               push: {
@@ -72,9 +71,9 @@ describe('enrollment/enrollment_flow', function() {
       });
     });
 
-    describe('for type sms', function() {
-       describe('when sms factor is enabled', function() {
-        it('returns true', function() {
+    describe('for type sms', function () {
+      describe('when sms factor is enabled', function () {
+        it('returns true', function () {
           expect(new EnrollmentFlow({
             factors: {
               sms: {
@@ -85,8 +84,8 @@ describe('enrollment/enrollment_flow', function() {
         });
       });
 
-      describe('when sms factor is disabled', function() {
-        it('returns false', function() {
+      describe('when sms factor is disabled', function () {
+        it('returns false', function () {
           expect(new EnrollmentFlow({
             factors: {
               sms: {
@@ -98,9 +97,9 @@ describe('enrollment/enrollment_flow', function() {
       });
     });
 
-    describe('for invalid types', function() {
-      it('throws an error', function() {
-        expect(() => {
+    describe('for invalid types', function () {
+      it('throws an error', function () {
+        expect(function () {
           new EnrollmentFlow({
             factors: {
               sms: {
@@ -113,9 +112,9 @@ describe('enrollment/enrollment_flow', function() {
     });
   });
 
-  describe('#getAvailableFactors', function() {
-    describe('for type push', function() {
-      it('returns authenticator and push', function() {
+  describe('#getAvailableFactors', function () {
+    describe('for type push', function () {
+      it('returns authenticator and push', function () {
         expect(new EnrollmentFlow({
           factors: {
             sms: {
@@ -131,8 +130,8 @@ describe('enrollment/enrollment_flow', function() {
       });
     });
 
-    describe('for type sms and push', function() {
-      it('returns authenticator, push and otp', function() {
+    describe('for type sms and push', function () {
+      it('returns authenticator, push and otp', function () {
         expect(new EnrollmentFlow({
           factors: {
             sms: {
@@ -149,10 +148,10 @@ describe('enrollment/enrollment_flow', function() {
     });
   });
 
-  describe('#forFactor', function() {
-    describe('for invalid type', function() {
-      it('throws an error', function() {
-        expect(() => {
+  describe('#forFactor', function () {
+    describe('for invalid type', function () {
+      it('throws an error', function () {
+        expect(function () {
           new EnrollmentFlow({
             factors: {
               sms: {
@@ -164,9 +163,9 @@ describe('enrollment/enrollment_flow', function() {
       });
     });
 
-    describe('when factor is disabled', function() {
-      it('throws an error', function() {
-        expect(() => {
+    describe('when factor is disabled', function () {
+      it('throws an error', function () {
+        expect(function () {
           new EnrollmentFlow({
             factors: {
               sms: {
@@ -178,111 +177,111 @@ describe('enrollment/enrollment_flow', function() {
       });
     });
 
-    describe('for sms', function() {
-      it('returns sms strategy', function() {
+    describe('for sms', function () {
+      it('returns sms strategy', function () {
         const flow = new EnrollmentFlow({
-            factors: {
-              sms: {
-                enabled: true
-              }
-            },
-            issuer: {
-              label: '123'
-            },
-            enrollmentTxId: '1234',
-            transactionToken: '12345',
-            enrollment: {
-              id: '123'
+          factors: {
+            sms: {
+              enabled: true
             }
-          }, null, {
-            guardianClient,
-          }).forFactor('sms');
+          },
+          issuer: {
+            label: '123'
+          },
+          enrollmentTxId: '1234',
+          transactionToken: '12345',
+          enrollment: {
+            id: '123'
+          }
+        }, null, {
+          guardianClient
+        }).forFactor('sms');
 
         expect(flow).to.be.an.instanceOf(SMSEnrollmentStrategy);
         expect(flow.data).to.eql({
-            enrollmentTxId: '1234',
-            transactionToken: '12345',
-            issuer: {
-              label: '123'
-            },
-            enrollment: {
-              id: '123'
-            }
-          });
+          enrollmentTxId: '1234',
+          transactionToken: '12345',
+          issuer: {
+            label: '123'
+          },
+          enrollment: {
+            id: '123'
+          }
+        });
       });
     });
 
-    describe('for otp', function() {
-      it('returns authenticator strategy', function() {
+    describe('for otp', function () {
+      it('returns authenticator strategy', function () {
         const flow = new EnrollmentFlow({
-            factors: {
-              push: {
-                enabled: true
-              }
-            },
-            issuer: {
-              label: '123'
-            },
-            enrollmentTxId: '1234',
-            transactionToken: '12345',
-            enrollment: {
-              id: '123'
+          factors: {
+            push: {
+              enabled: true
             }
-          }, null, {
-            guardianClient,
-          }).forFactor('otp');
+          },
+          issuer: {
+            label: '123'
+          },
+          enrollmentTxId: '1234',
+          transactionToken: '12345',
+          enrollment: {
+            id: '123'
+          }
+        }, null, {
+          guardianClient
+        }).forFactor('otp');
 
         expect(flow).to.be.an.instanceOf(OTPEnrollmentStrategy);
         expect(flow.data).to.eql({
-            enrollmentTxId: '1234',
-            transactionToken: '12345',
-            issuer: {
-              label: '123'
-            },
-            enrollment: {
-              id: '123'
-            }
-          });
+          enrollmentTxId: '1234',
+          transactionToken: '12345',
+          issuer: {
+            label: '123'
+          },
+          enrollment: {
+            id: '123'
+          }
+        });
       });
     });
 
-    describe('for push notification', function() {
-      it('returns push notification strategy', function() {
+    describe('for push notification', function () {
+      it('returns push notification strategy', function () {
         const flow = new EnrollmentFlow({
-            factors: {
-              push: {
-                enabled: true
-              }
-            },
-            issuer: {
-              label: '123'
-            },
-            enrollmentTxId: '1234',
-            transactionToken: '12345',
-            enrollment: {
-              id: '123'
+          factors: {
+            push: {
+              enabled: true
             }
-          }, null, {
-            guardianClient,
-          }).forFactor('push');
+          },
+          issuer: {
+            label: '123'
+          },
+          enrollmentTxId: '1234',
+          transactionToken: '12345',
+          enrollment: {
+            id: '123'
+          }
+        }, null, {
+          guardianClient
+        }).forFactor('push');
 
         expect(flow).to.be.an.instanceOf(PNEnrollmentStrategy);
         expect(flow.data).to.eql({
-            enrollmentTxId: '1234',
-            transactionToken: '12345',
-            issuer: {
-              label: '123'
-            },
-            enrollment: {
-              id: '123'
-            }
-          });
+          enrollmentTxId: '1234',
+          transactionToken: '12345',
+          issuer: {
+            label: '123'
+          },
+          enrollment: {
+            id: '123'
+          }
+        });
       });
     });
 
-    describe('for invalid type', function() {
-      it('throws an error', function() {
-        expect(() => {
+    describe('for invalid type', function () {
+      it('throws an error', function () {
+        expect(function () {
           new EnrollmentFlow({
             factors: {
               sms: {

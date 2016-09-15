@@ -8,7 +8,7 @@ const sinon = require('sinon');
 const jwt = require('jsonwebtoken');
 const EventEmitter = require('events').EventEmitter;
 
-describe('Guardian.js', function() {
+describe('Guardian.js', function () {
   const getBaseUri = sinon.stub().returns('http://myauth0.com');
 
   let guardianSocket;
@@ -16,9 +16,11 @@ describe('Guardian.js', function() {
   let requestTokenString;
   let almostExpiredToken;
 
-  beforeEach(function() {
-    transactionTokenString = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIxMTEifQ.a_7u26PXc3Iv5J6eq9vGeZiKnoYWfBYqVJdz1Gtxh0s';
-    requestTokenString = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIxMTEifQ.a_7u26PXc3Iv5J6eq9vGeZiKnoYWfBYqVJdz1Gtxh0s';
+  beforeEach(function () {
+    transactionTokenString = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' +
+      'eyJhdWQiOiIxMTEifQ.a_7u26PXc3Iv5J6eq9vGeZiKnoYWfBYqVJdz1Gtxh0s';
+    requestTokenString = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' +
+      'eyJhdWQiOiIxMTEifQ.a_7u26PXc3Iv5J6eq9vGeZiKnoYWfBYqVJdz1Gtxh0s';
     almostExpiredToken = jwt.sign({}, '123', { expiresIn: '1s' });
 
     guardianSocket = {
@@ -30,226 +32,223 @@ describe('Guardian.js', function() {
     };
   });
 
-  describe('events', function() {
-    describe('when request token expires', function() {
-       it('emits timeout event with request token expired error', function(done) {
-          const guardianJS = new GuardianJS({
-            serviceDomain: 'awesome.guardian.auth0.com',
-            requestToken: almostExpiredToken,
-            issuer: {
-              name: 'awesome',
-              label: 'Awesome',
-            },
-          }, null, {
-            guardianClient: {
-              getBaseUri: sinon.stub().returns('http://www.awesome.com')
-            },
-            guardianSocket
-          });
+  describe('events', function () {
+    describe('when request token expires', function () {
+      it('emits timeout event with request token expired error', (done) => {
+        const guardianJS = new GuardianJS({
+          serviceDomain: 'awesome.guardian.auth0.com',
+          requestToken: almostExpiredToken,
+          issuer: {
+            name: 'awesome',
+            label: 'Awesome'
+          }
+        }, null, {
+          guardianClient: {
+            getBaseUri: sinon.stub().returns('http://www.awesome.com')
+          },
+          guardianSocket
+        });
 
-          guardianJS.events.once('timeout', (err) => {
-            expect(err).to.be.an.instanceOf(errors.RequestTokenExpired);
-            done();
-          });
-       });
+        guardianJS.events.once('timeout', (err) => {
+          expect(err).to.be.an.instanceOf(errors.RequestTokenExpired);
+          done();
+        });
+      });
     });
 
-    describe('when transaction token expires', function() {
-       it('emits timeout event with transaction token expired error', function(done) {
-          const guardianJS = new GuardianJS({
-            serviceDomain: 'awesome.guardian.auth0.com',
-            requestToken: almostExpiredToken,
-            issuer: {
-              name: 'awesome',
-              label: 'Awesome',
-            },
-          }, null, {
-            guardianClient: {
-              post: sinon.stub().returns(Promise.resolve({
-                transactionToken: almostExpiredToken,
-                featureSwitches: {
-                  mfaApp: { enroll: true },
-                  mfaSms: { enroll: true }
-                },
-                deviceAccount: {}
-              })),
-              getBaseUri: sinon.stub().returns('http://www.awesome.com')
-            },
-            guardianSocket
-          });
+    describe('when transaction token expires', function () {
+      it('emits timeout event with transaction token expired error', (done) => {
+        const guardianJS = new GuardianJS({
+          serviceDomain: 'awesome.guardian.auth0.com',
+          requestToken: almostExpiredToken,
+          issuer: {
+            name: 'awesome',
+            label: 'Awesome'
+          }
+        }, null, {
+          guardianClient: {
+            post: sinon.stub().returns(Promise.resolve({
+              transactionToken: almostExpiredToken,
+              featureSwitches: {
+                mfaApp: { enroll: true },
+                mfaSms: { enroll: true }
+              },
+              deviceAccount: {}
+            })),
+            getBaseUri: sinon.stub().returns('http://www.awesome.com')
+          },
+          guardianSocket
+        });
 
-          guardianJS.start();
+        guardianJS.start();
 
-          guardianJS.events.once('timeout', (err) => {
-            expect(err).to.be.an.instanceOf(errors.TransactionTokenExpired);
-            done();
-          });
-       });
+        guardianJS.events.once('timeout', (err) => {
+          expect(err).to.be.an.instanceOf(errors.TransactionTokenExpired);
+          done();
+        });
+      });
     });
 
-    describe('when socket error is emitted', function() {
-       it('emits timeout event with request token expired error', function(done) {
-          const guardianSocket = new EventEmitter();
-          guardianSocket.open = sinon.stub();
+    describe('when socket error is emitted', function () {
+      it('emits timeout event with request token expired error', (done) => {
+        guardianSocket = new EventEmitter();
+        guardianSocket.open = sinon.stub();
 
-          const guardianJS = new GuardianJS({
-            serviceDomain: 'awesome.guardian.auth0.com',
-            requestToken: almostExpiredToken,
-            issuer: {
-              name: 'awesome',
-              label: 'Awesome',
-            },
-          }, null, {
-            guardianClient: {
-              post: sinon.stub().returns(Promise.resolve({
-                transactionToken: almostExpiredToken,
-                featureSwitches: {
-                  mfaApp: { enroll: true },
-                  mfaSms: { enroll: true }
-                },
-                deviceAccount: {}
-              })),
-              getBaseUri: sinon.stub().returns('http://www.awesome.com')
-            },
-            guardianSocket
-          })
+        const guardianJS = new GuardianJS({
+          serviceDomain: 'awesome.guardian.auth0.com',
+          requestToken: almostExpiredToken,
+          issuer: {
+            name: 'awesome',
+            label: 'Awesome'
+          }
+        }, null, {
+          guardianClient: {
+            post: sinon.stub().returns(Promise.resolve({
+              transactionToken: almostExpiredToken,
+              featureSwitches: {
+                mfaApp: { enroll: true },
+                mfaSms: { enroll: true }
+              },
+              deviceAccount: {}
+            })),
+            getBaseUri: sinon.stub().returns('http://www.awesome.com')
+          },
+          guardianSocket
+        });
 
-          guardianJS.start().then(() => {
-            guardianJS.events.once('error', (err) => {
-              expect(err).to.be.an.instanceOf(Error);
-              done();
-            });
-
-            guardianSocket.emit('error', new Error());
-          });
-       });
-    });
-
-    describe('when socket enrollment-complete is emitted', function() {
-        let guardianJS;
-        let guardianSocket;
-
-        beforeEach(function() {
-          guardianSocket = new EventEmitter();
-          guardianSocket.open = sinon.stub();
-
-          guardianJS = new GuardianJS({
-            serviceDomain: 'awesome.guardian.auth0.com',
-            requestToken: requestTokenString,
-            issuer: {
-              name: 'awesome',
-              label: 'Awesome',
-            },
-          }, null, {
-            guardianClient: {
-              post: sinon.stub().returns(Promise.resolve({
-                transactionToken: transactionTokenString,
-                featureSwitches: {
-                  mfaApp: { enroll: true },
-                  mfaSms: { enroll: true }
-                },
-                deviceAccount: {}
-              })),
-              getBaseUri: sinon.stub().returns('http://www.awesome.com')
-            },
-            guardianSocket
-          })
-
-          return guardianJS.start();
-       });
-
-       it('emits login-rejected', function(done) {
-          guardianJS.events.once('login-rejected', (payload) => {
-            expect(payload).to.eql({
-              factor: 'push',
-              recovery: false,
-              accepted: false,
-              loginPayload: null
-            });
-
+        guardianJS.start().then(function () {
+          guardianJS.events.once('error', (err) => {
+            expect(err).to.be.an.instanceOf(Error);
             done();
           });
 
-          guardianSocket.emit('login-rejected');
-       });
+          guardianSocket.emit('error', new Error());
+        });
+      });
     });
 
-    describe('when socket enrollment-complete is emitted', function() {
-        let guardianJS;
-        let guardianSocket;
+    describe('when socket enrollment-complete is emitted', function () {
+      let guardianJS;
 
-        beforeEach(function() {
-          guardianSocket = new EventEmitter();
-          guardianSocket.open = sinon.stub();
+      beforeEach(function () {
+        guardianSocket = new EventEmitter();
+        guardianSocket.open = sinon.stub();
 
-          guardianJS = new GuardianJS({
-            serviceDomain: 'awesome.guardian.auth0.com',
-            requestToken: almostExpiredToken,
-            issuer: {
-              name: 'awesome',
-              label: 'Awesome',
-            },
-          }, null, {
-            guardianClient: {
-              post: sinon.stub().returns(Promise.resolve({
-                transactionToken: transactionTokenString,
-                featureSwitches: {
-                  mfaApp: { enroll: true },
-                  mfaSms: { enroll: true }
-                },
-                deviceAccount: {
-                  recoveryCode: '1234567890'
-                }
-              })),
-              getBaseUri: sinon.stub().returns('http://www.awesome.com')
-            },
-            guardianSocket
-          })
+        guardianJS = new GuardianJS({
+          serviceDomain: 'awesome.guardian.auth0.com',
+          requestToken: requestTokenString,
+          issuer: {
+            name: 'awesome',
+            label: 'Awesome'
+          }
+        }, null, {
+          guardianClient: {
+            post: sinon.stub().returns(Promise.resolve({
+              transactionToken: transactionTokenString,
+              featureSwitches: {
+                mfaApp: { enroll: true },
+                mfaSms: { enroll: true }
+              },
+              deviceAccount: {}
+            })),
+            getBaseUri: sinon.stub().returns('http://www.awesome.com')
+          },
+          guardianSocket
+        });
 
-          return guardianJS.start()
-            .then(() => sinon.stub(guardianJS.transaction, 'markEnrolled'));
-       });
+        return guardianJS.start();
+      });
 
-       afterEach(function() {
-         guardianJS.transaction.markEnrolled.restore();
-       });
+      it('emits login-rejected', (done) => {
+        guardianJS.events.once('login-rejected', (payload) => {
+          expect(payload).to.eql({
+            factor: 'push',
+            recovery: false,
+            accepted: false,
+            loginPayload: null
+          });
 
-       it('emits enrollment-complete', function(done) {
-          guardianJS.events.once('enrollment-complete', (enrollmentComplete) => {
-            const enrollmentPayload = {
-              factor: 'push',
-              transactionComplete: false,
-              recoveryCode: '1234567890',
-              enrollment: {
-                status: 'confirmed',
-                pushNotifications: { enabled: true },
-                name: 'Name'
+          done();
+        });
+
+        guardianSocket.emit('login-rejected');
+      });
+    });
+
+    describe('when socket enrollment-complete is emitted', function () {
+      let guardianJS;
+
+      beforeEach(function () {
+        guardianSocket = new EventEmitter();
+        guardianSocket.open = sinon.stub();
+
+        guardianJS = new GuardianJS({
+          serviceDomain: 'awesome.guardian.auth0.com',
+          requestToken: almostExpiredToken,
+          issuer: {
+            name: 'awesome',
+            label: 'Awesome'
+          }
+        }, null, {
+          guardianClient: {
+            post: sinon.stub().returns(Promise.resolve({
+              transactionToken: transactionTokenString,
+              featureSwitches: {
+                mfaApp: { enroll: true },
+                mfaSms: { enroll: true }
+              },
+              deviceAccount: {
+                recoveryCode: '1234567890'
               }
-            };
+            })),
+            getBaseUri: sinon.stub().returns('http://www.awesome.com')
+          },
+          guardianSocket
+        });
 
-            expect(enrollmentComplete).to.eql(enrollmentPayload);
-            expect(guardianJS.transaction.markEnrolled.called).to.be.true;
-            expect(guardianJS.transaction.markEnrolled.getCall(0).args[0])
+        return guardianJS.start()
+            .then(() => sinon.stub(guardianJS.transaction, 'markEnrolled'));
+      });
+
+      afterEach(function () {
+        guardianJS.transaction.markEnrolled.restore();
+      });
+
+      it('emits enrollment-complete', (done) => {
+        guardianJS.events.once('enrollment-complete', (enrollmentComplete) => {
+          const enrollmentPayload = {
+            factor: 'push',
+            transactionComplete: false,
+            recoveryCode: '1234567890',
+            enrollment: {
+              status: 'confirmed',
+              pushNotifications: { enabled: true },
+              name: 'Name'
+            }
+          };
+
+          expect(enrollmentComplete).to.eql(enrollmentPayload);
+          expect(guardianJS.transaction.markEnrolled.called).to.be.true;
+          expect(guardianJS.transaction.markEnrolled.getCall(0).args[0])
               .to.eql(enrollmentPayload);
 
-            done();
-          });
+          done();
+        });
 
-          guardianSocket.emit('enrollment-complete', {
-            enrollment: { name: 'Name' }
-          });
-       });
+        guardianSocket.emit('enrollment-complete', {
+          enrollment: { name: 'Name' }
+        });
+      });
     });
 
-    describe('when socket login-complete is emitted', function() {
+    describe('when socket login-complete is emitted', function () {
       let enrollmentCompleteEventEmitted = false;
       let loginCompleteEventPayload;
-      let guardianSocket;
       let transaction;
       let guardianJS;
 
-      describe('when transaction was enrolled', function() {
-        beforeEach(function() {
+      describe('when transaction was enrolled', function () {
+        beforeEach(function () {
           guardianSocket = new EventEmitter();
           guardianSocket.open = sinon.stub();
 
@@ -258,8 +257,8 @@ describe('Guardian.js', function() {
             requestToken: almostExpiredToken,
             issuer: {
               name: 'awesome',
-              label: 'Awesome',
-            },
+              label: 'Awesome'
+            }
           }, null, {
             guardianClient: {
               post: sinon.stub().returns(Promise.resolve({
@@ -283,7 +282,7 @@ describe('Guardian.js', function() {
               sinon.stub(guardianJS.transaction, 'getCurrentFactor').returns('otp');
               sinon.stub(guardianJS.transaction, 'isEnrolled').returns(true);
 
-              guardianJS.events.once('enrollment-complete', (enrollmentComplete) => {
+              guardianJS.events.once('enrollment-complete', function () {
                 enrollmentCompleteEventEmitted = true;
               });
 
@@ -299,16 +298,16 @@ describe('Guardian.js', function() {
             });
         });
 
-        it('does not emit enrollment-complete', function(done) {
-          setTimeout(() => {
+        it('does not emit enrollment-complete', (done) => {
+          setTimeout(function () {
             expect(enrollmentCompleteEventEmitted).to.be.false;
             expect(transaction.markEnrolled.called).to.be.false;
             done();
           }, 1000);
         });
 
-        it('emits login-complete', function(done) {
-          setTimeout(() => {
+        it('emits login-complete', (done) => {
+          setTimeout(function () {
             expect(loginCompleteEventPayload).to.exist;
             expect(transaction.markEnrolled.called).to.be.false;
             expect(loginCompleteEventPayload).to.eql({
@@ -324,9 +323,9 @@ describe('Guardian.js', function() {
         });
       });
 
-      describe('when transaction is not enrolled', function() {
-        describe('when current factor for transaction is push', function() {
-          beforeEach(function() {
+      describe('when transaction is not enrolled', function () {
+        describe('when current factor for transaction is push', function () {
+          beforeEach(function () {
             guardianSocket = new EventEmitter();
             guardianSocket.open = sinon.stub();
 
@@ -335,8 +334,8 @@ describe('Guardian.js', function() {
               requestToken: almostExpiredToken,
               issuer: {
                 name: 'awesome',
-                label: 'Awesome',
-              },
+                label: 'Awesome'
+              }
             }, null, {
               guardianClient: {
                 post: sinon.stub().returns(Promise.resolve({
@@ -360,7 +359,7 @@ describe('Guardian.js', function() {
                 sinon.stub(guardianJS.transaction, 'getCurrentFactor').returns('push');
                 sinon.stub(guardianJS.transaction, 'isEnrolled').returns(false);
 
-                guardianJS.events.once('enrollment-complete', (enrollmentComplete) => {
+                guardianJS.events.once('enrollment-complete', function () {
                   enrollmentCompleteEventEmitted = true;
                 });
 
@@ -376,16 +375,16 @@ describe('Guardian.js', function() {
               });
           });
 
-          it('does not emit enrollment-complete', function(done) {
-            setTimeout(() => {
+          it('does not emit enrollment-complete', (done) => {
+            setTimeout(function () {
               expect(enrollmentCompleteEventEmitted).to.be.false;
               expect(transaction.markEnrolled.called).to.be.false;
               done();
             }, 1000);
           });
 
-          it('emits login-complete', function(done) {
-            setTimeout(() => {
+          it('emits login-complete', (done) => {
+            setTimeout(function () {
               expect(loginCompleteEventPayload).to.exist;
               expect(transaction.markEnrolled.called).to.be.false;
               expect(loginCompleteEventPayload).to.eql({
@@ -401,8 +400,8 @@ describe('Guardian.js', function() {
           });
         });
 
-        describe('when current factor for transaction is not push', function() {
-          beforeEach(function() {
+        describe('when current factor for transaction is not push', function () {
+          beforeEach(function () {
             guardianSocket = new EventEmitter();
             guardianSocket.open = sinon.stub();
 
@@ -411,8 +410,8 @@ describe('Guardian.js', function() {
               requestToken: almostExpiredToken,
               issuer: {
                 name: 'awesome',
-                label: 'Awesome',
-              },
+                label: 'Awesome'
+              }
             }, null, {
               guardianClient: {
                 post: sinon.stub().returns(Promise.resolve({
@@ -431,7 +430,7 @@ describe('Guardian.js', function() {
             });
 
             return guardianJS.start()
-              .then(() => {
+              .then(function () {
                 sinon.stub(guardianJS.transaction, 'markEnrolled');
                 sinon.stub(guardianJS.transaction, 'getCurrentFactor').returns('otp');
                 sinon.stub(guardianJS.transaction, 'isEnrolled').returns(false);
@@ -440,7 +439,7 @@ describe('Guardian.js', function() {
               });
           });
 
-          afterEach(function() {
+          afterEach(function () {
             if (!guardianJS.transaction) { return; }
 
             guardianJS.transaction.markEnrolled.restore();
@@ -448,7 +447,7 @@ describe('Guardian.js', function() {
             guardianJS.transaction.isEnrolled.restore();
           });
 
-          it('emits enrollment-complete', function(done) {
+          it('emits enrollment-complete', (done) => {
             guardianJS.events.once('enrollment-complete', (enrollmentComplete) => {
               const enrollmentPayload = {
                 factor: 'otp',
@@ -476,10 +475,10 @@ describe('Guardian.js', function() {
     });
   });
 
-  describe('#start', function() {
-    describe('when user is not enrolled', function() {
-      describe('and there is no factor enabled', function() {
-        it('rejects with an error', function() {
+  describe('#start', function () {
+    describe('when user is not enrolled', function () {
+      describe('and there is no factor enabled', function () {
+        it('rejects with an error', function () {
           const post = sinon.stub().returns(Promise.resolve({
             deviceAccount: {
               id: '123',
@@ -491,8 +490,8 @@ describe('Guardian.js', function() {
             enrollmentTxId: 'aaa',
             featureSwitches: {
               mfaSms: { enroll: false },
-              mfaApp: { enroll: false },
-            },
+              mfaApp: { enroll: false }
+            }
           }));
 
           const guardianJS = new GuardianJS({
@@ -500,8 +499,8 @@ describe('Guardian.js', function() {
             requestToken: requestTokenString,
             issuer: {
               name: 'awesome',
-              label: 'Awesome',
-            },
+              label: 'Awesome'
+            }
           }, null, {
             guardianClient: { post, getBaseUri },
             guardianSocket
@@ -511,9 +510,8 @@ describe('Guardian.js', function() {
         });
       });
 
-      describe('and there is a factor enabled', function() {
-        it('returns a transaction', function() {
-          const listenTo = sinon.stub();
+      describe('and there is a factor enabled', function () {
+        it('returns a transaction', function () {
           const post = sinon.stub().returns(Promise.resolve({
             deviceAccount: {
               id: '123',
@@ -525,8 +523,8 @@ describe('Guardian.js', function() {
             enrollmentTxId: 'aaa',
             featureSwitches: {
               mfaSms: { enroll: false },
-              mfaApp: { enroll: true },
-            },
+              mfaApp: { enroll: true }
+            }
           }));
 
           const guardianJS = new GuardianJS({
@@ -534,29 +532,30 @@ describe('Guardian.js', function() {
             requestToken: requestTokenString,
             issuer: {
               name: 'awesome',
-              label: 'Awesome',
-            },
+              label: 'Awesome'
+            }
           }, null, {
             guardianClient: { post, getBaseUri },
             guardianSocket
           });
 
-          return expect(guardianJS.start()).to.be.fulfilled.then(function(tx) {
+          return expect(guardianJS.start()).to.be.fulfilled.then((tx) => {
             expect(tx).to.be.instanceOf(Transaction);
             expect(tx.data.transactionToken.getToken()).to.equal(transactionTokenString);
 
-            delete tx.data.transactionToken;
+            const data = Object.assign({}, tx.data);
+            delete data.transactionToken;
 
-            expect(tx.data).to.eql({
+            expect(data).to.eql({
               enrollment: {
                 id: '123',
                 status: 'confirmation_pending',
                 otpSecret: '12345',
-                recoveryCode: '123456789',
+                recoveryCode: '123456789'
               },
               issuer: {
                 name: 'awesome',
-                label: 'Awesome',
+                label: 'Awesome'
               },
               recoveryCode: '123456789',
               enrollmentTxId: 'aaa',
@@ -566,53 +565,54 @@ describe('Guardian.js', function() {
                 },
                 push: {
                   enabled: true
-                },
-              },
+                }
+              }
             });
           });
         });
       });
     });
 
-    describe('when user is enrolled', function() {
-      it('returns a transaction', function() {
-        const listenTo = sinon.stub();
+    describe('when user is enrolled', function () {
+      it('returns a transaction', function () {
         const post = sinon.stub().returns(Promise.resolve({
           deviceAccount: {
-            status: 'confirmed',
+            status: 'confirmed'
           },
           transactionToken: transactionTokenString,
           featureSwitches: {
             mfaSms: { enroll: false },
-            mfaApp: { enroll: true },
-          },
+            mfaApp: { enroll: true }
+          }
         }));
 
         const guardianJS = new GuardianJS({
           serviceDomain: 'awesome.guardian.auth0.com',
-          requestToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIxMTEifQ.a_7u26PXc3Iv5J6eq9vGeZiKnoYWfBYqVJdz1Gtxh0s',
+          requestToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIxMTEifQ.' +
+            'a_7u26PXc3Iv5J6eq9vGeZiKnoYWfBYqVJdz1Gtxh0s',
           issuer: {
             name: 'awesome',
-            label: 'Awesome',
-          },
+            label: 'Awesome'
+          }
         }, null, {
           guardianClient: { post, getBaseUri },
           guardianSocket
         });
 
-        return expect(guardianJS.start()).to.be.fulfilled.then(function(tx) {
+        return expect(guardianJS.start()).to.be.fulfilled.then((tx) => {
           expect(tx).to.be.instanceOf(Transaction);
           expect(tx.data.transactionToken.getToken()).to.equal(transactionTokenString);
 
-          delete tx.data.transactionToken;
+          const data = Object.assign({}, tx.data);
+          delete data.transactionToken;
 
-          expect(tx.data).to.eql({
+          expect(data).to.eql({
             enrollment: {
-              status: 'confirmed',
+              status: 'confirmed'
             },
             issuer: {
               name: 'awesome',
-              label: 'Awesome',
+              label: 'Awesome'
             },
             factors: {
               sms: {
@@ -620,8 +620,8 @@ describe('Guardian.js', function() {
               },
               push: {
                 enabled: true
-              },
-            },
+              }
+            }
           });
         });
       });

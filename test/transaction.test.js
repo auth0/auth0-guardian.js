@@ -6,113 +6,104 @@ const AuthFlow = require('../lib/auth/auth_flow');
 const EnrollmentFlow = require('../lib/enrollment/enrollment_flow');
 const errors = require('../lib/errors');
 const sinon = require('sinon');
-const EventEmitter = require('events').EventEmitter;
 
-describe('transaction', function() {
+describe('transaction', function () {
   let transactionToken;
 
-  beforeEach(function() {
+  beforeEach(function () {
     transactionToken = {
       getToken: sinon.stub().returns('1234')
     };
   });
 
-  describe('#isEnrolled', function() {
-
-    describe('when user is already enrolled', function() {
-
-      it('returns true', function() {
+  describe('#isEnrolled', function () {
+    describe('when user is already enrolled', function () {
+      it('returns true', function () {
         expect(new Transaction({
           enrollment: {
             status: 'confirmed'
-          },
-        }, null, {}).isEnrolled()).to.be.true
+          }
+        }, null, {}).isEnrolled()).to.be.true;
       });
     });
 
-    describe('when user is not yet enrolled', function() {
-
-      it('returns false', function() {
+    describe('when user is not yet enrolled', function () {
+      it('returns false', function () {
         expect(new Transaction({
           enrollment: {
             status: 'confirmation_pending'
-          },
-        }, null, {}).isEnrolled()).to.be.false
+          }
+        }, null, {}).isEnrolled()).to.be.false;
       });
     });
   });
 
-  describe('#canEnroll', function() {
-
-    describe('when user is not yet enrolled', function() {
-
-      it('returns false', function() {
+  describe('#canEnroll', function () {
+    describe('when user is not yet enrolled', function () {
+      it('returns false', function () {
         expect(new Transaction({
           enrollment: {
             status: 'confirmation_pending'
-          },
+          }
         }, null, {}).canEnroll()).to.be.true;
       });
     });
 
-    describe('when user is enrolled', function() {
-
-      it('returns true', function() {
+    describe('when user is enrolled', function () {
+      it('returns true', function () {
         expect(new Transaction({
           enrollment: {
             status: 'confirmed'
-          },
-        }, null, {}).canEnroll()).to.be.false
+          }
+        }, null, {}).canEnroll()).to.be.false;
       });
     });
   });
 
-  describe('#startAuth', function() {
-    describe('when user is not yet enrolled', function() {
-      it('throws an error', function() {
-        expect(function() {
+  describe('#startAuth', function () {
+    describe('when user is not yet enrolled', function () {
+      it('throws an error', function () {
+        expect(function () {
           new Transaction({
             enrollment: {
               status: 'confirmation_pending'
-            },
+            }
           }, null, {}).startAuth();
         }).to.throw(errors.NotEnrolledError);
       });
     });
 
-    describe('when user is enrolled', function() {
-      it('returns an auth flow', function() {
+    describe('when user is enrolled', function () {
+      it('returns an auth flow', function () {
         const flow = new Transaction({
           enrollment: {
             status: 'confirmed'
           },
-          transactionToken: transactionToken,
+          transactionToken,
           factors: {
             sms: { enabled: true },
-            push: { enabled: true },
+            push: { enabled: true }
           }
         }, null, {}).startAuth();
 
         expect(flow).to.be.an.instanceOf(AuthFlow);
         expect(flow.data).to.eql({
-          transactionToken: transactionToken,
+          transactionToken,
           enrollment: {
-            status: 'confirmed',
+            status: 'confirmed'
           },
           factors: {
             sms: { enabled: true },
-            push: { enabled: true },
+            push: { enabled: true }
           }
         });
       });
     });
   });
 
-  describe('#startEnrollment', function() {
-
-    describe('when user not is enrolled', function() {
-
-      it('returns an enrollment flow', function() {
+  describe('#startEnrollment', function () {
+    describe('when user not is enrolled', function () {
+      it('returns an enrollment flow', function () {
         const flow = new Transaction({
           enrollment: {
             status: 'confirmation_pending',
@@ -123,7 +114,7 @@ describe('transaction', function() {
           },
           recoveryCode: '1234',
           enrollmentTxId: '1234',
-          transactionToken: transactionToken,
+          transactionToken,
           factors: {
             sms: { enabled: true },
             push: { enabled: true }
@@ -132,7 +123,7 @@ describe('transaction', function() {
 
         expect(flow).to.be.an.instanceOf(EnrollmentFlow);
         expect(flow.data).to.eql({
-          transactionToken: transactionToken,
+          transactionToken,
           enrollmentTxId: '1234',
           issuer: {
             name: '123'
@@ -151,9 +142,9 @@ describe('transaction', function() {
     });
 
 
-    describe('when user is enrolled', function() {
-      it('throws an error', function() {
-        expect(() => {
+    describe('when user is enrolled', function () {
+      it('throws an error', function () {
+        expect(function () {
           new Transaction({
             enrollment: {
               status: 'confirmed',
@@ -161,12 +152,12 @@ describe('transaction', function() {
             },
             recoveryCode: '1234',
             enrollmentTxId: '1234',
-            transactionToken: transactionToken,
+            transactionToken,
             factors: {
               sms: { enabled: true },
               push: { enabled: true }
             }
-          }, null, {}).startEnrollment()
+          }, null, {}).startEnrollment();
         }).to.throw(errors.EnrollmentNotAllowedError);
       });
     });

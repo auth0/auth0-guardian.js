@@ -142,7 +142,7 @@ const defaultFactorAuth = transaction.startAuthForDefaultFactor();
 
 ### Events
 ```javascript
-guardian.events.on('enrollment-complete', function() {
+guardian.events.on('enrollment-complete', function () {
 	// Enrollment confirmed
 });
 
@@ -150,7 +150,7 @@ guardian.events.on('login-complete', function({ loginPayload }) {
 	// Auth complete
 });
 
-guardian.events.on('timeout', function() {
+guardian.events.on('timeout', function () {
 	// Transaction time out
 });
 

@@ -9,7 +9,6 @@ const factorEntity = require('./lib/entities/factor');
 const enrollmentEntity = require('./lib/entities/enrollment');
 const Promise = require('promise-polyfill');
 const JWTToken = require('./lib/utils/jwt_token');
-const asyncEmit = require('./lib/utils/async_emit');
 const object = require('./lib/utils/object');
 const NullSocket = require('./lib/utils/null_socket');
 const formPostCallbackPlugin = require('./lib/plugins/form_post_callback');
@@ -31,7 +30,7 @@ class Auth0GuardianJS {
    * @param {GuardianSocket} dependencies.guardianSocket
    */
   constructor(options, configuration, dependencies) {
-    dependencies = dependencies || {};
+    dependencies = dependencies || {}; // eslint-disable-line no-param-reassign
 
     this.plugins = {};
 
@@ -39,9 +38,13 @@ class Auth0GuardianJS {
     this.issuer = options.issuer;
     this.requestToken = new JWTToken(options.requestToken);
 
-    this.guardianClient = dependencies.guardianClient || guardianHttpClient({ serviceDomain: options.serviceDomain });
+    this.guardianClient = dependencies.guardianClient ||
+      guardianHttpClient({ serviceDomain: options.serviceDomain });
 
-    const socket = options.disableSocket ? new NullSocket() : new GuardianSocket({ baseUri: this.guardianClient.getBaseUri() });
+    const socket = options.disableSocket
+      ? new NullSocket()
+      : new GuardianSocket({ baseUri: this.guardianClient.getBaseUri() });
+
     this.guardianSocket = dependencies.guardianSocket || socket;
 
     this.handleLoginComplete = this.handleLoginComplete.bind(this);
@@ -80,8 +83,8 @@ class Auth0GuardianJS {
       factor = this.transaction.getCurrentFactor();
 
       if (factor && factor !== 'push') {
-        const enrollmentPayload =  {
-          factor: factor,
+        const enrollmentPayload = {
+          factor,
           enrollment: { status: 'confirmed' },
           recoveryCode: this.transaction.data.recoveryCode,
           transactionComplete: true
@@ -98,10 +101,10 @@ class Auth0GuardianJS {
 
     process.nextTick(() => {
       this.events.emit('login-complete', {
-        factor: factor,
+        factor,
         recovery: !factor,
         accepted: true,
-        loginPayload: loginPayload
+        loginPayload
       });
 
       // Once we have login the transaction have ended, no more events make sence
@@ -118,11 +121,11 @@ class Auth0GuardianJS {
   handleLoginRejected() {
     // The only factor that supports rejection right now is push
     this.events.emit('login-rejected', {
-        factor: 'push',
-        recovery: false,
-        accepted: false,
-        loginPayload: null
-      });
+      factor: 'push',
+      recovery: false,
+      accepted: false,
+      loginPayload: null
+    });
   }
 
   /**
@@ -139,8 +142,6 @@ class Auth0GuardianJS {
    * When: when enrollment was completed from ANY transaction (see comment above)
    */
   handleEnrollmentComplete(data) {
-    const enrollmentFactor = this.transaction.getCurrentFactor();
-
     const enrollmentPayload = {
       factor: 'push',
       transactionComplete: false,
@@ -213,7 +214,8 @@ class Auth0GuardianJS {
     // If you have only one request token having more than one transaction active
     // doesn't make sence.
     if (this.startingTransaction || this.transaction) {
-      return Promise.reject(new errors.NotValidStateError('Transaction is already stared or starting'));
+      return Promise.reject(new errors.NotValidStateError('Transaction is already ' +
+        'stared or starting'));
     }
 
     this.startingTransaction = true;
@@ -248,10 +250,10 @@ class Auth0GuardianJS {
         transactionToken.once('token-expired', this.handleTransactionTimeout);
 
         const data = {
-          enrollment: enrollment,
+          enrollment,
           issuer: this.issuer,
-          transactionToken: transactionToken,
-          factors: factors
+          transactionToken,
+          factors
         };
 
         // If there is a recovery code let's keep it separated from
@@ -282,7 +284,6 @@ class Auth0GuardianJS {
         return tx;
       })
       .catch((err) => {
-
         // finally
         this.startingTransaction = false;
 
@@ -301,7 +302,7 @@ class Auth0GuardianJS {
     this.startingTransaction = false;
     this.transaction = null;
   }
-};
+}
 
 Auth0GuardianJS.plugins = {
   formPostCallback: formPostCallbackPlugin
