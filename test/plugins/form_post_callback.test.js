@@ -22,7 +22,7 @@ describe('plugins/form_post_callback', function () {
 
           const formPostCallback = formPostCallbackBuilder({
             callbackUrl: 'http://test.com',
-            trigger: true,
+            autoTrigger: true,
             before
           }, { form: { post } });
 
@@ -44,7 +44,7 @@ describe('plugins/form_post_callback', function () {
 
           const formPostCallback = formPostCallbackBuilder({
             callbackUrl: 'http://test.com',
-            trigger: true
+            autoTrigger: true
           }, { form: { post } });
 
           formPostCallback({ plugins: {}, events });

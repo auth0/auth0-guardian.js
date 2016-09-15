@@ -29,6 +29,8 @@
     "eslint-plugin-jsx-a11y": "^2.2.2",
     "eslint-plugin-mocha": "^4.5.1",
     "eslint-plugin-react": "^6.2.2",
+    "grunt": "^1.0.1",
+    "grunt-webpack": "^1.0.14",
     "jsonwebtoken": "^7.1.9",
     "mocha": "^3.0.2",
     "sinon": "^1.17.5",
@@ -38,7 +40,8 @@
     "test": "npm run eslint && mocha --recursive test",
     "build": "webpack --config webpack.config.js",
     "eslint": "eslint .",
-    "eslintfix": "eslint --fix ."
+    "eslintfix": "eslint --fix .",
+    "prepublish": "npm run build"
   },
   "repository": {
     "type": "git",
