@@ -1,18 +1,12 @@
-# guardian.js
+# auth0-guardian-js [![Build Status](https://travis-ci.com/auth0/guardian.js.svg?token=yqCyABa23Ae4fxDwqe1c&branch=master)](https://travis-ci.com/auth0/guardian.js)
 
 UI-less client for Guardian, it works both on the client and on the server side, regarding server side opening
 a websocket is not advisable so we will provide some configurations to avoid this behavior for the modes
-that don't need it (all factos but push notifications).
-
-The client should work for enrollment and for authenticator and supporting future feature must be kept
-in mind when designing it.
-
-Regarding naming, we will try to use new names as much as posible instead of the old ones,
-even when the backend api still uses the old names.
+that don't need it (all factors but push notifications).
 
 ## Installation
 ```javascript
-npm install guardian.js
+npm install auth0-guardian-js
 ```
 ## Basic Usage
 
