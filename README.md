@@ -44,7 +44,7 @@ an extra authentication step. You can know that by listening to the
 `enrollment-complete` event
 
 ```js
-guardianjs.on('enrollment-complete', (payload) => {
+guardianjs.events.on('enrollment-complete', (payload) => {
 	// Show recovery code
 	console.log(payload.recoveryCode);
 
@@ -81,7 +81,7 @@ guardianjs.start((transaction) => {
 
 #### Push enrollment
 ```js
-guardianjs.on('enrollment-complete', function(payload) {
+guardianjs.events.on('enrollment-complete', function(payload) {
 	// ... Enrollment is complete but for push you need to start authentication
 	// the other factors don't need authentication
 	// if you want to handle this in a generic way use
@@ -141,6 +141,8 @@ After the factor is verified or the push accepted you will receive an
 `auth-complete` event with the payload to send to the server, if you have already
 setup the `formPostCallback` plugin you don't need to do anything else.
 
+You may also receive `auth-rejected` if the push notification was received.
+
 #### SMS Authentication
 Asuming you are enrolled with sms
 
@@ -189,6 +191,10 @@ guardianjs.start((transaction) => {
 #### Push notification Authentication
 Asuming you are enrolled with otp
 ```js
+guardianjs.events.on('auth-rejected', function() {
+	// The push auth was rejected
+});
+
 guardianjs.start((transaction) => {
 	if (!transaction.isEnrolled()) {
 		console.log('You need to enroll first');

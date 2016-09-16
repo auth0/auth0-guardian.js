@@ -16,7 +16,7 @@ Let's analyse the most important points of the example.
 
 ```js
 var guardianjs = new Auth0GuardianJS({
-  serviceDomain: "me.guardian.auth0.com",
+  serviceDomain: "{{ userData.tenant }}.guardian.auth0.com",
   requestToken: "{{ requestToken }}", // Token that autorizes a Guardian authentication Transaction
 
   issuer: {
@@ -57,8 +57,8 @@ guardianjs.events.on('error', function(err) {
 ```
 
 ### Start an auth transaction
-The base for Guardian autorization is a transaction, you can start a transaction
-as follow.
+The base for Guardian authorization is a transaction, you can start a transaction
+as following.
 
 ```js
 guardianjs.start().then(function(transaction) {
