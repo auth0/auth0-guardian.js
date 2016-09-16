@@ -17,7 +17,7 @@ const Auth0GuardianJS = require('auth0-guardian-js');
 let guardianjs = new Auth0GuardianJS({
 	serviceDomain: "{{ userData.tenant }}.guardian.auth0.com", // {name}.guardian.auth0.com
 	requestToken: "{{ requestToken }}",
-	postActionURL: "{{ postActionURL }}",
+
 	issuer: {
 		label: "{{ userData.friendlyUserId }}",
 		name: "{{ userData.tenant }}",
