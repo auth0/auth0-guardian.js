@@ -263,7 +263,7 @@
             }
           });
 
-          guardianjs.events.on('login-complete', function(p) {
+          guardianjs.events.on('auth-complete', function(p) {
             if (Object.keys(pendingReports).length === 0) {
               // Login is complete and it is not enrolled, since we have setup the
               // `formPostCallback` plugin the result is going to be sent to the
@@ -276,7 +276,7 @@
             showSuccess('Login complete');
           });
 
-          guardianjs.events.on('login-rejected', function(p) {
+          guardianjs.events.on('auth-rejected', function(p) {
             // Login has been rejected, the transaction can continue anyway
             showLocalError('Login rejected');
           });

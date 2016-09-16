@@ -33,9 +33,9 @@ Auth0GuardianJS.plugins
   })(guardianjs);
 
 // This plugin exposes a method to trigger the post whenever you want,
-// when you want to do so just call, if login-complete has already complete
+// when you want to do so just call, if auth-complete has already complete
 // it will trigger the post automatically, otherwise it will do so as soon
-// as the login-complete event get received
+// as the auth-complete event get received
 guardianjs.plugins.formPostCallback();
 ```
 
@@ -74,13 +74,13 @@ guardianjs.start().then(function(transaction) {
     console.log('Recovery code is: ' + payload.recoveryCode);
   });
 
-  guardianjs.events.on('login-complete', function(p) {
+  guardianjs.events.on('auth-complete', function(p) {
     // Login is complete, since we have setup the `formPostCallback`
     // plugin the result is going to be sent to the callback url automatically
     showSuccess('Login complete');
   });
 
-  guardianjs.events.on('login-rejected', function(p) {
+  guardianjs.events.on('auth-rejected', function(p) {
     // Login has been rejected, the transaction can continue anyway
     showLocalError('Login rejected');
   });
@@ -183,7 +183,7 @@ authFactor.request()
 
 #### Verifiying second factor
 For SMS and OTP you need to manually enter the code, use verify to check this code.
-You will get the auth payload on the `login-complete` event. If you have setup
+You will get the auth payload on the `auth-complete` event. If you have setup
 `formPostCallback` the payload is going to be send (form post) to the provided url.
 
 ```js
@@ -201,7 +201,7 @@ var authFactor = transaction.startAuthForRecovery();
 ```
 
 Then you can use `.verify` with the recovery code to verify the recovery code
-and, if valid, get an auth payload on the `login-complete` event.
+and, if valid, get an auth payload on the `auth-complete` event.
 
 ```js
 authFactor.verify({ recoveryCode: '123456789012345678901234' })

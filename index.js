@@ -100,7 +100,7 @@ class Auth0GuardianJS {
     }
 
     process.nextTick(() => {
-      this.events.emit('login-complete', {
+      this.events.emit('auth-complete', {
         factor,
         recovery: !factor,
         accepted: true,
@@ -120,7 +120,7 @@ class Auth0GuardianJS {
    */
   handleLoginRejected() {
     // The only factor that supports rejection right now is push
-    this.events.emit('login-rejected', {
+    this.events.emit('auth-rejected', {
       factor: 'push',
       recovery: false,
       accepted: false,
@@ -197,8 +197,8 @@ class Auth0GuardianJS {
    * @private
    */
   startListening(transactionToken) {
-    this.guardianSocket.on('login-complete', this.handleLoginComplete);
-    this.guardianSocket.on('login-rejected', this.handleLoginRejected);
+    this.guardianSocket.on('auth-complete', this.handleLoginComplete);
+    this.guardianSocket.on('auth-rejected', this.handleLoginRejected);
     this.guardianSocket.on('enrollment-complete', this.handleEnrollmentComplete);
     this.guardianSocket.on('error', this.handleError);
 

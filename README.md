@@ -24,11 +24,11 @@ let guardianjs = new Auth0GuardianJS({
 	}
 });
 
-// Configure the plugin to post the 'login-complete' result to auth0-server
+// Configure the plugin to post the 'auth-complete' result to auth0-server
 Auth0GuardianJS.plugins.formPostCallback({
 	callbackUrl: "{{ postActionURL }}",
 
-	// Automatically send the result to auth0 as soon as you receive 'login-complete'
+	// Automatically send the result to auth0 as soon as you receive 'auth-complete'
 	// event, if false you will have to call guardianjs.plugins.formPostCallback()
 	// to send the result to auth0
 	autoTrigger: true

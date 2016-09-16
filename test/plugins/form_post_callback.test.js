@@ -7,7 +7,7 @@ const EventEmitter = require('events').EventEmitter;
 
 describe('plugins/form_post_callback', function () {
   describe('with auto trigger', function () {
-    describe('when login-complete is emitted', function () {
+    describe('when auth-complete is emitted', function () {
       describe('and when there is a before function', function () {
         it('post to server', (done) => {
           const events = new EventEmitter();
@@ -28,7 +28,7 @@ describe('plugins/form_post_callback', function () {
 
           formPostCallback({ plugins: {}, events });
 
-          events.emit('login-complete', { loginPayload: { signature: '123.123.123' } });
+          events.emit('auth-complete', { loginPayload: { signature: '123.123.123' } });
         });
       });
 
@@ -49,7 +49,7 @@ describe('plugins/form_post_callback', function () {
 
           formPostCallback({ plugins: {}, events });
 
-          events.emit('login-complete', { loginPayload: { signature: '123.123.123' } });
+          events.emit('auth-complete', { loginPayload: { signature: '123.123.123' } });
         });
       });
     });
@@ -59,7 +59,7 @@ describe('plugins/form_post_callback', function () {
     let post;
     let guardianjs;
 
-    describe('when login-complete is emitted', function () {
+    describe('when auth-complete is emitted', function () {
       describe('and when there is a before function', function () {
         beforeEach(function () {
           const events = new EventEmitter();
@@ -74,7 +74,7 @@ describe('plugins/form_post_callback', function () {
           guardianjs = { plugins: {}, events };
           formPostCallback(guardianjs);
 
-          events.emit('login-complete', { loginPayload: { signature: '123.123.123' } });
+          events.emit('auth-complete', { loginPayload: { signature: '123.123.123' } });
         });
 
         it('does not trigger post to server', (done) => {
@@ -105,7 +105,7 @@ describe('plugins/form_post_callback', function () {
           guardianjs = { plugins: {}, events };
           formPostCallback(guardianjs);
 
-          events.emit('login-complete', { loginPayload: { signature: '123.123.123' } });
+          events.emit('auth-complete', { loginPayload: { signature: '123.123.123' } });
         });
 
         it('does not trigger post to server', (done) => {

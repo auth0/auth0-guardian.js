@@ -159,8 +159,8 @@ describe('Guardian.js', function () {
         return guardianJS.start();
       });
 
-      it('emits login-rejected', (done) => {
-        guardianJS.events.once('login-rejected', (payload) => {
+      it('emits auth-rejected', (done) => {
+        guardianJS.events.once('auth-rejected', (payload) => {
           expect(payload).to.eql({
             factor: 'push',
             recovery: false,
@@ -171,7 +171,7 @@ describe('Guardian.js', function () {
           done();
         });
 
-        guardianSocket.emit('login-rejected');
+        guardianSocket.emit('auth-rejected');
       });
     });
 
@@ -241,7 +241,7 @@ describe('Guardian.js', function () {
       });
     });
 
-    describe('when socket login-complete is emitted', function () {
+    describe('when socket auth-complete is emitted', function () {
       let enrollmentCompleteEventEmitted = false;
       let loginCompleteEventPayload;
       let transaction;
@@ -286,11 +286,11 @@ describe('Guardian.js', function () {
                 enrollmentCompleteEventEmitted = true;
               });
 
-              guardianJS.events.once('login-complete', (iLoginCompleteEventPayload) => {
+              guardianJS.events.once('auth-complete', (iLoginCompleteEventPayload) => {
                 loginCompleteEventPayload = iLoginCompleteEventPayload;
               });
 
-              guardianSocket.emit('login-complete', {
+              guardianSocket.emit('auth-complete', {
                 signature: '123.123.123'
               });
 
@@ -306,7 +306,7 @@ describe('Guardian.js', function () {
           }, 1000);
         });
 
-        it('emits login-complete', (done) => {
+        it('emits auth-complete', (done) => {
           setTimeout(function () {
             expect(loginCompleteEventPayload).to.exist;
             expect(transaction.markEnrolled.called).to.be.false;
@@ -363,11 +363,11 @@ describe('Guardian.js', function () {
                   enrollmentCompleteEventEmitted = true;
                 });
 
-                guardianJS.events.once('login-complete', (iLoginCompleteEventPayload) => {
+                guardianJS.events.once('auth-complete', (iLoginCompleteEventPayload) => {
                   loginCompleteEventPayload = iLoginCompleteEventPayload;
                 });
 
-                guardianSocket.emit('login-complete', {
+                guardianSocket.emit('auth-complete', {
                   signature: '123.123.123'
                 });
 
@@ -383,7 +383,7 @@ describe('Guardian.js', function () {
             }, 1000);
           });
 
-          it('emits login-complete', (done) => {
+          it('emits auth-complete', (done) => {
             setTimeout(function () {
               expect(loginCompleteEventPayload).to.exist;
               expect(transaction.markEnrolled.called).to.be.false;
@@ -466,7 +466,7 @@ describe('Guardian.js', function () {
               done();
             });
 
-            guardianSocket.emit('login-complete', {
+            guardianSocket.emit('auth-complete', {
               signature: '123.123.123'
             });
           });
