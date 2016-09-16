@@ -14,9 +14,15 @@ npm install auth0-guardian-js
 ```js
 const Auth0GuardianJS = require('auth0-guardian-js');
 
-const guardianjs = new Auth0GuardianJS();
-let enrollmentFlow;
-let smsEnrollment;
+let guardianjs = new Auth0GuardianJS({
+	serviceDomain: "{{ userData.tenant }}.guardian.auth0.com", // {name}.guardian.auth0.com
+	requestToken: "{{ requestToken }}",
+	postActionURL: "{{ postActionURL }}",
+	issuer: {
+		label: "{{ userData.friendlyUserId }}",
+		name: "{{ userData.tenant }}",
+	}
+});
 
 // Configure the plugin to post the 'login-complete' result to auth0-server
 Auth0GuardianJS.plugins.formPostCallback({
