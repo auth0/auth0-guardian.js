@@ -137,7 +137,7 @@ To authenticate with a factor you need to execute the following steps
 1. Start the transaction
 1. (optional) Check if the user is already enrolled. You need to be enrolled to
 authenticate.
-1. Request the factor (the push notification / sms). Request is a noop for OTP
+1. Chose enrollment to authenticate with (or just take enrollment[0], today we only allow one).
 1. Verify the otp (`.verify` is a noop for push)
 
 Some steps can be ommited depending on the factor, we provide the same interface
@@ -209,7 +209,8 @@ auth0GuardianJS.connect(options)
   })
 ```
 
----
+
+---  Nothing relevant changed below this point (tabs to spaces etc).
 
 
 
