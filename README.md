@@ -12,33 +12,32 @@ npm install auth0-guardian-js
 
 ### Configuration
 ```js
-const Auth0GuardianJS = require('auth0-guardian-js');
+const auth0GuardianJS = require('auth0-guardian-js')
 
-let guardianjs = new Auth0GuardianJS({
-	serviceDomain: "{{ userData.tenant }}.guardian.auth0.com", // {name}.guardian.auth0.com
-	requestToken: "{{ requestToken }}",
+auth0GuardianJS.connect({
+  serviceDomain: '{{ tenant }}.guardian.auth0.com', // {name}.guardian.auth0.com
+  requestToken: '{{ requestToken }}',
 
-	issuer: {
-		label: "{{ userData.friendlyUserId }}",
-		name: "{{ userData.tenant }}",
-	}
-});
+  issuer: {
+    label: '{{ tenantFriendlyName }}',
+    name: '{{ tenant }}',
+  }
+})
+.then((connection) => {
+  // A connection is and Event Emitter, and has all API methods.
+  // The connection can only be used for ONE user session.
+  ...
 
-// Configure the plugin to post the 'auth-complete' result to auth0-server
-Auth0GuardianJS.plugins.formPostCallback({
-	callbackUrl: "{{ postActionURL }}",
+  // Configure the plugin to post the 'auth-complete' result to auth0-server
+  connection.on('auth-complete', auth0GuardianJS.postFormHelper('{{ postActionURL }}'))
+})
 
-	// Automatically send the result to auth0 as soon as you receive 'auth-complete'
-	// event, if false you will have to call guardianjs.plugins.formPostCallback()
-	// to send the result to auth0
-	autoTrigger: true
-})(guardianjs);
 ```
 ### Enrollment
 To enroll a device is a process composed of the following steps:
 
-1. Start the transaction
-1. (optional) Check if the user is already enrolled. You cannot enroll twise.
+1. Connect
+1. (optional) Check if the user is already enrolled. You cannot enroll twice.
 1. Send the information needed to enroll
 1. Confirm your enrollment
 1. Show the recovery code
@@ -50,86 +49,86 @@ an extra authentication step. You can know that by listening to the
 `enrollment-complete` event
 
 ```js
-guardianjs.events.on('enrollment-complete', (payload) => {
-	// Show recovery code
-	console.log(payload.recoveryCode);
+connection.on('enrollment-complete', (payload) => {
+  // Show recovery code
+  console.log(payload.recoveryCode)
 
-	if (payload.transactionComplete) {
-		//... It is complete, you don't need to do anything else
-		return;
-	}
+  if (payload.transactionComplete) {
+    //... It is complete, you don't need to do anything else
+    return
+  }
 
-	// Go to authentication
-});
+  // Go to authentication
+})
 ```
 
 #### SMS Enrollment
 ```js
-guardianjs.start((transaction) => {
-	if (transaction.isEnrolled()) {
-		console.log('You are already enrolled');
-		return;
-	}
+auth0GuardianJS.connect(options).then((connection) => {
+  if (connection.isEnrolled()) {
+    console.log('You are already enrolled')
+    return
+  }
 
-	enrollmentFlow = transaction.startEnrollment();
-	smsEnrollment = enrollmentFlow.forFactor('sms');
+  const phoneNumber = // ...Collect phone number here
 
-	const phoneNumber = // ...Collect phone number here
-
-	return smsEnrollment.enroll({ phoneNumber });
+  return connection.enroll('sms', { phoneNumber })
 })
-.then(() => {
-	const otpCode = // ...Collect verification otp here
+.then((smsEnrollment) => {
+  const otpCode = // ...Collect verification otp here
 
-	return smsEnrollment.confirm({ otpCode })
-});
+  return smsEnrollment.confirm({ otpCode })
+})
 ```
 
 #### Push enrollment
 ```js
-guardianjs.events.on('enrollment-complete', function(payload) {
-	// ... Enrollment is complete but for push you need to start authentication
-	// the other factors don't need authentication
-	// if you want to handle this in a generic way use
+auth0GuardianJS.connect(options)
+  .then((connection) => {
+    connection.on('enrollment-complete', (payload) => {
+      // ... Enrollment is complete but for push you need to start authentication
+      // the other factors don't need authentication
+      // if you want to handle this in a generic way use
 
-	if (payload.transactionComplete) {
-		return;
-	}
+      if (payload.transactionComplete) {
+        return
+      }
 
-	showAuthentication( ... );
-});
+      showAuthentication( ... )
+    })
 
-guardianjs.start((transaction) => {
-	if (transaction.isEnrolled()) {
-		console.log('You are already enrolled');
-		return;
-	}
 
-	enrollmentFlow = transaction.startEnrollment();
-	pushEnrollment = enrollmentFlow.forFactor('push');
+    if (connection.isEnrolled()) {
+      console.log('You are already enrolled')
+      return
+    }
 
-	// Show the QR to enroll
-	showQR(pushEnrollment.getUri());
-});
+    return connection.enroll('push')
+  })
+  .then((pushEnrollment) => {
+    // Show the QR to enroll
+    showQR(pushEnrollment.getUri())
+  })
 ```
 
 #### OTP enrollment
 ```js
-guardianjs.start((transaction) => {
-	if (transaction.isEnrolled()) {
-		console.log('You are already enrolled');
-		return;
-	}
+auth0GuardianJS.connect(options)
+  .then((connection) => {
+    if (connection.isEnrolled()) {
+      console.log('You are already enrolled')
+      return
+    }
 
-	enrollmentFlow = transaction.startEnrollment();
-	otpEnrollment = enrollmentFlow.forFactor('otp');
+    return connection.enroll('otp')
+  })
+  .then((otpEnrollment) => {
+    // Show the QR to enroll
+    showQR(otpEnrollment.getUri())
 
-	// Show the QR to enroll
-	showQR(otpEnrollment.getUri());
-
-	const otpCode = // Collect first otp code
-	return otpEnrollment.verify({ otpCode });
-});
+    const otpCode = // Collect first otp code
+    return otpEnrollment.verify({ otpCode })
+  })
 ```
 
 ### Authentication
@@ -149,70 +148,41 @@ setup the `formPostCallback` plugin you don't need to do anything else.
 
 You may also receive `auth-rejected` if the push notification was received.
 
-#### SMS Authentication
-Asuming you are enrolled with sms
+
+#### Default Authentication
+
+Not making assumtions about what factor the user uses.
 
 ```js
-guardianjs.start((transaction) => {
-	if (!transaction.isEnrolled()) {
-		console.log('You need to enroll first');
-		return;
-	}
+auth0GuardianJS.connect(options)
+  .then((connection) => {
+    const enrollments = connection.getEnrollments()
 
-	authFlow = transaction.startAuth();
-	smsEnrollment = authFlow.ForDefaultFactor(); // or .forFactor('sms')
+    if (enrollments.length === 0) {
+      // Redirect user to enrollment instead of authentication.
+    }
 
-	// Request SMS
-	return smsEnrollment.request();
-})
-.then(() => {
-	const otpCode = // ...Collect otp here
+    // Request authentication using the users FIRST enrollment (SMS, push, otp...)
+    // Optimally, you could let the user choose between all enrollments,
+    // or recovery (which is handled just like an enrollment).
+    return connection.requestAuth(enrollments[0])
+  })
+  .then((authFlow) => {
+    if (authFlow.factor === 'sms' || authFlow.factor === 'otp') {
+      const code = // ...Collect sms/otp code here.
+      return authFlow.verify({ code })
+    }
+    if (authFlow.factor === 'push') {
+      return authFlow.verify() // No additional data needed.
+    }
 
-	return smsEnrollment.verify({ otpCode })
-});
-```
-
-#### OTP Authentication
-Asuming you are enrolled with otp
-```js
-guardianjs.start((transaction) => {
-	if (!transaction.isEnrolled()) {
-		console.log('You need to enroll first');
-		return;
-	}
-
-	authFlow = transaction.startAuth();
-	otpEnrollment = authFlow.forDefaultFactor(); // or .forFactor('otp')
-
-	// Request OTP (optional, it is a noop)
-	return otpEnrollment.request();
-})
-.then(() => {
-	const otpCode = // ...Collect verification otp here
-
-	return smsEnrollment.verify({ otpCode })
-});
-```
-
-#### Push notification Authentication
-Asuming you are enrolled with otp
-```js
-guardianjs.events.on('auth-rejected', function() {
-	// The push auth was rejected
-});
-
-guardianjs.start((transaction) => {
-	if (!transaction.isEnrolled()) {
-		console.log('You need to enroll first');
-		return;
-	}
-
-	authFlow = transaction.startAuth();
-	otpEnrollment = authFlow.forDefaultFactor(); // or .forFactor('otp')
-
-	// Request push notification
-	return otpEnrollment.request();
-});
+    throw new Error(`I don't know how to handle ${authFlow.factor} authentication`)
+  })
+  .catch((error) => {
+    myDisplayBigFatErrorMessage(
+      `The user couldn't authenticate!  ${error.factor} was used and rejected.`
+    )
+  })
 ```
 
 ### Recovery
@@ -220,83 +190,89 @@ Recovery works as authentication, but instead of passing an otpCode, you need
 to pass a recovery code to verify method
 
 ```js
-guardianjs.start((transaction) => {
-	if (!transaction.isEnrolled()) {
-		console.log('You need to enroll first');
-		return;
-	}
+auth0GuardianJS.connect(options)
+  .then((connection) => {
+    const recoveryCode = '... get the recovery code from the user'
+    return connection.recover(recoveryCode, 'sms', { phoneNumber })
+  .then((recoveryFlow) => {
+    // recoveryFlow has only one method: enroll
+    // it is used just like the enroll method on connection, e.g. for sms enrollment:
 
-	authFlow = transaction.startAuth();
-	recoveryEnrollment = authFlow.forRecoveryCode(); // or .forFactor('otp')
+    const phoneNumber = // ...Collect phone number here
 
-	// Request OTP (optional, it is a noop)
-	return recoveryEnrollment.request();
-})
-.then(() => {
-	const recoveryCode = // ...Collect recovery code here
+    return connection.enroll('sms', { phoneNumber })
+  })
+  .then((smsEnrollment) => {
+    const smsCode = // ...Collect verification sms here
 
-	return recoveryEnrollment.verify({ recoveryCode })
-});
+    return smsEnrollment.confirm({ smsCode })
+  })
 ```
+
+---
+
+
+
+
 
 ## Full API
 First of all you need to instantiate the library
 
 ```javascript
-const Auth0GuardianJS = require('auth0-guardian-js');
+const Auth0GuardianJS = require('auth0-guardian-js')
 const guardian = new Auth0GuardianJS({
-	requestToken: //...,
-	serviceDomain: //...,
-	issuer: {
-		name: //...,
-		friendlyName: //...
-	}
-});
+  requestToken: //...,
+  serviceDomain: //...,
+  issuer: {
+    name: //...,
+    friendlyName: //...
+  }
+})
 ```
 
 Then start the login transaction
 ```javascript
 guardian.start()
-	.then(transaction => {
-		//...
-	});
+  .then(transaction => {
+    //...
+  })
 ```
 
 You can ask if the user is enrolled
 ```javascript
-transaction.isEnrolled();
+transaction.isEnrolled()
 ```
 
 You can also ask if the user CAN enrolled
 ```javascript
-transaction.canEnroll();
+transaction.canEnroll()
 ```
 
 Finally you can ask if there is any factor enabled
 ```javascript
-transaction.isAnyFactorEnabled();
+transaction.isAnyFactorEnabled()
 ```
 
 Ask which factors are available
 ```javascript
-transaction.getAvailableFactors();
+transaction.getAvailableFactors()
 ```
 
 Assuming that the user can enroll and that there is at least a factor enabled
 you can start the enrollment flow
 ```javascript
-const enrollmentFlow = transaction.startEnrollment();
+const enrollmentFlow = transaction.startEnrollment()
 ```
 
 Or if the user is already enrolled and there is at least one factor enabled
 you can start the auth flow
 ```javsacript
-const authFlow = transaction.startAuth();
+const authFlow = transaction.startAuth()
 ```
 
 As a shorthand you can start a transaction directly with the default factor
 ```javascript
-const defaultFactorAuth = transaction.startAuthForDefaultFactor();
+const defaultFactorAuth = transaction.startAuthForDefaultFactor()
 
 // Then you can do defaultFactorAuth.request()
 // and defaultFactorAuth.verify()
@@ -305,64 +281,64 @@ const defaultFactorAuth = transaction.startAuthForDefaultFactor();
 ### Events
 ```javascript
 guardian.events.on('enrollment-complete', function ({ factor, transactionComplete, recoveryCode, enrollment }) {
-	// Enrollment confirmed
-});
+  // Enrollment confirmed
+})
 
 guardian.events.on('auth-complete', function({ factor, recovery, accepted, loginPayload }) {
-	// Auth complete
-});
+  // Auth complete
+})
 
 guardian.events.on('timeout', function () {
-	// Transaction time out
-});
+  // Transaction time out
+})
 
 guardian.events.on('error', function(error /* instanceOf GuardianError */) {
-	// Errors that cannot be associated to a particular action, like socket.io errors or so
-});
+  // Errors that cannot be associated to a particular action, like socket.io errors or so
+})
 ```
 
 ### Enrollment flow
 Initializing an enrollment with a factor
 ```javascript
-const smsEnrollment = enrollmentFlow.forFactor('sms');
-const authenticatorEnrollment = enrollmentFlow.forFactor('otp');
-const pushNotificationEnrollment = enrollmentFlow.forFactor('push');
+const smsEnrollment = enrollmentFlow.forFactor('sms')
+const authenticatorEnrollment = enrollmentFlow.forFactor('otp')
+const pushNotificationEnrollment = enrollmentFlow.forFactor('push')
 ```
 
 Getting the recovery code
 ```javascript
-enrollmentFlow.getRecoveryCode();
+enrollmentFlow.getRecoveryCode()
 ```
 
 #### SMS enrollment
 Enroll a phone number
 ```javascript
 smsEnrollment.enroll({ phoneNumber: '+54 93416751599' })
-	.then(() => { ... });
+  .then(() => { ... })
 ```
 
 Confirm enrollment using sms otp code
 ```javascript
 authenticatorEnrollment.confirm({ otpCode: '123456' })
-	.then(() => { ... });
+  .then(() => { ... })
 ```
 
 #### OTP enrollment
 Get URI to generate enrollment QR
 ```javascript
-authenticatorEnrollment.getUri();
+authenticatorEnrollment.getUri()
 ```
 
 Confirm enrollment using a generated OTP code
 ```javascript
 authenticatorEnrollment.confirm({ otpCode: '123456' })
-	.then(() => { ... });
+  .then(() => { ... })
 ```
 
 #### Push notification enrollment
 Get URI to generate enrollment QR
 ```javascript
-pushNotificationEnrollment.getUri();
+pushNotificationEnrollment.getUri()
 ```
 
 The rest of the enrollment process will be handled by the phone, so nothing else
@@ -379,56 +355,56 @@ authFlow.getDefaultFactor() // === sms|authenticator|pushNotification
 
 Start auth for a factor
 ```javascript
-const pushNotificationAuth = authFlow.forFactor('push');
-const smsAuth = authFlow.forFactor('sms');
-const otpAuth = authFlow.forFactor('otp');
+const pushNotificationAuth = authFlow.forFactor('push')
+const smsAuth = authFlow.forFactor('sms')
+const otpAuth = authFlow.forFactor('otp')
 
-const recoveryCodeAuth = authFlow.forRecoveryCode();
+const recoveryCodeAuth = authFlow.forRecoveryCode()
 
 // You can also use
-authFlow.startAuthForDefaultFactor();
+authFlow.startAuthForDefaultFactor()
 ```
 
 #### SMS auth
 Request for an otp code on an SMS
 ```javascript
 smsAuth.request()
-	.then(() => {
-		//...
-	});
+  .then(() => {
+    //...
+  })
 ```
 
 Verify the otp code
 ```javascript
 smsAuth.verify({ otpCode: '123456' })
-	.then(() => {
-		//...
-	});
+  .then(() => {
+    //...
+  })
 ```
 
 #### Push notification auth
 Request login using pn
 ```javascript
 pushNotificationAuth.request()
-	.then(() => {
-		//...
-	});
+  .then(() => {
+    //...
+  })
 ```
 
 #### OTP Auth
 Confirm login manually entering the otp code
 ```javascript
 authenticatorAuth.verify({ otpCode: '123456' })
-	.then(() => {
-		//...
-	});
+  .then(() => {
+    //...
+  })
 ```
 
 #### Recovery code auth
 Confirm login using the recovery code
 ```javascript
 recoveryCodeAuth.verify({ recoveryCode: '123456' })
-	.then(() => {
-		//...
-	});
+  .then(() => {
+    //...
+  })
 ```

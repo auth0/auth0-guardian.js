@@ -101,6 +101,7 @@ class Auth0GuardianJS {
 
     process.nextTick(() => {
       this.events.emit('auth-complete', {
+        // FIXME: Should include enrollment identifier.
         factor,
         recovery: !factor,
         accepted: true,
