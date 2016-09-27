@@ -14,7 +14,7 @@ npm install auth0-guardian-js
 ```js
 const auth0GuardianJS = require('auth0-guardian-js')
 
-auth0GuardianJS.connect({
+auth0GuardianJS.start({
   serviceDomain: '{{ tenant }}.guardian.auth0.com', // {name}.guardian.auth0.com
   requestToken: '{{ requestToken }}',
 
@@ -23,20 +23,20 @@ auth0GuardianJS.connect({
     name: '{{ tenant }}',
   }
 })
-.then((connection) => {
-  // A connection is and Event Emitter, and has all API methods.
-  // The connection can only be used for ONE user session.
+.then((transaction) => {
+  // A transaction is and Event Emitter, and has all API methods.
+  // The transaction can only be used for ONE user session.
   ...
 
   // Configure the plugin to post the 'auth-complete' result to auth0-server
-  connection.on('auth-complete', auth0GuardianJS.postFormHelper('{{ postActionURL }}'))
+  transaction.on('auth-complete', auth0GuardianJS.postFormHelper('{{ postActionURL }}'))
 })
 
 ```
 ### Enrollment
 To enroll a device is a process composed of the following steps:
 
-1. Connect
+1. Start
 1. (optional) Check if the user is already enrolled. You cannot enroll twice.
 1. Send the information needed to enroll
 1. Confirm your enrollment
@@ -49,7 +49,7 @@ an extra authentication step. You can know that by listening to the
 `enrollment-complete` event
 
 ```js
-connection.on('enrollment-complete', (payload) => {
+transaction.on('enrollment-complete', (payload) => {
   // Show recovery code
   console.log(payload.recoveryCode)
 
@@ -64,15 +64,15 @@ connection.on('enrollment-complete', (payload) => {
 
 #### SMS Enrollment
 ```js
-auth0GuardianJS.connect(options).then((connection) => {
-  if (connection.isEnrolled()) {
+auth0GuardianJS.start(options).then((transaction) => {
+  if (transaction.isEnrolled()) {
     console.log('You are already enrolled')
     return
   }
 
   const phoneNumber = // ...Collect phone number here
 
-  return connection.enroll('sms', { phoneNumber })
+  return transaction.enroll('sms', { phoneNumber })
 })
 .then((smsEnrollment) => {
   const otpCode = // ...Collect verification otp here
@@ -83,9 +83,9 @@ auth0GuardianJS.connect(options).then((connection) => {
 
 #### Push enrollment
 ```js
-auth0GuardianJS.connect(options)
-  .then((connection) => {
-    connection.on('enrollment-complete', (payload) => {
+auth0GuardianJS.start(options)
+  .then((transaction) => {
+    transaction.on('enrollment-complete', (payload) => {
       // ... Enrollment is complete but for push you need to start authentication
       // the other factors don't need authentication
       // if you want to handle this in a generic way use
@@ -98,12 +98,12 @@ auth0GuardianJS.connect(options)
     })
 
 
-    if (connection.isEnrolled()) {
+    if (transaction.isEnrolled()) {
       console.log('You are already enrolled')
       return
     }
 
-    return connection.enroll('push')
+    return transaction.enroll('push')
   })
   .then((pushEnrollment) => {
     // Show the QR to enroll
@@ -113,14 +113,14 @@ auth0GuardianJS.connect(options)
 
 #### OTP enrollment
 ```js
-auth0GuardianJS.connect(options)
-  .then((connection) => {
-    if (connection.isEnrolled()) {
+auth0GuardianJS.start(options)
+  .then((transaction) => {
+    if (transaction.isEnrolled()) {
       console.log('You are already enrolled')
       return
     }
 
-    return connection.enroll('otp')
+    return transaction.enroll('otp')
   })
   .then((otpEnrollment) => {
     // Show the QR to enroll
@@ -154,9 +154,9 @@ You may also receive `auth-rejected` if the push notification was received.
 Not making assumtions about what factor the user uses.
 
 ```js
-auth0GuardianJS.connect(options)
-  .then((connection) => {
-    const enrollments = connection.getEnrollments()
+auth0GuardianJS.start(options)
+  .then((transaction) => {
+    const enrollments = transaction.getEnrollments()
 
     if (enrollments.length === 0) {
       // Redirect user to enrollment instead of authentication.
@@ -165,7 +165,7 @@ auth0GuardianJS.connect(options)
     // Request authentication using the users FIRST enrollment (SMS, push, otp...)
     // Optimally, you could let the user choose between all enrollments,
     // or recovery (which is handled just like an enrollment).
-    return connection.requestAuth(enrollments[0])
+    return transaction.requestAuth(enrollments[0])
   })
   .then((authFlow) => {
     if (authFlow.factor === 'sms' || authFlow.factor === 'otp') {
@@ -190,17 +190,17 @@ Recovery works as authentication, but instead of passing an otpCode, you need
 to pass a recovery code to verify method
 
 ```js
-auth0GuardianJS.connect(options)
-  .then((connection) => {
+auth0GuardianJS.start(options)
+  .then((transaction) => {
     const recoveryCode = '... get the recovery code from the user'
-    return connection.recover(recoveryCode, 'sms', { phoneNumber })
+    return transaction.recover(recoveryCode, 'sms', { phoneNumber })
   .then((recoveryFlow) => {
     // recoveryFlow has only one method: enroll
-    // it is used just like the enroll method on connection, e.g. for sms enrollment:
+    // it is used just like the enroll method on transaction, e.g. for sms enrollment:
 
     const phoneNumber = // ...Collect phone number here
 
-    return connection.enroll('sms', { phoneNumber })
+    return transaction.enroll('sms', { phoneNumber })
   })
   .then((smsEnrollment) => {
     const smsCode = // ...Collect verification sms here
