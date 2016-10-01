@@ -12,27 +12,26 @@ npm install auth0-guardian-js
 
 ### Configuration
 ```js
-const Auth0GuardianJS = require('auth0-guardian-js');
+var auth0GuardianJS = require('auth0-guardian-js');
 
-const guardianjs = new Auth0GuardianJS({
-	serviceDomain: "{{ userData.tenant }}.guardian.auth0.com", // {name}.guardian.auth0.com
+auth0GuardianJS.start({
+	// For US: {name}.guardian.auth0.com
+	// For AU: {name}.au.guardian.auth0.com
+	// For EU: {name}.eu.guardian.auth0.com
+	serviceDomain: "{{ userData.tenant }}.guardian.auth0.com",
 	requestToken: "{{ requestToken }}",
 
 	issuer: {
-		label: "{{ userData.friendlyUserId }}",
+		label: "{{ userData.tenantFriendlyName }}",
 		name: "{{ userData.tenant }}",
 	}
+}, function(err, transaction) {
+	if (err) {
+		console.error(err);
+	}
+
+	// Use the transaction
 });
-
-// Configure the plugin to post the 'auth-complete' result to auth0-server
-Auth0GuardianJS.plugins.formPostCallback({
-	callbackUrl: "{{ postActionURL }}",
-
-	// Automatically send the result to auth0 as soon as you receive 'auth-complete'
-	// event, if false you will have to call guardianjs.plugins.formPostCallback()
-	// to send the result to auth0
-	autoTrigger: true
-})(guardianjs);
 ```
 ### Enrollment
 To enroll a device is a process composed of the following steps:
@@ -65,70 +64,106 @@ guardianjs.events.on('enrollment-complete', (payload) => {
 
 #### SMS Enrollment
 ```js
-guardianjs.start((transaction) => {
+auth0GuardianJS.start(options, function(err, transaction) {
+	if (err) {
+		console.error(err);
+		return;
+	}
+
 	if (transaction.isEnrolled()) {
 		console.log('You are already enrolled');
 		return;
 	}
 
-	enrollmentFlow = transaction.startEnrollment();
-	smsEnrollment = enrollmentFlow.forFactor('sms');
+	var phoneNumber = // ...Collect phone number here
 
-	const phoneNumber = // ...Collect phone number here
+	return transaction.enroll('sms', { phoneNumber }, function(err, smsEnrollment) {
+		if (err) {
+			console.error(err);
+			return;
+		}
 
-	return smsEnrollment.enroll({ phoneNumber });
-})
-.then(() => {
-	const otpCode = // ...Collect verification otp here
+		var otpCode = // ...Collect verification otp here
 
-	return smsEnrollment.confirm({ otpCode })
+		smsEnrollment.confirm({ otpCode: otpCode }, function(err) {
+			if (err) {
+				console.error(err);
+				return;
+			}
+
+			console.log('Enrollment verified'); // You will also get the 'enrollment-complete' event
+		});
+	});
 });
 ```
 
 #### Push enrollment
 ```js
-guardianjs.events.on('enrollment-complete', function(payload) {
-	// ... Enrollment is complete but for push you need to start authentication
-	// the other factors don't need authentication
-	// if you want to handle this in a generic way use
-
-	if (payload.transactionComplete) {
-		return;
+auth0GuardianJS.start(options, function (err, transaction) {
+	if (err) {
+		return console.error(err);
 	}
 
-	showAuthentication( ... );
-});
+	transaction.on('enrollment-complete', function(payload) {
+		// ... Enrollment is complete but for push you need to start authentication
+		// the other factors don't need authentication
+		// if you want to handle this in a generic way use
 
-guardianjs.start((transaction) => {
+		console.log('Enrollment verified');
+
+		if (payload.transactionComplete) {
+			return;
+		}
+
+		showAuthentication( ... );
+	});
+
 	if (transaction.isEnrolled()) {
 		console.log('You are already enrolled');
 		return;
 	}
 
-	enrollmentFlow = transaction.startEnrollment();
-	pushEnrollment = enrollmentFlow.forFactor('push');
+	transaction.enroll('push', null, function(err, pushEnrollment) {
+		if (err) {
+			console.error(err);
+			return;
+		}
 
-	// Show the QR to enroll
-	showQR(pushEnrollment.getUri());
+		// Show the QR to enroll
+		showQR(pushEnrollment.getUri());
+	});
 });
 ```
 
 #### OTP enrollment
 ```js
-guardianjs.start((transaction) => {
+auth0GuardianJS.start(options, function (err, transaction) {
+	if (err) {
+		return console.log(err);
+	}
+
 	if (transaction.isEnrolled()) {
 		console.log('You are already enrolled');
 		return;
 	}
 
-	enrollmentFlow = transaction.startEnrollment();
-	otpEnrollment = enrollmentFlow.forFactor('otp');
+	transaction.enroll('otp', null, function(err, otpEnrollment) {
+		if (err) {
+			return console.error(err);
+		}
 
-	// Show the QR to enroll
-	showQR(otpEnrollment.getUri());
+		// Show the QR to enroll
+		showQR(otpEnrollment.getUri());
 
-	const otpCode = // Collect first otp code
-	return otpEnrollment.verify({ otpCode });
+		var otpCode = // Collect otp code
+		otpEnrollment.verify({ otpCode: otpCode }, function(err) {
+			if (err) {
+				return console.error(err);
+			}
+
+			console.log('Enrollment verified'); // You will also get the 'enrollment-complete' event
+		});
+	});
 });
 ```
 
@@ -145,32 +180,94 @@ Some steps can be ommited depending on the factor, we provide the same interface
 for all factors so you can write an uniform code.
 After the factor is verified or the push accepted you will receive an
 `auth-complete` event with the payload to send to the server, if you have already
-setup the `formPostCallback` plugin you don't need to do anything else.
+setup the `formPostCallback` helper you don't need to do anything else.
 
-You may also receive `auth-rejected` if the push notification was received.
+You may also receive `auth-rejected` if the push notification was rejected.
 
-#### SMS Authentication
-Asuming you are enrolled with sms
+#### Default Authentication
+General description of the authentication flow. No assumptions about the factor
 
 ```js
-guardianjs.start((transaction) => {
+auth0GuardianJS.start(options, function(err, transaction) {
+	if (err) {
+		console.error(err);
+		return;
+	}
+
 	if (!transaction.isEnrolled()) {
 		console.log('You need to enroll first');
 		return;
 	}
 
-	authFlow = transaction.startAuth();
-	smsEnrollment = authFlow.ForDefaultFactor(); // or .forFactor('sms')
+	const enrollments = transaction.getEnrollments()
 
-	// Request SMS
-	return smsEnrollment.request();
-})
-.then(() => {
-	const otpCode = // ...Collect otp here
+	if (enrollments.length === 0) {
+		// Redirect user to enrollment instead of authentication.
+ 	}
 
-	return smsEnrollment.verify({ otpCode })
+ 	// Request authentication using the users FIRST enrollment (SMS, push, otp...)
+ 	// Optimally, you could let the user choose between all enrollments,
+ 	// or recovery (which is handled just like an enrollment).
+	//
+	// Second factor is optional if you want to use the default factor or you can use
+	// { factor: enrollment.getDefaultFactor() } | { factor: enrollment.fallbackFactors()[0] }
+	// for it
+ 	return transaction.requestAuth(enrollments[0], { factor: enrollment.getDefaultFactor() }, function(err, authFlow) {
+		if (err) {
+			console.error(err);
+			return;
+		}
+
+		if (authFlow.getFactor() === 'sms' || authFlow.getFactor() === 'otp') {
+			const otpCode = // ...Collect sms/otp code here.
+			authFlow.verify({ otpCode: otpCode }, handleVerification);
+		}
+
+		if (authFlow.getFactor() === 'push') {
+			return authFlow.verify(null, handleVerification);
+		}
+
+		console.error('I don\'t know how to handle ' + authFlow.getFactor() + ' authentication')
+	});
+});
+
+function handleVerification(err, result) {
+	if (err) {
+		console.error(err);
+		return;
+	}
+
+	if (!result.accepted) {
+		console.log('Second factor has been rejected (push notification reject)');
+		return;
+	}
+
+	console.log('Second factor has been accepted');
+	auth0GuardianJS.postFormHelper('{{ postActionURL }}', result);
+}
+```
+
+### Recovery
+Recovery works as authentication, but instead of passing an otpCode, you need
+to pass a recovery code to verify method
+
+```js
+auth0GuardianJS.start(options, function(err, transaction) {
+	var recoveryCode = //... get the recovery code from the user
+
+	return transaction.recover({ recoveryCode: recoveryCode }, function(err, result) {
+		// This function could be exactly the same as `handleVerification` above
+		if (err) {
+			console.log(err);
+			return;
+		}
+
+		auth0GuardianJS.postFormHelper('{{ postActionURL }}', result);
+	});
 });
 ```
+
+#-------------------------------- Old version -------------------------------
 
 #### OTP Authentication
 Asuming you are enrolled with otp
