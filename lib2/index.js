@@ -10,11 +10,13 @@ var transaction = require('./transaction');
 var enrollmentAttempt = require('./entities/enrollment_attempt');
 
 /**
+ * @public
+ *
  * @param {string} options.serviceBaseUrl Service base url
  * @example `
- *  For US: { protocol: 'https', host: '{tenant-name}.guardian.auth0.com' }
- *  For AU: { protocol: 'https', host: '{tenant-name}.au.guardian.auth0.com' }
- *  For EU: { protocol: 'https', host: '{tenant-name}.eu.guardian.auth0.com' }
+ *  For US: https://{name}.guardian.auth0.com
+ *  For AU: https://{name}.au.guardian.auth0.com
+ *  For EU: https://{name}.eu.guardian.auth0.com
  * `
  * @param {string} options.requestToken Request token got from auth0
  * @param {string} options.issuer.label User friendly label for the issuer to
@@ -36,6 +38,13 @@ function auth0GuardianJS(options) {
   self.httpClient = object.get(options, 'dependencies.httpClient', null); // TODO Set default
 }
 
+/**
+ * @public
+ *
+ * Starts a new transaction
+ *
+ * @param {function(err, transaction)} callback
+ */
 auth0GuardianJS.prototype.start = function start(callback) {
   var self = this;
 
@@ -68,10 +77,14 @@ auth0GuardianJS.prototype.start = function start(callback) {
 };
 
 /**
+ * @public
+ *
+ * Post result to url using an standard form
+ *
  * @param {string} url url to post
  * @param {object} obj result with signature to post
  */
-auth0GuardianJS.formPostHelper = function formPostHelper(url, obj) {
+auth0GuardianJS.prototype.formPostHelper = function formPostHelper(url, obj) {
   form(global.document).post(url, obj);
 };
 
