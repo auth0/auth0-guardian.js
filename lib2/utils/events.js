@@ -9,8 +9,8 @@ var object = require('./object');
  * @param {EventEmitter} emitter
  * @param {object} handlers event handlers format { [eventName]: [function(payload) { }] }
  */
-exports.onceAny = function(emitter, handlers) {
-  return (function() {
+exports.onceAny = function onceAny(emitter, handlers) {
+  return (function onceAnyBuilder() {
     var listeners = {};
 
     var removeAllListeners = function removeAllListeners() {
@@ -33,7 +33,7 @@ exports.onceAny = function(emitter, handlers) {
     });
 
     return { cancel: removeAllListeners };
-  });
+  }());
 };
 
 /**
@@ -43,12 +43,12 @@ exports.onceAny = function(emitter, handlers) {
  * @param {EventEmitter} emitter
  * @param {string} eventName
  */
-exports.buildEventHub = function(emitter, eventName) {
+exports.buildEventHub = function buildEventHub(emitter, eventName) {
   return eventListenerHub(emitter, eventName);
 };
 
 function eventListenerHub(emitter, eventName) {
-  var self = object.create(eventListener.prototype);
+  var self = object.create(eventListenerHub.prototype);
 
   self.emitter = emitter;
   self.eventName = eventName;
@@ -58,12 +58,12 @@ function eventListenerHub(emitter, eventName) {
   return self;
 }
 
-eventListener.prototype.listen = function(handler) {
+eventListenerHub.prototype.listen = function listen(handler) {
   this.handlers.push(handler);
   this.emitter.on(this.eventName, handler);
 };
 
-eventListener.prototype.listenOnce = function() {
+eventListenerHub.prototype.listenOnce = function listenOnce(handler) {
   this.handlers.push(handler);
   this.emitter.once(this.eventName, handler);
 };
@@ -71,7 +71,7 @@ eventListener.prototype.listenOnce = function() {
 /**
  * Default action if there are no other handlers listening on the hub
  */
-eventListener.prototype.defaultHandler = function(handler) {
+eventListenerHub.prototype.defaultHandler = function defaultHandler(handler) {
   self.defaultHandler = handler;
 
   if (self.defaultHandler) {
@@ -89,7 +89,7 @@ eventListener.prototype.defaultHandler = function(handler) {
   });
 };
 
-eventListener.prototype.removeAllListeners = function() {
+eventListenerHub.prototype.removeAllListeners = function removeAllListeners() {
   var self = this;
 
   object.forEach(self.handlers, function handlerRemoval(handler) {

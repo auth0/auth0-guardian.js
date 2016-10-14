@@ -31,6 +31,7 @@
   "scripts": {
     "test": "npm run eslint && mocha --recursive test",
     "build": "webpack --config webpack.config.js",
+    "lint": "npm run eslint",
     "watch:build": "watch 'npm run build'",
     "watch:lint": "watch 'npm run eslint'",
     "eslint": "eslint .",

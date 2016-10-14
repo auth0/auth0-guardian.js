@@ -6,18 +6,19 @@
  * Methods to create an manipulate HTML Forms
  */
 
-const object = require('./object');
+var object = require('./object');
 
 /**
  * @param {BrowserDocument} options.dependencies.document
  */
 function form(options) {
-  const document = options.dependencies.document;
+  var document = options.dependencies.document;
 
-  const self = object.create(form.prototype);
+  var self = object.create(form.prototype);
+  self.document = document;
 
   return self;
-};
+}
 
 
 /**
@@ -27,27 +28,28 @@ function form(options) {
  * @param {object} params
  */
 form.prototype.post = function post(path, params) {
-  const method = 'post';
+  var method = 'post';
 
-  const form = document.createElement('form');
-  form.setAttribute('method', method);
-  form.setAttribute('action', path);
+  var document = this.document;
+  var formElement = document.createElement('form');
+  formElement.setAttribute('method', method);
+  formElement.setAttribute('action', path);
 
   object.forEach(params, function fieldIterator(value, key) {
-    const hiddenField = document.createElement('input');
+    var hiddenField = document.createElement('input');
     hiddenField.setAttribute('type', 'hidden');
     hiddenField.setAttribute('name', key);
     hiddenField.setAttribute('value', value);
 
-    form.appendChild(hiddenField);
+    formElement.appendChild(hiddenField);
   });
 
-  document.body.appendChild(form);
+  document.body.appendChild(formElement);
 
-  form.submit();
+  formElement.submit();
 
   if (document.body.removeChild) {
-    document.body.removeChild(form);
+    document.body.removeChild(formElement);
   }
 };
 

@@ -3,7 +3,6 @@
 
   "rules": {
     "strict": "off",
-    "prefer-rest-params": "off", // Node version doesn't support it yet
-    "prefer-spread": "off"
+    "vars-on-top": "off"
   }
 }

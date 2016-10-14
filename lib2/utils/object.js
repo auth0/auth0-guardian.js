@@ -27,7 +27,7 @@ var camelCase = exports.camelCase = function camelCase(str) {
     .replace(/^(.)/, function uncapitalize($1) {
       return $1.toLowerCase();
     });
-}
+};
 
 /**
  * Convers an string to snakeCase
@@ -37,11 +37,11 @@ var camelCase = exports.camelCase = function camelCase(str) {
  * @returns {string}
  */
 var snakeCase = exports.snakeCase = function snakeCase(str) {
-    if (!str) {
-      return str;
-    }
+  if (!str) {
+    return str;
+  }
 
-    str.replace(/([A-Z])/g, '_$1');
+  return str.replace(/([A-Z])/g, '_$1');
 };
 
 /**
@@ -246,7 +246,7 @@ var assignOne = exports.assignOne = function assignOne(root, setObj) {
 exports.assign = function assign(root) {
   var rest = toArray(arguments).slice(1);
 
-  forEach(rest, function assignOne(obj) {
+  forEach(rest, function assignOneIterator(obj) {
     assignOne(root, obj);
   });
 
@@ -260,7 +260,7 @@ exports.assign = function assign(root) {
  * @param {object} object
  */
 exports.toCamelKeys = function toCamelKeys(obj) {
-  return deepMapKeyValue(obj, camelCase, (key, value) => value);
+  return deepMapKeyValue(obj, camelCase, function valueMapper(key, value) { return value; });
 };
 
 
@@ -270,7 +270,7 @@ exports.toCamelKeys = function toCamelKeys(obj) {
  * @param {object} object
  */
 exports.toSnakeKeys = function toSnakeKeys(obj) {
-  return deepMapKeyValue(obj, snakeCase, (key, value) => value);
+  return deepMapKeyValue(obj, snakeCase, function valueMapper(key, value) { return value; });
 };
 
 /**
@@ -283,15 +283,15 @@ exports.toSnakeKeys = function toSnakeKeys(obj) {
  *
  * @returns {object} object that inherits from prototype
  */
-exports.create = (function createFactory(undefined) {
-  var Temp = function() {};
+exports.create = (function createFactory() {
+  var Temp = function Temp() {};
   return function create(prototype, propertiesObject) {
     if (typeof Object.create === 'function') {
       return Object.create(prototype, propertiesObject);
     }
 
-    if(prototype !== Object(prototype) && prototype !== null) {
-      throw TypeError('Argument must be an object, or null');
+    if (prototype !== Object(prototype) && prototype !== null) {
+      throw new TypeError('Argument must be an object, or null');
     }
     Temp.prototype = prototype || {};
     var result = new Temp();
@@ -301,12 +301,16 @@ exports.create = (function createFactory(undefined) {
     }
 
     // to imitate the case of Object.create(null)
-    if(prototype === null) {
-        result.__proto__ = null;
+    if (prototype === null) {
+      result.__proto__ = null; // eslint-disable-line no-proto
     }
     return result;
   };
-})();
+}());
+
+var hasOwnProperty = exports.hasOwnProperty = function hasOwnProperty(obj, key) {
+  Object.prototype.hasOwnProperty.call(obj, key);
+};
 
 /**
  * Gets a property from obj; returns default if property is
@@ -326,14 +330,14 @@ exports.get = function get(obj, path, def) {
   var level = obj;
   var result;
   forEach(segments, function pathGetter(segment) {
-    if (level.hasOwnProperty(segment)) {
+    if (hasOwnProperty(level, segment)) {
       level = level[segment];
       result = level;
       return true;
-    } else {
-      result = def;
-      return false;
     }
+
+    result = def;
+    return false;
   });
 
   return result;
@@ -357,11 +361,11 @@ exports.set = function set(obj, path, value) {
       return;
     }
 
-    if (!level.hasOwnProperty(segment) || !isObject(level[segment])) {
+    if (!hasOwnProperty(level, segment) || !isObject(level[segment])) {
       level[segment] = {};
     }
 
-    level = level[segment]
+    level = level[segment];
   });
 
   return obj;
@@ -374,7 +378,7 @@ exports.set = function set(obj, path, value) {
  * @param {array} arr2
  */
 exports.intersec = function intersec(arr1, arr2) {
-  return reduce(arr1, function(result, value) {
+  return reduce(arr1, function intersecReducer(result, value) {
     if (arr2.indexOf(value) >= 0) {
       result.push(value);
     }
@@ -386,7 +390,7 @@ exports.intersec = function intersec(arr1, arr2) {
 /**
  * No operation
  */
-exports.noop = function() {};
+exports.noop = function noop() {};
 
 function iterateObject(obj, fn) {
   if (!obj) {
@@ -395,7 +399,7 @@ function iterateObject(obj, fn) {
 
   var keys = Object.keys(obj);
 
-  return iterateArray(keys, (key) => fn(obj[key], key, obj));
+  return iterateArray(keys, function iterator(key) { return fn(obj[key], key, obj); });
 }
 
 function iterateArray(arr, fn) {

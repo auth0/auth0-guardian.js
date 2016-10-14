@@ -4,14 +4,15 @@ var object = require('../utils/object');
 
 /**
  * @param {JWTToken} data.transactionToken
+ * @param {HttpClient} options.httpClient
  */
 function pnAuthenticatorStrategy(data, options) {
-  var self = object.create(smsAuthenticatorStrategy.prototype);
+  var self = object.create(pnAuthenticatorStrategy.prototype);
 
   self.method = 'push';
 
   self.transactionToken = this.data.transactionToken;
-  self.httpClient = options.dependencies.httpClient;
+  self.httpClient = options.httpClient;
 
   return self;
 }
@@ -22,11 +23,11 @@ function pnAuthenticatorStrategy(data, options) {
  *
  * @public
  */
-pnAuthenticatorStrategy.prototype.request = function(callback) {
+pnAuthenticatorStrategy.prototype.request = function request(callback) {
   return this.httpClient.post(
-      '/send-push-notification',
-      this.transactionToken.getToken(),
-      callback);
+    '/send-push-notification',
+    this.transactionToken.getToken(),
+    callback);
 };
 
 /**
@@ -34,7 +35,7 @@ pnAuthenticatorStrategy.prototype.request = function(callback) {
  *
  * @public
  */
-pnAuthenticatorStrategy.prototype.verify = function(data, callback) {
+pnAuthenticatorStrategy.prototype.verify = function verify(data, callback) {
   object.setImmediate(callback);
 };
 

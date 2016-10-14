@@ -4,10 +4,9 @@ var object = require('../utils/object');
 var errors = require('../../errors');
 
 /**
- * @param {HttpClient} options.dependencies.httpClient
+ * @param {HttpClient} options.httpClient
  * @param {JWTToken} data.transactionToken
  * @param {EnrollmentAttempt} data.enrollmentAttempt
- * @param {{ name, label }} data.issuer
  */
 function authenticatorEnrollmentStrategy(data, options) {
   var self = object.create(authenticatorEnrollmentStrategy.prototype);
@@ -15,7 +14,7 @@ function authenticatorEnrollmentStrategy(data, options) {
   self.method = 'otp';
   self.enrollmentAttempt = data.enrollmentAttempt;
   self.transactionToken = data.transactionToken;
-  self.httpClient = options.dependencies.httpClient;
+  self.httpClient = options.httpClient;
 
   return self;
 }

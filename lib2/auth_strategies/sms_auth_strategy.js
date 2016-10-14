@@ -1,35 +1,35 @@
 'use strict';
 
 var object = require('../utils/object');
+var otpAuthenticatorStrategy = require('./otp_auth_strategy');
 
 /**
  * @param {JWTToken} data.transactionToken
+ * @param {HttpClient} options.httpClient
  */
 function smsAuthenticatorStrategy(data, options) {
   var self = object.create(smsAuthenticatorStrategy.prototype);
 
   self.method = 'sms';
 
-  self.transactionToken = this.data.transactionToken;
-  self.httpClient = options.dependencies.httpClient;
+  self.transactionToken = data.transactionToken;
+  self.httpClient = options.httpClient;
 
   self.smsAuthenticatorStrategy = otpAuthenticatorStrategy({
-    transactionToken: transactionToken,
+    transactionToken: data.transactionToken,
     method: self.method
   }, {
-    dependencies: {
-      httpClient: self.httpClient
-    }
+    httpClient: self.httpClient
   });
 
   return self;
 }
 
-smsAuthenticatorStrategy.prototype.request = function(callback) {
+smsAuthenticatorStrategy.prototype.request = function request(callback) {
   this.httpClient.post('/send-sms', this.transactionToken.getToken(), callback);
 };
 
-smsAuthenticatorStrategy.prototype.verify = function(data, callback) {
+smsAuthenticatorStrategy.prototype.verify = function verify(data, callback) {
   this.otpAuthenticatorStrategy.verify(data, callback);
 };
 

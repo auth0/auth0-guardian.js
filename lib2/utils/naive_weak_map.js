@@ -16,18 +16,18 @@ function naiveWeakMap() {
 }
 
 naiveWeakMap.prototype.set = function set(key, value) {
-  key.___weakId = self.nextId;
+  key.___weakId = self.nextId; // eslint-disable-line no-underscore-dangle,no-param-reassign
   self.nextId += 1;
 
-  self.storage[key.___weakId] = value;
+  self.storage[key.___weakId] = value; // eslint-disable-line no-underscore-dangle
 };
 
 naiveWeakMap.prototype.get = function get(key) {
-  return self.storage[key.___weakId];
+  return self.storage[key.___weakId]; // eslint-disable-line no-underscore-dangle
 };
 
 naiveWeakMap.prototype.del = function del(key) {
-  delete self.storage[key.___weakId];
+  delete self.storage[key.___weakId]; // eslint-disable-line no-underscore-dangle
 };
 
 module.exports = naiveWeakMap;

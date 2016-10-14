@@ -23,8 +23,8 @@ function jwtToken(token) {
 jwtToken.prototype = object.create(EventEmitter.prototype);
 
 jwtToken.prototype.getRemainingTime = function getRemainingTime() {
-  const exp = this.decoded.exp * 1000; // decoded.exp is in seconds
-  const remaining = exp - Date.now();
+  var exp = this.decoded.exp * 1000; // decoded.exp is in seconds
+  var remaining = exp - Date.now();
 
   return remaining;
 };

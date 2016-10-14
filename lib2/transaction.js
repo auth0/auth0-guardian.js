@@ -5,51 +5,81 @@ var async = require('./utils/async');
 var EventEmitter = require('events').EventEmitter;
 var errors = require('./errors/method_not_found_error');
 var events = require('./utils/events');
+var enrollmentBuilder = require('./entities/enrollment');
 
-var authRecoveryStrategy;
+var authRecoveryStrategy = require('./auth_strategies/recovery_auth_strategy');
 
-var enrollmentStrategies = {
-  'sms': {},
-  'push': {},
-  'otp': {}
-};
+var smsEnrollmentStrategy = require('./auth_strategies/sms_enrollment_strategy');
+var pnEnrollmentStrategy = require('./auth_strategies/pn_enrollment_strategy');
+var otpEnrollmentStrategy = require('./auth_strategies/otp_enrollment_strategy');
 
-var authStrategies = {
-  'sms': {},
-  'push': {},
-  'otp': {}
-};
+var smsAuthStrategy = require('./enrollment_strategies/sms_auth_strategy');
+var pnAuthStrategy = require('./enrollment_strategies/pn_auth_strategy');
+var otpAuthStrategy = require('./enrollment_strategies/otp_auth_strategy');
 
 /**
- * @param {array.<Enrollment>} data.enrollments Confirmed enrollments (available when you are enrolled)
- * @param {array.<EnrollmentAttempt>} [data.enrollmentAttempt] Enrollment attempt (when you are not enrolled)
+ * @public
+ *
+ * Represents a Guardian transaction
+ *
+ * @param {array.<Enrollment>} data.enrollments
+ *  Confirmed enrollments (available when you are enrolled)
+ * @param {array.<EnrollmentAttempt>} [data.enrollmentAttempt]
+ *  Enrollment attempt (when you are not enrolled)
  * @param {JWTToken} data.transactionToken
  *
- * @param {EventEmitter} options.transactionEventsReceiver Receiver for transaction events; it will receive
- *   backend related transaction events
+ * @param {EventEmitter} options.transactionEventsReceiver
+ *  Receiver for transaction events; it will receive  backend related transaction events
+ * @param {HttpClient} options.HttpClient
  *
  * @returns {Transaction}
  */
 function transaction(data, options) {
   var self = object.create(transaction.prototype);
 
+  var httpClient = options.httpClient;
+
+  var enrollmentStrategyData = {
+    enrollmentAttempt: data.enrollmentAttempt,
+    transactionToken: data.transactionToken
+  };
+
+  self.enrollmentStrategies = {
+    sms: smsEnrollmentStrategy(enrollmentStrategyData, { httpClient: httpClient }),
+    push: pnEnrollmentStrategy(enrollmentStrategyData, { httpClient: httpClient }),
+    otp: otpEnrollmentStrategy(enrollmentStrategyData, { httpClient: httpClient })
+  };
+
+  var authStrategiesData = { transactionToken: data.transactionToken };
+
+  self.authStrategies = {
+    sms: smsAuthStrategy(authStrategiesData, { httpClient: httpClient }),
+    push: pnAuthStrategy(authStrategiesData, { httpClient: httpClient }),
+    otp: otpAuthStrategy(authStrategiesData, { httpClient: httpClient })
+  };
+
   self.txId = data.transactionToken.getDecoded().tx_id;
   self.transactionToken = data.transactionToken;
   self.transactionEventsReceiver = options.transactionEventsReceiver;
 
-  self.loginCompleteHub = events.buildEventHub(self.transactionEventsReceiver, 'login:complete');
-  self.loginRejectedHub = events.buildEventHub(self.transactionEventsReceiver, 'login:rejected');
-  self.enrollmentCompleteHub = events.buildEventHub(self.transactionEventsReceiver, 'enrollment:confirmed');
+  self.loginCompleteHub = events.buildEventHub(
+    self.transactionEventsReceiver, 'login:complete');
+  self.loginRejectedHub = events.buildEventHub(
+    self.transactionEventsReceiver, 'login:rejected');
+  self.enrollmentCompleteHub = events.buildEventHub(
+    self.transactionEventsReceiver, 'enrollment:confirmed');
 
-  self.enrollmentCompleteHub.defaultHandler(function(apiPayload) {
+  self.enrollmentCompleteHub.defaultHandler(function enrollmentCompleteDef(apiPayload) {
+    self.addEnrollment(enrollmentBuilder(apiPayload.deviceAccount));
+
     self.emit('enrollment-complete', buildEnrollmentCompletePayload({ apiPayload: apiPayload }));
   });
 
-  self.loginCompleteHub.defaultHandler(function(apiPayload) {
-    self.emit('auth-response', buildAuthCompletionPayload(true, apiPayload.signature))
+  self.loginCompleteHub.defaultHandler(function loginCompleteDef(apiPayload) {
+    self.emit('auth-response', buildAuthCompletionPayload(true, apiPayload.signature));
   });
 
-  self.transactionToken.on('token-expired', function() {
+  self.transactionToken.on('token-expired', function tokenExpiredDef() {
     self.emit('timeout');
   });
 
@@ -58,16 +88,21 @@ function transaction(data, options) {
 
 transaction.prototype = object.create(EventEmitter.prototype);
 
+/**
+ * @public
+ *
+ * Start an enrollment on this transaction
+ */
 transaction.prototype.enroll = function enroll(method, data, callback) {
   var self = this;
 
-  var strategy = enrollmentStrategies[method];
+  var strategy = self.enrollmentStrategies[method];
 
   if (!strategy) {
     async.setImmediate(callback, new errors.MethodNotFoundError(method));
   }
 
-  strategy.enroll(data, function(err) {
+  strategy.enroll(data, function onEnrollmentStarted(err) {
     if (err) {
       return callback(err);
     }
@@ -80,53 +115,85 @@ transaction.prototype.enroll = function enroll(method, data, callback) {
   });
 };
 
+/**
+ * @public
+ *
+ * Starts authentication process
+ *
+ * @param {Enrollment} enrollment
+ * @param {sms|otp|push} options.method
+ */
 transaction.prototype.requestAuth = function requestAuth(enrollment, options, callback) {
   this.removeAuthListeners();
 
   if (arguments.length === 2) {
     var availableMethods = enrollment.getAvailableMethods();
 
-    callback = options;
-    options = { method: availableMethods[0] };
+    callback = options; // eslint-disable-line no-param-reassign
+    options = { method: availableMethods[0] }; // eslint-disable-line no-param-reassign
   }
 
-  var strategy = authStrategies[options.method];
+  var strategy = this.authStrategies[options.method];
 
   if (!strategy) {
-    async.setImmediate(callback, new errors.MethodNotFoundError(method));
+    async.setImmediate(callback, new errors.MethodNotFoundError(options.method));
   }
 
   commonRequestAuth(strategy, this.loginCompleteHub, callback);
 };
 
-transaction.prototype.recover = function recover(data, callback) {
-  commonRequestAuth(authRecoveryStrategy, this.loginCompleteHub, function(err, recoveryAuth) {
-    if (err) {
-      return callback(err);
-    }
+/**
+ * @public
+ *
+ * Authenticate using recovery code
+ *
+ * @param {string} data.recoveryCode
+ */
+transaction.prototype.recover = function recover(data) {
+  var self = this;
 
-    return recoveryAuth.verify(data, callback);
-  });
+  commonRequestAuth(authRecoveryStrategy, this.loginCompleteHub,
+    function onRecoveryRequested(err, recoveryAuth) {
+      if (err) {
+        return self.emit('error', err);
+      }
+
+      return recoveryAuth.verify(data);
+    });
 };
 
+/**
+ * @public
+ *
+ * @returns {boolean} whether there is at least one enrollment
+ */
 transaction.prototype.isEnrolled = function isEnrolled() {
   return this.enrollments.length > 0;
 };
 
+/**
+ * @public
+ *
+ * @returns {array.<Enrollment>} enrollments
+ */
 transaction.prototype.getEnrollments = function getEnrollments() {
   return this.enrollments;
 };
 
 /**
- * Remove all event listeners
+ * @private
  *
- * @param {string} eventName
+ * TODO: This goes against immutability but it is the easiest way to prepare
+ * the transaction for auth once enrollment-attempt is complete
  */
-transaction.prototype.removeAllListeners = function(eventName) {
-  this.transactionEventsReceiver.removeAllListeners(eventName);
+transaction.prototype.addEnrollment = function addEnrollment(enrollment) {
+  this.enrollments.push(enrollment);
 };
 
-transaction.prototype.removeAuthListeners = function() {
+/**
+ * @private
+ */
+transaction.prototype.removeAuthListeners = function removeAuthListeners() {
   var self = this;
 
   self.loginCompleteHub.removeAllListeners();
@@ -134,7 +201,7 @@ transaction.prototype.removeAuthListeners = function() {
 };
 
 function commonRequestAuth(strategy, loginCompleteHub, callback) {
-  strategy.request(function(err) {
+  strategy.request(function onAuthRequested(err) {
     if (err) {
       return callback(err);
     }
@@ -149,40 +216,48 @@ function commonRequestAuth(strategy, loginCompleteHub, callback) {
  * @param {EventEmitter} options.enrollmentCompleteHub
  */
 function enrollmentConfirmationStep(options) {
-  var self = object.create(confirmationStep.prototype);
+  var self = object.create(enrollmentConfirmationStep.prototype);
   self.strategy = options.strategy;
-  self.enrollmentAttempt = options.enrollmentAttempt
+  self.enrollmentAttempt = options.enrollmentAttempt;
   self.enrollmentCompleteHub = options.enrollmentCompleteHub;
 
   return self;
 }
 
-enrollmentConfirmationStep.prototype.confirm = function confirm(data, callback) {
+enrollmentConfirmationStep.prototype.getUri = function getUri() {
+  return this.strategy.getUri();
+};
+
+enrollmentConfirmationStep.prototype.confirm = function confirm(data) {
   var self = this;
   self.enrollmentCompleteHub.removeAllListeners();
 
-  var listenToEnrollmentCompleteTask = function(done) {
-    self.enrollmentCompleteHub.listenOnce(function(payload) {
+  var listenToEnrollmentCompleteTask = function listenToEnrollmentCompleteTask(done) {
+    self.enrollmentCompleteHub.listenOnce(function onEnrollmentComplete(payload) {
       done(payload);
     });
   };
 
-  var confirmTask = function(done) {
+  var confirmTask = function confirmTask(done) {
     self.strategy.confirm(data, done);
   };
 
   async.all([
     listenToEnrollmentCompleteTask,
     confirmTask
-  ], function(err, results) {
+  ], function onAllComplete(err, results) {
     self.enrollmentCompleteHub.removeAllListeners();
 
     if (err) {
       return self.emit('error', err);
     }
 
+    var apiPayload = results[0];
+
+    self.addEnrollment(enrollmentBuilder(apiPayload.deviceAccount));
+
     var payload = buildEnrollmentCompletePayload({
-      apiPayload: results[0],
+      apiPayload: apiPayload,
       strategy: self.strategy,
       enrollmentAttempt: self.enrollmentAttempt
     });
@@ -210,7 +285,7 @@ authVerificationStep.prototype.verify = function verify(data, callback) {
     });
   };
 
-  var listenLoginRejectedTask = function listenLoginRejectedTask(payload) {
+  var listenLoginRejectedTask = function listenLoginRejectedTask(done) {
     self.loginRejectedHub.listenOnce(function onLoginRejected() {
       done(null, buildAuthCompletionPayload(false, null));
     });
@@ -255,7 +330,7 @@ function buildAuthCompletionPayload(accepted, signature) {
     accepted: accepted,
     signature: signature
   };
-};
+}
 
 /**
  * @param {object} apiPayload
@@ -282,6 +357,6 @@ function buildEnrollmentCompletePayload(options) {
   }
 
   return payload;
-};
+}
 
 module.exports = transaction;

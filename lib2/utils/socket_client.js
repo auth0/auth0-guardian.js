@@ -54,10 +54,10 @@ socketClient.prototype.connect = function connect(token, callback) {
 
     connect: function onConnect() {
       events.onceAny(this.socket, handlers);
-      self.socket.emit('authenticate', { token });
+      self.socket.emit('authenticate', { token: token });
     },
 
-    authenticated: function() {
+    authenticated: function authenticated() {
       callback();
     }
   };
@@ -65,7 +65,7 @@ socketClient.prototype.connect = function connect(token, callback) {
   events.onceAny(this.socket, handlers);
 
   this.socket.once('connect', function onConnect() {
-    this.socket.emit('authenticate', { token });
+    this.socket.emit('authenticate', { token: token });
   });
 };
 
@@ -102,12 +102,12 @@ function wrapEventHandler(handler) {
 }
 
 function errorBuilder(err) {
-  var err = object.toCamelKeys(err);
+  var cErr = object.toCamelKeys(err);
 
   return new GuardianError({
-    message: err.message === 'string' ? err.message : 'Error on real time connection',
-    statusCode: err.statusCode,
-    errorCode: err.code || 'socket_error',
+    message: cErr.message === 'string' ? cErr.message : 'Error on real time connection',
+    statusCode: cErr.statusCode,
+    errorCode: cErr.code || 'socket_error',
     cause: err
   });
 }

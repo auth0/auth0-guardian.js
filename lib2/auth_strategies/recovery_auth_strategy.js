@@ -6,19 +6,20 @@ var validations = require('../utils/validations');
 
 /**
  * @param {JWTToken} data.transactionToken
+ * @param {HttpClient} options.httpClient
  */
 function recoveryAuthenticatorStrategy(data, options) {
-  var self = object.create(smsAuthenticatorStrategy.prototype);
+  var self = object.create(recoveryAuthenticatorStrategy.prototype);
 
   self.method = data.method || 'sms';
 
   self.transactionToken = this.data.transactionToken;
-  self.httpClient = options.dependencies.httpClient;
+  self.httpClient = options.httpClient;
 
   return self;
 }
 
-pnAuthenticatorStrategy.prototype.request = function(callback) {
+recoveryAuthenticatorStrategy.prototype.request = function request(callback) {
   object.setImmediate(callback);
 };
 
@@ -27,12 +28,12 @@ pnAuthenticatorStrategy.prototype.request = function(callback) {
    *
    * @param {string} data.recoveryCode
    */
-pnAuthenticatorStrategy.prototype.verify = function(data, callback) {
-  if (!verificationData || !verificationData.recoveryCode) {
+recoveryAuthenticatorStrategy.prototype.verify = function verify(data, callback) {
+  if (!data || !data.recoveryCode) {
     return setImmediate(callback, new errors.FieldRequiredError('otpCode'));
   }
 
-  if (!validations.validateRecoveryCode(verificationData.recoveryCode)) {
+  if (!validations.validateRecoveryCode(data.recoveryCode)) {
     return setImmediate(callback, new errors.RecoveryCodeValidationError());
   }
 
@@ -43,4 +44,4 @@ pnAuthenticatorStrategy.prototype.verify = function(data, callback) {
     callback);
 };
 
-module.exports = pnAuthenticatorStrategy;
+module.exports = recoveryAuthenticatorStrategy;

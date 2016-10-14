@@ -34,35 +34,37 @@ function auth0GuardianJS(options) {
 
   self.socketClient = object.get(options, 'dependencies.socketClient', null); // TODO Set default
   self.httpClient = object.get(options, 'dependencies.httpClient', null); // TODO Set default
-};
+}
 
-auth0GuardianJS.prototype.start = function(callback) {
+auth0GuardianJS.prototype.start = function start(callback) {
   var self = this;
 
   if (self.requestToken.isExpired()) {
     return async.setImmediate(callback, new errors.TransactionTokenExpiredError());
   }
 
-  self.httpClient.post('/api/start-flow', self.requestToken.token(), function startTransaction(err, txLegacyData) {
-    if (err) {
-      return callback(err);
-    }
-
-    self.socketClient.connect(txLegacyData.transactionToken, function onSocketConnection(err) {
+  return self.httpClient.post('/api/start-flow',
+    self.requestToken.token(), function startTransaction(err, txLegacyData) {
       if (err) {
         return callback(err);
       }
 
-      var tx;
-      try {
-        tx = buildTransaction(txLegacyData, { transactionEvents: self.socketClient });
-      } catch (err) {
-        return callback(err);
-      }
+      return self.socketClient.connect(txLegacyData.transactionToken,
+        function onSocketConnection(connectErr) {
+          if (connectErr) {
+            return callback(connectErr);
+          }
 
-      return callback(null, tx);
+          var tx;
+          try {
+            tx = buildTransaction(txLegacyData, { transactionEvents: self.socketClient });
+          } catch (transactionBuildingErr) {
+            return callback(transactionBuildingErr);
+          }
+
+          return callback(null, tx);
+        });
     });
-  });
 };
 
 /**
@@ -101,14 +103,16 @@ function buildTransaction(txLegacyData, options) {
 
   if (txLegacyData.enrollmentTxId) {
     txData.enrollmentAttempt = enrollmentAttempt({
+      enrollmentId: txLegacyData.deviceAccount.id,
       enrollmentTxId: txLegacyData.enrollmentTxId,
       otpSecret: txLegacyData.deviceAccount.otpSecret,
       recoveryCode: txLegacyData.deviceAccount.recoveryCode,
-      issuer: self.issuer
+      issuer: self.issuer,
+      baseUrl: self.serviceBaseUrl
     });
   } else {
     var enrollmentMethods = txLegacyData.deviceAccount.availableMethods;
-    var availableMethods = object.intersec(enrollmentMethods, availableMethods);
+    var availableMethods = object.intersec(enrollmentMethods, enabledMethods);
 
     if (availableMethods.length === 0) {
       throw new errors.NoMethodAvailableError();
@@ -120,7 +124,7 @@ function buildTransaction(txLegacyData, options) {
       phoneNumber: txLegacyData.deviceAccount.phoneNumber
     });
 
-    txData.enrollments = [ defaultEnrollment ];
+    txData.enrollments = [defaultEnrollment];
   }
 
   return transaction(txData, options);

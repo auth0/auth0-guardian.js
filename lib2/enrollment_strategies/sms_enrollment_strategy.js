@@ -5,17 +5,17 @@ var object = require('../utils/object');
 var errors = require('../../errors');
 
 /**
- * @param {HttpClient} options.dependencies.httpClient
+ * @param {HttpClient} options.httpClient
  * @param {JWTToken} data.transactionToken
  * @param {EnrollmentAttempt} data.enrollmentAttempt
  */
 function smsEnrollmentStrategy(data, options) {
-  var self = object.create(authenticatorEnrollmentStrategy.prototype);
+  var self = object.create(smsEnrollmentStrategy.prototype);
 
   self.method = 'sms';
   self.enrollmentAttempt = data.enrollmentAttempt;
   self.transactionToken = data.transactionToken;
-  self.httpClient = options.dependencies.httpClient;
+  self.httpClient = options.httpClient;
 
   return self;
 }
@@ -32,7 +32,8 @@ smsEnrollmentStrategy.prototype.enroll = function enroll(data, callback) {
   }
 
   return this.httpClient.post(
-    url.join('/device-accounts', encodeURIComponent(this.enrollmentAttempt.getEnrollmentId()), '/sms-enroll'),
+    url.join('/device-accounts',
+      encodeURIComponent(this.enrollmentAttempt.getEnrollmentId()), '/sms-enroll'),
     this.transactionToken.getToken(),
     data,
     callback);

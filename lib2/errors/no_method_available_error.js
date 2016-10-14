@@ -1,6 +1,7 @@
 'use strict';
 
-const GuardianError = require('./guardian_error');
+var object = require('../utils/object');
+var GuardianError = require('./guardian_error');
 
 function NoMethodAvailableError() {
   GuardianError.call(this, {
@@ -10,6 +11,6 @@ function NoMethodAvailableError() {
 }
 
 NoMethodAvailableError.prototype = object.create(GuardianError.prototype);
-NoMethodAvailableError.prototype.contructor = RequestTokenExpiredError;
+NoMethodAvailableError.prototype.contructor = NoMethodAvailableError;
 
 module.exports = NoMethodAvailableError;

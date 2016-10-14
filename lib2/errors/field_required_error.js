@@ -1,6 +1,7 @@
 'use strict';
 
-const GuardianError = require('./guardian_error');
+var object = require('../utils/object');
+var GuardianError = require('./guardian_error');
 
 function FieldRequiredError(field) {
   GuardianError.call(this, {

@@ -11,6 +11,8 @@ var object = require('../utils/object');
  * @param {string} data.issuer.name
  * @param {string} data.issuer.label
  * @param {string} data.recoveryCode
+ * @param {string} data.baseUrl
+ * @param {string} data.enrollmentId
  *
  * @private
  */
@@ -70,11 +72,11 @@ enrollmentAttempt.prototype.isAuthRequired = function isAuthRequired(method) {
 };
 
 enrollmentAttempt.prototype.getEnrollmentId = function getEnrollmentId() {
-  // TODO
+  return this.data.enrollmentId;
 };
 
 enrollmentAttempt.prototype.getBaseUri = function getBaseUri() {
-  // TODO
+  return this.data.baseUrl;
 };
 
 module.exports = enrollmentAttempt;

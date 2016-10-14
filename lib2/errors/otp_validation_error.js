@@ -1,6 +1,7 @@
 'use strict';
 
-const GuardianError = require('./guardian_error');
+var object = require('../utils/object');
+var GuardianError = require('./guardian_error');
 
 function OtpValidationError() {
   GuardianError.call(this, {
@@ -10,6 +11,6 @@ function OtpValidationError() {
 }
 
 OtpValidationError.prototype = object.create(GuardianError.prototype);
-OtpValidationError.prototype.contructor = FieldRequiredError;
+OtpValidationError.prototype.contructor = OtpValidationError;
 
 module.exports = OtpValidationError;

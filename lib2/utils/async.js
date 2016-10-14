@@ -35,8 +35,8 @@ exports.all = function all(tasks, callback) {
   var pending = tasks.length;
   var results = new Array(tasks.length);
 
-  var resultCollecter = function(i) {
-    return function(err, result) {
+  var resultCollecter = function resultCollecter(i) {
+    return function wrapper(err, result) {
       if (finished) {
         return undefined; // Discard if already finished
       }
@@ -55,7 +55,7 @@ exports.all = function all(tasks, callback) {
       }
 
       return undefined;
-    }
+    };
   };
 
   object.forEach(tasks, function taskIterator(task, i) {

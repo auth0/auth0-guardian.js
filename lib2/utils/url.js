@@ -1,7 +1,7 @@
 'use strict';
 
 var object = require('./object');
-var url = require('url');
+var urlUtils = require('url');
 
 /**
  * Joins url
@@ -24,7 +24,7 @@ exports.join = function join() {
  * @param {string} urlObj.pathname
  */
 exports.format = function format(urlObj) {
-  return url.format(urlObj);
+  return urlUtils.format(urlObj);
 };
 
 /**
@@ -33,13 +33,13 @@ exports.format = function format(urlObj) {
  * @param {string} url
  */
 exports.parse = function parse(url) {
-  return url.parse(url);
+  return urlUtils.parse(url);
 };
 
 function clearTraliningSlash(partial) {
-  return partial.replace(/\/+$/, "");
+  return partial.replace(/\/+$/, '');
 }
 
 function clearStartingSlash(partial) {
-  return partial.replace(/^\/+/, "");
+  return partial.replace(/^\/+/, '');
 }

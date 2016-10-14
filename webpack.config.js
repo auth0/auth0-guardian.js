@@ -1,4 +1,6 @@
-const path = require('path');
+'use strict';
+
+var path = require('path');
 
 module.exports = {
   context: __dirname,

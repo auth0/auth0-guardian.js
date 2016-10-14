@@ -3,6 +3,7 @@
 var agent = require('superagent');
 var url = require('./url');
 var object = require('./object');
+var errors = require('../errors');
 
 /**
  * HTTP Client library
@@ -22,28 +23,28 @@ function httpClient(baseUrl) {
 }
 
 httpClient.prototype.get = function get(path, token, callback) {
-  return request('get', path, token, null, callback);
+  return this.request('get', path, token, null, callback);
 };
 
 httpClient.prototype.put = function put(path, token, data, callback) {
-  return request('put', path, token, data, callback);
+  return this.request('put', path, token, data, callback);
 };
 
 httpClient.prototype.post = function post(path, token, data, callback) {
-  return request('post', path, token, data, callback);
+  return this.request('post', path, token, data, callback);
 };
 
 httpClient.prototype.del = function del(path, token, data, callback) {
-  return request('delete', path, token, data, callback);
+  return this.request('delete', path, token, data, callback);
 };
 
 httpClient.prototype.patch = function patch(path, token, data, callback) {
-  return request('patch', path, token, data, callback);
+  return this.request('patch', path, token, data, callback);
 };
 
 httpClient.prototype.request = function request(method, path, token, data, callback) {
   return agent[method](url.join(this.url, path))
-    .set('Authorization', `Bearer ${token}`)
+    .set('Authorization', 'Bearer ' + token)
     .set('Accept', 'application/json')
     .send(data)
     .end(function onHttpResponse(err, response) {
@@ -66,7 +67,7 @@ httpClient.prototype.request = function request(method, path, token, data, callb
 function buildError(response, err) {
   var body = object.toCamelKeys(response.body);
 
-  return new GuardianError({
+  return new errors.GuardianError({
     message: body.message,
     statusCode: response.statusCode || body.statusCode,
     errorCode: body.errorCode,

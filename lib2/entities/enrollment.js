@@ -23,21 +23,21 @@ function enrollment(data) {
 /**
  * @returns {array.<string>} available methods: push|sms|otp
  */
-enrollment.prototype.getAvailableMethods = function() {
+enrollment.prototype.getAvailableMethods = function getAvailableMethods() {
   return this.data.availableMethods;
 };
 
 /**
  * @returns {string} returns name or undefined if not present
  */
-enrollment.prototype.getName = function() {
+enrollment.prototype.getName = function getName() {
   return this.data.name;
 };
 
 /**
  * @returns {string} returns masked phone number
  */
-enrollment.prototype.getPhoneNumber = function() {
+enrollment.prototype.getPhoneNumber = function getPhoneNumber() {
   return this.data.phoneNumber;
 };
 
