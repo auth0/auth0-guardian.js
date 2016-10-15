@@ -88,7 +88,7 @@ auth0GuardianJS.prototype.formPostHelper = function formPostHelper(url, obj) {
   form(global.document).post(url, obj);
 };
 
-function getEnabledMethods(txLegacyData) {
+function parseAvailableEnrollmentMethods(txLegacyData) {
   var methods = [];
 
   if (object.get(txLegacyData, 'featureSwitches.mfaSms.enroll', false)) {
@@ -103,18 +103,35 @@ function getEnabledMethods(txLegacyData) {
   return methods;
 }
 
-function buildTransaction(txLegacyData, options) {
-  var enabledMethods = getEnabledMethods(txLegacyData);
+function parseAvailableAuthMethods(txLegacyData) {
+  var methods = [];
 
-  if (!enabledMethods.length === 0) {
-    throw new errors.NoMethodAvailableError();
+  if (object.get(txLegacyData, 'featureSwitches.mfaSms.login', false)) {
+    methods.push('sms');
   }
 
+  if (object.get(txLegacyData, 'featureSwitches.mfaApp.login', false)) {
+    methods.push('push');
+    methods.push('otp');
+  }
+
+  return methods;
+}
+
+function buildTransaction(txLegacyData, options) {
   var transactionToken = txLegacyData.transactionToken;
+  var availableEnrollmentMethods = parseAvailableEnrollmentMethods(txLegacyData);
   var txData = {};
+
+
   txData.transactionToken = jwtToken(transactionToken);
+  txData.availableEnrollmentMethods = availableEnrollmentMethods;
 
   if (txLegacyData.enrollmentTxId) {
+    if (!availableEnrollmentMethods.length === 0) {
+      throw new errors.NoMethodAvailableError();
+    }
+
     txData.enrollmentAttempt = enrollmentAttempt({
       enrollmentId: txLegacyData.deviceAccount.id,
       enrollmentTxId: txLegacyData.enrollmentTxId,
@@ -124,8 +141,12 @@ function buildTransaction(txLegacyData, options) {
       baseUrl: self.serviceBaseUrl
     });
   } else {
-    var enrollmentMethods = txLegacyData.deviceAccount.availableMethods;
-    var availableMethods = object.intersec(enrollmentMethods, enabledMethods);
+    var availableAuthMethod = parseAvailableAuthMethods(txLegacyData);
+    var availableMethodsForCurrentEnrollment = txLegacyData.deviceAccount.availableMethods;
+    var availableMethods = object.intersec(
+      availableAuthMethod,
+      availableMethodsForCurrentEnrollment
+    );
 
     if (availableMethods.length === 0) {
       throw new errors.NoMethodAvailableError();

@@ -9,13 +9,13 @@ var enrollmentBuilder = require('./entities/enrollment');
 
 var authRecoveryStrategy = require('./auth_strategies/recovery_auth_strategy');
 
-var smsEnrollmentStrategy = require('./auth_strategies/sms_enrollment_strategy');
-var pnEnrollmentStrategy = require('./auth_strategies/pn_enrollment_strategy');
-var otpEnrollmentStrategy = require('./auth_strategies/otp_enrollment_strategy');
+var smsEnrollmentStrategy = require('./enrollment_strategies/sms_enrollment_strategy');
+var pnEnrollmentStrategy = require('./enrollment_strategies/pn_enrollment_strategy');
+var otpEnrollmentStrategy = require('./enrollment_strategies/otp_enrollment_strategy');
 
-var smsAuthStrategy = require('./enrollment_strategies/sms_auth_strategy');
-var pnAuthStrategy = require('./enrollment_strategies/pn_auth_strategy');
-var otpAuthStrategy = require('./enrollment_strategies/otp_auth_strategy');
+var smsAuthStrategy = require('./auth_strategies/sms_auth_strategy');
+var pnAuthStrategy = require('./auth_strategies/pn_auth_strategy');
+var otpAuthStrategy = require('./auth_strategies/otp_auth_strategy');
 
 /**
  * @public
@@ -26,6 +26,7 @@ var otpAuthStrategy = require('./enrollment_strategies/otp_auth_strategy');
  *  Confirmed enrollments (available when you are enrolled)
  * @param {array.<EnrollmentAttempt>} [data.enrollmentAttempt]
  *  Enrollment attempt (when you are not enrolled)
+ * @param {array.<string>} data.availableEnrollmentMethods
  * @param {JWTToken} data.transactionToken
  *
  * @param {EventEmitter} options.transactionEventsReceiver
@@ -61,6 +62,7 @@ function transaction(data, options) {
   self.txId = data.transactionToken.getDecoded().tx_id;
   self.transactionToken = data.transactionToken;
   self.transactionEventsReceiver = options.transactionEventsReceiver;
+  self.availableEnrollmentMethods = data.availableEnrollmentMethods;
 
   self.loginCompleteHub = events.buildEventHub(
     self.transactionEventsReceiver, 'login:complete');
@@ -198,6 +200,13 @@ transaction.prototype.removeAuthListeners = function removeAuthListeners() {
 
   self.loginCompleteHub.removeAllListeners();
   self.loginRejectedHub.removeAllListeners();
+};
+
+/**
+ * @public
+ */
+transaction.prototype.getAvailableEnrollmentMethods = function getAvailableEnrollmentMethods() {
+  return self.availableEnrollmentMethods;
 };
 
 function commonRequestAuth(strategy, loginCompleteHub, callback) {

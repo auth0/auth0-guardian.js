@@ -24,6 +24,7 @@
     "eslint-plugin-react": "^6.2.2",
     "jsonwebtoken": "^7.1.9",
     "mocha": "^3.0.2",
+    "pem": "^1.8.3",
     "sinon": "^1.17.5",
     "watch": "^1.0.1",
     "webpack": "^1.13.2"
@@ -36,7 +37,10 @@
     "watch:lint": "watch 'npm run eslint'",
     "eslint": "eslint .",
     "eslintfix": "eslint --fix .",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "serve": "http-server ./dist",
+    "serve:https": "node ./tools/serve.js",
+    "dev": "npm run serve:https & npm run watch:build"
   },
   "repository": {
     "type": "git",

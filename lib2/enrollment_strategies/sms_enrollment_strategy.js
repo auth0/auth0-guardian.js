@@ -2,7 +2,7 @@
 
 var url = require('../utils/url');
 var object = require('../utils/object');
-var errors = require('../../errors');
+var errors = require('../errors');
 
 /**
  * @param {HttpClient} options.httpClient

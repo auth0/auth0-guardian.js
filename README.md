@@ -42,80 +42,83 @@ an extra authentication step. You can know that by listening to the
 `enrollment-complete` event.
 
 ```js
-function enroll(method) {
-	auth0GuardianJS.start(function(err, transaction) {
+function enroll(transaction, method) {
+	if (transaction.isEnrolled()) {
+		console.log('You are already enrolled');
+		return undefined;
+	}
+
+	var enrollData = {};
+
+	if (method === 'sms') {
+		enrollData.phoneNumber = prompt('Phone number'); // Collect phone number
+	}
+
+	return transaction.enroll(method, enrollData, function (err, otpEnrollment) {
 		if (err) {
 			console.error(err);
 			return undefined;
 		}
 
-		transaction.on('error', function(error) {
-			console.error(error);
-		});
-
-		transaction.on('timeout', function() {
-			console.log('Timeout');
-		});
-
-		transaction.on('enrollment-complete', function(payload) {
-			if (payload.recoveryCode) {
-				alert('Recovery code is ' + payload.recoveryCode);
-			}
-
-			if (payload.authRequired) {
-				showAuthentication();
-				return undefined;
-			}
-		});
-
-		transaction.on('auth-response', function(payload) {
-			if (payload.recoveryCode) {
-				alert('The new recovery code is ' + payload.recoveryCode);
-			}
-
-			if (!payload.accepted) {
-				alert('Authentication has been rejected');
-				return undefined;
-			}
-
-			auth0GuardianJS.formPostHelper('{{ postActionURL }}', { signature: payload.signature });
-		});
-
-		if (transaction.isEnrolled()) {
-			console.log('You are already enrolled');
-			return undefined;
+		var uri = otpEnrollment.getUri();
+		if (uri) {
+			showQR(uri);
 		}
 
-		var enrollData = {};
-
-		if (method === 'sms') {
-			enrollData.phoneNumber = prompt('Phone number'); // Collect phone number
+		var confirmData = {};
+		if (method === 'otp' || method === 'sms') {
+			confirmData.otpCode = prompt('Otp code'); // Collect verification otp
 		}
 
-		return transaction.enroll(method, enrollData, function (err, otpEnrollment) {
-			if (err) {
-				console.error(err);
-				return undefined;
-			}
-
-			var uri = otpEnrollment.getUri();
-			if (uri) {
-				showQR(uri);
-			}
-
-			var confirmData = {};
-			if (method === 'otp' || method === 'sms') {
-				confirmData.otpCode = prompt('Otp code'); // Collect verification otp
-			}
-
-			otpEnrollment.confirm(confirmData);
-		});
+		otpEnrollment.confirm(confirmData);
 	});
 }
 
-enroll('sms') // For sms
-enroll('otp') // For otp
-enroll('push') // For push
+auth0GuardianJS.start(function(err, transaction) {
+	if (err) {
+		console.error(err);
+		return undefined;
+	}
+
+	transaction.on('error', function(error) {
+		console.error(error);
+	});
+
+	transaction.on('timeout', function() {
+		console.log('Timeout');
+	});
+
+	transaction.on('enrollment-complete', function(payload) {
+		if (payload.recoveryCode) {
+			alert('Recovery code is ' + payload.recoveryCode);
+		}
+
+		if (payload.authRequired) {
+			showAuthentication();
+			return undefined;
+		}
+	});
+
+	transaction.on('auth-response', function(payload) {
+		if (payload.recoveryCode) {
+			alert('The new recovery code is ' + payload.recoveryCode);
+		}
+
+		if (!payload.accepted) {
+			alert('Authentication has been rejected');
+			return undefined;
+		}
+
+		auth0GuardianJS.formPostHelper('{{ postActionURL }}', { signature: payload.signature });
+	});
+
+	var availableEnrollmentMethods = transaction.getAvailableEnrollmentMethods();
+
+	method = prompt('What method do you want to use, select on of '
+		+ availableEnrollmentMethods.join(', '));
+
+	enroll(transaction, method) // For sms
+});
 ```
 
 ### Authentication
