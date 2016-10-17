@@ -377,6 +377,7 @@ distinguish between recoverable and unrecoverable errors. This is a list of
 the errors codes and its meaning
 
 | Error Code | Description |
+|------------|-------------|
 | invalid_token | Invalid request or transaction token |
 | insufficient_scope | You don't have enought grants to perform the requested operation |
 | invalid_bearer_format | The bearer put in `authentication` header was not valid |
