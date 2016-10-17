@@ -6,7 +6,7 @@ var GuardianError = require('./guardian_error');
 function RecoveryCodeValidationError() {
   GuardianError.call(this, {
     message: 'Recovery code validation error',
-    errorCode: 'invalid_recovery_code'
+    errorCode: 'invalid_recovery_code_format'
   });
 }
 

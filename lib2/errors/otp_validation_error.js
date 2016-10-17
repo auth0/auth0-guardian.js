@@ -1,12 +1,12 @@
 'use strict';
 
-var object = require('../utils/object')
+var object = require('../utils/object');
 var GuardianError = require('./guardian_error');
 
 function OtpValidationError() {
   GuardianError.call(this, {
     message: 'OTP validation error',
-    errorCode: 'invalid_otp'
+    errorCode: 'invalid_otp_format'
   });
 }
 

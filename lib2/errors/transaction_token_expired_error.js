@@ -5,8 +5,8 @@ var GuardianError = require('./guardian_error');
 
 function RequestTokenExpiredError() {
   GuardianError.call(this, {
-    message: 'The transaction token has expired.',
-    errorCode: 'transaction_token_expired'
+    message: 'The transaction has expired.',
+    errorCode: 'transaction_expired'
   });
 }
 
