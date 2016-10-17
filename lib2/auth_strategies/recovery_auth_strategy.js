@@ -12,7 +12,7 @@ var async = require('../utils/async');
 function recoveryAuthenticatorStrategy(data, options) {
   var self = object.create(recoveryAuthenticatorStrategy.prototype);
 
-  self.method = data.method || 'sms';
+  self.method = null;
 
   self.transactionToken = data.transactionToken;
   self.httpClient = options.httpClient;

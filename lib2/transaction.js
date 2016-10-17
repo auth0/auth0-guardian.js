@@ -154,11 +154,17 @@ transaction.prototype.enroll = function enroll(method, data, callback) {
 transaction.prototype.requestAuth = function requestAuth(enrollment, options, callback) {
   this.removeAuthListeners();
 
-  if (arguments.length === 2) {
-    var availableMethods = enrollment.getAvailableMethods();
+  var availableMethods = enrollment.getAvailableMethods();
 
+  if (arguments.length === 2) {
     callback = options; // eslint-disable-line no-param-reassign
     options = { method: availableMethods[0] }; // eslint-disable-line no-param-reassign
+  }
+
+  options = options || {}; // eslint-disable-line no-param-reassign
+
+  if (!options.method) {
+    options.method = availableMethods[0]; // eslint-disable-line no-param-reassign
   }
 
   var strategy = this.authStrategies[options.method];
@@ -181,13 +187,14 @@ transaction.prototype.requestAuth = function requestAuth(enrollment, options, ca
 transaction.prototype.recover = function recover(data) {
   var self = this;
 
-  self.requestStrategyAuth(self.authRecoveryStrategy, function onRecoveryRequested(err, recoveryAuth) {
-    if (err) {
-      return self.emit('error', err);
-    }
+  self.requestStrategyAuth(self.authRecoveryStrategy,
+    function onRecoveryRequested(err, recoveryAuth) {
+      if (err) {
+        return self.emit('error', err);
+      }
 
-    return recoveryAuth.verify(data);
-  });
+      return recoveryAuth.verify(data);
+    });
 };
 
 /**

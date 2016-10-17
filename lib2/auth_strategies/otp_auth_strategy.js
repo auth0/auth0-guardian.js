@@ -12,7 +12,7 @@ var validations = require('../utils/validations');
 function otpAuthenticatorStrategy(data, options) {
   var self = object.create(otpAuthenticatorStrategy.prototype);
 
-  self.method = data.method || 'sms';
+  self.method = data.method || 'otp';
 
   self.transactionToken = data.transactionToken;
   self.httpClient = options.httpClient;
