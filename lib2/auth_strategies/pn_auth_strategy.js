@@ -1,6 +1,7 @@
 'use strict';
 
 var object = require('../utils/object');
+var async = require('../utils/async');
 
 /**
  * @param {JWTToken} data.transactionToken
@@ -11,7 +12,7 @@ function pnAuthenticatorStrategy(data, options) {
 
   self.method = 'push';
 
-  self.transactionToken = this.data.transactionToken;
+  self.transactionToken = data.transactionToken;
   self.httpClient = options.httpClient;
 
   return self;
@@ -25,8 +26,9 @@ function pnAuthenticatorStrategy(data, options) {
  */
 pnAuthenticatorStrategy.prototype.request = function request(callback) {
   return this.httpClient.post(
-    '/send-push-notification',
+    'api/send-push-notification',
     this.transactionToken.getToken(),
+    null,
     callback);
 };
 
@@ -36,7 +38,7 @@ pnAuthenticatorStrategy.prototype.request = function request(callback) {
  * @public
  */
 pnAuthenticatorStrategy.prototype.verify = function verify(data, callback) {
-  object.setImmediate(callback);
+  async.setImmediate(callback);
 };
 
 module.exports = pnAuthenticatorStrategy;

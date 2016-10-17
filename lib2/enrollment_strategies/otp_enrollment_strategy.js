@@ -1,6 +1,7 @@
 'use strict';
 
 var object = require('../utils/object');
+var async = require('../utils/async');
 var errors = require('../errors');
 
 /**
@@ -24,8 +25,8 @@ function authenticatorEnrollmentStrategy(data, options) {
  *
  * @public
  */
-authenticatorEnrollmentStrategy.prototype.enroll = function enroll(callback) {
-  object.setImmediate(callback);
+authenticatorEnrollmentStrategy.prototype.enroll = function enroll(data, callback) {
+  async.setImmediate(callback);
 };
 
 /**
@@ -36,15 +37,16 @@ authenticatorEnrollmentStrategy.prototype.enroll = function enroll(callback) {
  */
 authenticatorEnrollmentStrategy.prototype.confirm = function confirm(data, callback) {
   if (!data.otpCode) {
-    return object.setImmediate(callback, new errors.FieldRequiredError('otpCode'));
+    return async.setImmediate(callback, new errors.FieldRequiredError('otpCode'));
   }
 
   return this.httpClient.post(
-    '/verify-otp',
+    'api/verify-otp',
     this.transactionToken.getToken(), {
       type: 'manual_input',
       code: data.otpCode
-    }, callback);
+    },
+    callback);
 };
 
 /**
@@ -54,6 +56,8 @@ authenticatorEnrollmentStrategy.prototype.confirm = function confirm(data, callb
  * @returns {string}
  */
 authenticatorEnrollmentStrategy.prototype.getUri = function getUri() {
-  return 'otpauth://totp/' + encodeURIComponent(this.issuer.label) +
-    '?secret=' + encodeURIComponent(this.enrollment.otpSecret);
+  return 'otpauth://totp/' + encodeURIComponent(this.enrollmentAttempt.getIssuerLabel()) +
+    '?secret=' + encodeURIComponent(this.enrollmentAttempt.getOtpSecret());
 };
+
+module.exports = authenticatorEnrollmentStrategy;

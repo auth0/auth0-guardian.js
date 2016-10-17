@@ -15,6 +15,7 @@
     "auth0-style": "github:auth0/javascript",
     "chai": "^3.5.0",
     "chai-as-promised": "^5.3.0",
+    "concurrently": "^3.1.0",
     "eslint": "^3.7.1",
     "eslint-config-auth0": "^5.0.0",
     "eslint-config-auth0-base": "^6.0.0",
@@ -33,14 +34,13 @@
     "test": "npm run eslint && mocha --recursive test",
     "build": "webpack --config webpack.config.js",
     "lint": "npm run eslint",
-    "watch:build": "watch 'npm run build'",
+    "watch:build": "watch 'npm run build' --ignoreDirectoryPattern=/dist/",
     "watch:lint": "watch 'npm run eslint'",
     "eslint": "eslint .",
     "eslintfix": "eslint --fix .",
     "prepublish": "npm run build",
-    "serve": "http-server ./dist",
     "serve:https": "node ./tools/serve.js",
-    "dev": "npm run serve:https & npm run watch:build"
+    "dev": "concurrently \"npm run watch:build\" \"npm run serve:https\""
   },
   "repository": {
     "type": "git",

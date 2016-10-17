@@ -13,7 +13,7 @@ var errors = require('../errors');
 function httpClient(baseUrl) {
   var self = object.create(httpClient.prototype);
 
-  if (object.isObject(baseUrl)) {
+  if (object.isString(baseUrl)) {
     self.baseUrl = url.format(baseUrl);
   } else {
     self.baseUrl = baseUrl;
@@ -43,7 +43,7 @@ httpClient.prototype.patch = function patch(path, token, data, callback) {
 };
 
 httpClient.prototype.request = function request(method, path, token, data, callback) {
-  return agent[method](url.join(this.url, path))
+  return agent[method](url.join(this.baseUrl, path))
     .set('Authorization', 'Bearer ' + token)
     .set('Accept', 'application/json')
     .send(data)
@@ -56,15 +56,12 @@ httpClient.prototype.request = function request(method, path, token, data, callb
         return callback(buildError(response, null));
       }
 
-      return callback(null, {
-        result: object.toCamelKeys(response.body),
-        statusCode: response.statusCode,
-        headers: object.toCamelKeys(response.headers)
-      });
+      return callback(null, object.toCamelKeys(response.body));
     });
 };
 
 function buildError(response, err) {
+  response = response || {}; // eslint-disable-line no-param-reassign
   var body = object.toCamelKeys(response.body);
 
   return new errors.GuardianError({

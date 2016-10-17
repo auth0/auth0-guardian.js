@@ -6,13 +6,15 @@ var errors = require('./errors');
 var object = require('./utils/object');
 var jwtToken = require('./utils/jwt_token');
 var enrollment = require('./entities/enrollment');
+var httpClient = require('./utils/http_client');
 var transaction = require('./transaction');
+var socketClient = require('./utils/socket_client');
 var enrollmentAttempt = require('./entities/enrollment_attempt');
 
 /**
  * @public
  *
- * @param {string} options.serviceBaseUrl Service base url
+ * @param {string} options.serviceUrl Service base url
  * @example `
  *  For US: https://{name}.guardian.auth0.com
  *  For AU: https://{name}.au.guardian.auth0.com
@@ -24,18 +26,22 @@ var enrollmentAttempt = require('./entities/enrollment_attempt');
  * @param {string} options.issuer.name Unique identifier of the issuer to
  *  be used on google-authenticator-like apps
  *
- * @param {function(serviceBaseUrl)} [dependencies.socketClient] Client factory for socket api
- * @param {function(serviceBaseUrl)} [dependencies.httpClient] Client factory for http
+ * @param {function(serviceUrl)} [dependencies.socketClient] Client factory for socket api
+ * @param {function(serviceUrl)} [dependencies.httpClient] Client factory for http
  */
 function auth0GuardianJS(options) {
   var self = object.create(auth0GuardianJS.prototype);
 
-  self.serviceBaseUrl = options.serviceBaseUrl;
+  self.serviceUrl = options.serviceUrl;
   self.requestToken = jwtToken(options.requestToken);
   self.issuer = options.issuer;
 
-  self.socketClient = object.get(options, 'dependencies.socketClient', null); // TODO Set default
-  self.httpClient = object.get(options, 'dependencies.httpClient', null); // TODO Set default
+  self.socketClient = object.get(options, 'dependencies.socketClient',
+    socketClient(self.serviceUrl));
+  self.httpClient = object.get(options, 'dependencies.httpClient',
+    httpClient(self.serviceUrl));
+
+  return self;
 }
 
 /**
@@ -53,7 +59,7 @@ auth0GuardianJS.prototype.start = function start(callback) {
   }
 
   return self.httpClient.post('/api/start-flow',
-    self.requestToken.token(), function startTransaction(err, txLegacyData) {
+    self.requestToken.getToken(), null, function startTransaction(err, txLegacyData) {
       if (err) {
         return callback(err);
       }
@@ -66,7 +72,14 @@ auth0GuardianJS.prototype.start = function start(callback) {
 
           var tx;
           try {
-            tx = buildTransaction(txLegacyData, { transactionEvents: self.socketClient });
+            tx = buildTransaction({
+              txLegacyData: txLegacyData,
+              issuer: self.issuer,
+              serviceUrl: self.serviceUrl
+            }, {
+              transactionEventsReceiver: self.socketClient,
+              httpClient: self.httpClient
+            });
           } catch (transactionBuildingErr) {
             return callback(transactionBuildingErr);
           }
@@ -85,7 +98,7 @@ auth0GuardianJS.prototype.start = function start(callback) {
  * @param {object} obj result with signature to post
  */
 auth0GuardianJS.prototype.formPostHelper = function formPostHelper(url, obj) {
-  form(global.document).post(url, obj);
+  form({ document: global.document }).post(url, obj);
 };
 
 function parseAvailableEnrollmentMethods(txLegacyData) {
@@ -118,7 +131,10 @@ function parseAvailableAuthMethods(txLegacyData) {
   return methods;
 }
 
-function buildTransaction(txLegacyData, options) {
+function buildTransaction(data, options) {
+  var txLegacyData = data.txLegacyData;
+  var issuer = data.issuer;
+  var serviceUrl = data.serviceUrl;
   var transactionToken = txLegacyData.transactionToken;
   var availableEnrollmentMethods = parseAvailableEnrollmentMethods(txLegacyData);
   var txData = {};
@@ -128,7 +144,7 @@ function buildTransaction(txLegacyData, options) {
   txData.availableEnrollmentMethods = availableEnrollmentMethods;
 
   if (txLegacyData.enrollmentTxId) {
-    if (!availableEnrollmentMethods.length === 0) {
+    if (availableEnrollmentMethods.length === 0) {
       throw new errors.NoMethodAvailableError();
     }
 
@@ -137,20 +153,20 @@ function buildTransaction(txLegacyData, options) {
       enrollmentTxId: txLegacyData.enrollmentTxId,
       otpSecret: txLegacyData.deviceAccount.otpSecret,
       recoveryCode: txLegacyData.deviceAccount.recoveryCode,
-      issuer: self.issuer,
-      baseUrl: self.serviceBaseUrl
+      issuer: issuer,
+      baseUrl: serviceUrl
     });
   } else {
-    var availableAuthMethod = parseAvailableAuthMethods(txLegacyData);
+    var availableAuthMethod = ['sms', 'push', 'otp']; // parseAvailableAuthMethods(txLegacyData);
     var availableMethodsForCurrentEnrollment = txLegacyData.deviceAccount.availableMethods;
     var availableMethods = object.intersec(
       availableAuthMethod,
       availableMethodsForCurrentEnrollment
     );
 
-    if (availableMethods.length === 0) {
-      throw new errors.NoMethodAvailableError();
-    }
+    // if (availableMethods.length === 0) {
+    //   throw new errors.NoMethodAvailableError();
+    // }
 
     var defaultEnrollment = enrollment({
       availableMethods: availableMethods,

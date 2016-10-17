@@ -3,6 +3,7 @@
 var url = require('../utils/url');
 var object = require('../utils/object');
 var errors = require('../errors');
+var async = require('../utils/async');
 
 /**
  * @param {HttpClient} options.httpClient
@@ -28,14 +29,14 @@ function smsEnrollmentStrategy(data, options) {
  */
 smsEnrollmentStrategy.prototype.enroll = function enroll(data, callback) {
   if (!data.phoneNumber) {
-    return object.setImmediate(callback, new errors.FieldRequiredError('phoneNumber'));
+    return async.setImmediate(callback, new errors.FieldRequiredError('phoneNumber'));
   }
 
   return this.httpClient.post(
-    url.join('/device-accounts',
+    url.join('api/device-accounts',
       encodeURIComponent(this.enrollmentAttempt.getEnrollmentId()), '/sms-enroll'),
     this.transactionToken.getToken(),
-    data,
+    { phone_number: data.phoneNumber },
     callback);
 };
 
@@ -47,15 +48,16 @@ smsEnrollmentStrategy.prototype.enroll = function enroll(data, callback) {
  */
 smsEnrollmentStrategy.prototype.confirm = function confirm(data, callback) {
   if (!data.otpCode) {
-    return object.setImmediate(callback, new errors.FieldRequiredError('otpCode'));
+    return async.setImmediate(callback, new errors.FieldRequiredError('otpCode'));
   }
 
   return this.httpClient.post(
-    '/verify-otp',
+    'api/verify-otp',
     this.transactionToken.getToken(), {
       type: 'manual_input',
       code: data.otpCode
-    });
+    },
+    callback);
 };
 
 /**
@@ -64,3 +66,5 @@ smsEnrollmentStrategy.prototype.confirm = function confirm(data, callback) {
 smsEnrollmentStrategy.prototype.getUri = function getUri() {
   return null;
 };
+
+module.exports = smsEnrollmentStrategy;

@@ -15,7 +15,7 @@ function smsAuthenticatorStrategy(data, options) {
   self.transactionToken = data.transactionToken;
   self.httpClient = options.httpClient;
 
-  self.smsAuthenticatorStrategy = otpAuthenticatorStrategy({
+  self.otpAuthenticatorStrategy = otpAuthenticatorStrategy({
     transactionToken: data.transactionToken,
     method: self.method
   }, {
@@ -26,7 +26,7 @@ function smsAuthenticatorStrategy(data, options) {
 }
 
 smsAuthenticatorStrategy.prototype.request = function request(callback) {
-  this.httpClient.post('/send-sms', this.transactionToken.getToken(), callback);
+  this.httpClient.post('api/send-sms', this.transactionToken.getToken(), null, callback);
 };
 
 smsAuthenticatorStrategy.prototype.verify = function verify(data, callback) {

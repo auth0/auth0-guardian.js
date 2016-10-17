@@ -9,10 +9,10 @@
 var object = require('./object');
 
 /**
- * @param {BrowserDocument} options.dependencies.document
+ * @param {BrowserDocument} options.document
  */
 function form(options) {
-  var document = options.dependencies.document;
+  var document = options.document;
 
   var self = object.create(form.prototype);
   self.document = document;

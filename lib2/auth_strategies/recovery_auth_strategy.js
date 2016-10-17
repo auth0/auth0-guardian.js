@@ -3,6 +3,7 @@
 var errors = require('../errors');
 var object = require('../utils/object');
 var validations = require('../utils/validations');
+var async = require('../utils/async');
 
 /**
  * @param {JWTToken} data.transactionToken
@@ -13,14 +14,14 @@ function recoveryAuthenticatorStrategy(data, options) {
 
   self.method = data.method || 'sms';
 
-  self.transactionToken = this.data.transactionToken;
+  self.transactionToken = data.transactionToken;
   self.httpClient = options.httpClient;
 
   return self;
 }
 
 recoveryAuthenticatorStrategy.prototype.request = function request(callback) {
-  object.setImmediate(callback);
+  async.setImmediate(callback);
 };
 
   /**
@@ -30,17 +31,17 @@ recoveryAuthenticatorStrategy.prototype.request = function request(callback) {
    */
 recoveryAuthenticatorStrategy.prototype.verify = function verify(data, callback) {
   if (!data || !data.recoveryCode) {
-    return setImmediate(callback, new errors.FieldRequiredError('otpCode'));
+    return async.setImmediate(callback, new errors.FieldRequiredError('otpCode'));
   }
 
   if (!validations.validateRecoveryCode(data.recoveryCode)) {
-    return setImmediate(callback, new errors.RecoveryCodeValidationError());
+    return async.setImmediate(callback, new errors.RecoveryCodeValidationError());
   }
 
   return this.httpClient.post(
-    '/recover-account',
+    'api/recover-account',
     this.transactionToken.getToken(),
-    { recoveryCode: data.recoveryCode },
+    { recovery_code: data.recoveryCode },
     callback);
 };
 

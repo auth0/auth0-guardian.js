@@ -15,15 +15,15 @@ var camelCase = exports.camelCase = function camelCase(str) {
     return str;
   }
 
-  // 1. Replaces whitespace character (space, tab, cr, ln, vertical tab and form feed)
+  // 1. Replaces whitespace character (space, tab, cr, ln, vertical tab, underscore and form feed)
   // followed by a  uppercarse version of that character
   // 2. Removes whitespace characters
   // 3. Turn first character to lowercase
-  return str
-    .replace(/\s(.)/g, function uppercarse($1) {
+  return str.toString()
+    .replace(/[\s_](.)/g, function uppercarse($1) {
       return $1.toUpperCase();
     })
-    .replace(/\s/g, '')
+    .replace(/[\s_]/g, '')
     .replace(/^(.)/, function uncapitalize($1) {
       return $1.toLowerCase();
     });
@@ -41,7 +41,7 @@ var snakeCase = exports.snakeCase = function snakeCase(str) {
     return str;
   }
 
-  return str.replace(/([A-Z])/g, '_$1');
+  return str.toString().replace(/([A-Z])/g, '_$1');
 };
 
 /**
@@ -73,6 +73,15 @@ var isArray = exports.isArray = function isArray(obj) {
   return typeof obj === 'object' && typeof obj.length === 'number';
 };
 
+/**
+ * Returns true if a given object is an string
+ *
+ * @param {any} obj Object to check
+ * @returns {boolean} True for arrays; false otherwise
+ */
+exports.isString = function isString(obj) {
+  return typeof obj === 'string';
+};
 
 /**
  * Executes fn for each value of object / array. Will stop if fn
@@ -113,6 +122,22 @@ var reduce = exports.reduce = function reduce(obj, fn, init) {
   });
 
   return current;
+};
+
+/**
+ * Mapper function
+ *
+ * @param {object|array} obj object map
+ * @param {function} fn map function
+ *
+ * @returns {any} array of mapped values
+ */
+exports.map = function map(obj, fn) {
+  return reduce(obj, function iterator(current, value, key) {
+    current.push(fn(value, key));
+
+    return current;
+  }, []);
 };
 
 /**
@@ -309,7 +334,7 @@ exports.create = (function createFactory() {
 }());
 
 var hasOwnProperty = exports.hasOwnProperty = function hasOwnProperty(obj, key) {
-  Object.prototype.hasOwnProperty.call(obj, key);
+  return Object.prototype.hasOwnProperty.call(obj, key);
 };
 
 /**

@@ -3,7 +3,7 @@
 var object = require('./utils/object');
 var async = require('./utils/async');
 var EventEmitter = require('events').EventEmitter;
-var errors = require('./errors/method_not_found_error');
+var errors = require('./errors');
 var events = require('./utils/events');
 var enrollmentBuilder = require('./entities/enrollment');
 
@@ -59,7 +59,12 @@ function transaction(data, options) {
     otp: otpAuthStrategy(authStrategiesData, { httpClient: httpClient })
   };
 
-  self.txId = data.transactionToken.getDecoded().tx_id;
+  self.authRecoveryStrategy = authRecoveryStrategy(authStrategiesData, { httpClient: httpClient });
+
+  self.enrollmentAttempt = data.enrollmentAttempt;
+  self.enrollments = data.enrollments || [];
+
+  self.txId = data.transactionToken.getDecoded().txid;
   self.transactionToken = data.transactionToken;
   self.transactionEventsReceiver = options.transactionEventsReceiver;
   self.availableEnrollmentMethods = data.availableEnrollmentMethods;
@@ -74,7 +79,15 @@ function transaction(data, options) {
   self.enrollmentCompleteHub.defaultHandler(function enrollmentCompleteDef(apiPayload) {
     self.addEnrollment(enrollmentBuilder(apiPayload.deviceAccount));
 
-    self.emit('enrollment-complete', buildEnrollmentCompletePayload({ apiPayload: apiPayload }));
+    // TODO Add this to the payload and remove this workaround
+    apiPayload.txId = self.txId; // eslint-disable-line no-param-reassign
+
+    self.emit('enrollment-complete', buildEnrollmentCompletePayload({
+      apiPayload: apiPayload,
+      txId: self.txId,
+      enrollmentAttempt: data.enrollmentAttempt,
+      method: 'push' // TODO Add method to the api message and remove it from here
+    }));
   });
 
   self.loginCompleteHub.defaultHandler(function loginCompleteDef(apiPayload) {
@@ -102,6 +115,7 @@ transaction.prototype.enroll = function enroll(method, data, callback) {
 
   if (!strategy) {
     async.setImmediate(callback, new errors.MethodNotFoundError(method));
+    return;
   }
 
   strategy.enroll(data, function onEnrollmentStarted(err) {
@@ -109,11 +123,23 @@ transaction.prototype.enroll = function enroll(method, data, callback) {
       return callback(err);
     }
 
-    return callback(null, enrollmentConfirmationStep({
+    var confirmationStep = enrollmentConfirmationStep({
       strategy: strategy,
+      transaction: self,
       enrollmentCompleteHub: self.enrollmentCompleteHub,
       enrollmentAttempt: self.enrollmentAttempt
-    }));
+    });
+
+    confirmationStep.once('enrollment-complete', function onEnrollmentComplete(payload) {
+      self.addEnrollment(payload.enrollment);
+      self.emit('enrollment-complete', payload);
+    });
+
+    confirmationStep.on('error', function onError(iErr) {
+      self.emit('error', iErr);
+    });
+
+    return callback(null, confirmationStep);
   });
 };
 
@@ -139,9 +165,10 @@ transaction.prototype.requestAuth = function requestAuth(enrollment, options, ca
 
   if (!strategy) {
     async.setImmediate(callback, new errors.MethodNotFoundError(options.method));
+    return;
   }
 
-  commonRequestAuth(strategy, this.loginCompleteHub, callback);
+  this.requestStrategyAuth(strategy, callback);
 };
 
 /**
@@ -154,14 +181,13 @@ transaction.prototype.requestAuth = function requestAuth(enrollment, options, ca
 transaction.prototype.recover = function recover(data) {
   var self = this;
 
-  commonRequestAuth(authRecoveryStrategy, this.loginCompleteHub,
-    function onRecoveryRequested(err, recoveryAuth) {
-      if (err) {
-        return self.emit('error', err);
-      }
+  self.requestStrategyAuth(self.authRecoveryStrategy, function onRecoveryRequested(err, recoveryAuth) {
+    if (err) {
+      return self.emit('error', err);
+    }
 
-      return recoveryAuth.verify(data);
-    });
+    return recoveryAuth.verify(data);
+  });
 };
 
 /**
@@ -206,32 +232,60 @@ transaction.prototype.removeAuthListeners = function removeAuthListeners() {
  * @public
  */
 transaction.prototype.getAvailableEnrollmentMethods = function getAvailableEnrollmentMethods() {
-  return self.availableEnrollmentMethods;
+  return this.availableEnrollmentMethods;
 };
 
-function commonRequestAuth(strategy, loginCompleteHub, callback) {
+/**
+ * @private
+ *
+ * @param {AuthStrategy} strategy
+ * @param {EventEmitter} options.loginCompleteHub
+ * @param {EventEmitter} options.loginRejectedHub
+ */
+transaction.prototype.requestStrategyAuth = function requestStrategyAuth(strategy, callback) {
+  var self = this;
+
   strategy.request(function onAuthRequested(err) {
     if (err) {
       return callback(err);
     }
 
-    return callback(null, authVerificationStep(strategy, loginCompleteHub));
+    var confirmationStep = authVerificationStep(strategy, {
+      loginCompleteHub: self.loginCompleteHub,
+      loginRejectedHub: self.loginRejectedHub
+    });
+
+    confirmationStep.once('auth-response', function onAuthResponse(payload) {
+      self.emit('auth-response', payload);
+    });
+
+    confirmationStep.once('error', function onAuthResponse(error) {
+      self.emit('error', error);
+    });
+
+    return callback(null, confirmationStep);
   });
-}
+};
 
 /**
  * @param {EnrollmentStrategy} options.strategy
  * @param {EnrollmentAttempt} options.enrollmentAttempt
  * @param {EventEmitter} options.enrollmentCompleteHub
+ * @param {Transaction} options.transaction
  */
 function enrollmentConfirmationStep(options) {
   var self = object.create(enrollmentConfirmationStep.prototype);
+  EventEmitter.call(self);
+
   self.strategy = options.strategy;
+  self.transaction = options.transaction;
   self.enrollmentAttempt = options.enrollmentAttempt;
   self.enrollmentCompleteHub = options.enrollmentCompleteHub;
 
   return self;
 }
+
+enrollmentConfirmationStep.prototype = object.create(EventEmitter.prototype);
 
 enrollmentConfirmationStep.prototype.getUri = function getUri() {
   return this.strategy.getUri();
@@ -243,7 +297,7 @@ enrollmentConfirmationStep.prototype.confirm = function confirm(data) {
 
   var listenToEnrollmentCompleteTask = function listenToEnrollmentCompleteTask(done) {
     self.enrollmentCompleteHub.listenOnce(function onEnrollmentComplete(payload) {
-      done(payload);
+      done(null, payload);
     });
   };
 
@@ -263,30 +317,37 @@ enrollmentConfirmationStep.prototype.confirm = function confirm(data) {
 
     var apiPayload = results[0];
 
-    self.addEnrollment(enrollmentBuilder(apiPayload.deviceAccount));
-
     var payload = buildEnrollmentCompletePayload({
+      txId: self.transaction.txId,
       apiPayload: apiPayload,
-      strategy: self.strategy,
-      enrollmentAttempt: self.enrollmentAttempt
+      method: self.strategy.method,
+      enrollmentAttempt: self.enrollmentAttempt,
+      enrollment: enrollmentBuilder(apiPayload.deviceAccount)
     });
 
     return self.emit('enrollment-complete', payload);
   });
 };
 
-function authVerificationStep(strategy, loginCompleteHub) {
+function authVerificationStep(strategy, options) {
   var self = object.create(authVerificationStep.prototype);
+  EventEmitter.call(self);
+
   self.strategy = strategy;
-  self.loginCompleteHub = loginCompleteHub;
+  self.transaction = options.transaction;
+  self.loginCompleteHub = options.loginCompleteHub;
+  self.loginRejectedHub = options.loginRejectedHub;
 
   return self;
 }
 
+authVerificationStep.prototype = object.create(EventEmitter.prototype);
+
 authVerificationStep.prototype.verify = function verify(data, callback) {
   var self = this;
 
-  self.removeAuthListeners();
+  self.loginCompleteHub.removeAllListeners();
+  self.loginRejectedHub.removeAllListeners();
 
   var listenLoginCompleteTask = function listenLoginCompleteTask(done) {
     self.loginCompleteHub.listenOnce(function onLoginComplete(completionPayload) {
@@ -305,7 +366,7 @@ authVerificationStep.prototype.verify = function verify(data, callback) {
   };
 
   var verifyAuthTask = function verifyAuthTask(done) {
-    this.strategy.verify(data, function onVerified(err, verificationPayload) {
+    self.strategy.verify(data, function onVerified(err, verificationPayload) {
       if (err) {
         return callback(err);
       }
@@ -324,7 +385,8 @@ authVerificationStep.prototype.verify = function verify(data, callback) {
     loginOrRejectTask,
     verifyAuthTask
   ], function onCompletion(err, payloads) {
-    self.removeAuthListeners();
+    self.loginCompleteHub.removeAllListeners();
+    self.loginRejectedHub.removeAllListeners();
 
     if (err) {
       return self.emit('error', err);
@@ -342,21 +404,22 @@ function buildAuthCompletionPayload(accepted, signature) {
 }
 
 /**
- * @param {object} apiPayload
- * @param {EnrollmentStrategy} strategy
- * @param {EnrollmentAttempt} EnrollmentAttempt
+ * @param {object} options.apiPayload
+ * @param {string} options.method
+ * @param {EnrollmentAttempt} options.enrollmentAttempt
  */
 function buildEnrollmentCompletePayload(options) {
   var apiPayload = options.apiPayload;
-  var strategy = options.strategy;
+  var method = options.method;
   var enrollmentAttempt = options.enrollmentAttempt;
+  var txId = options.txId;
 
   var payload = {};
 
-  if (enrollmentAttempt && apiPayload.txId === this.txId) {
+  if (enrollmentAttempt && apiPayload.txId === txId) {
     // Belongs to this transaction
     payload.recoveryCode = enrollmentAttempt.getRecoveryCode();
-    payload.authRequired = enrollmentAttempt.isAuthRequired(strategy.method);
+    payload.authRequired = enrollmentAttempt.isAuthRequired(method);
   } else {
     payload.recoveryCode = null;
 

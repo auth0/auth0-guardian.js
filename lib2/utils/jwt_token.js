@@ -15,9 +15,11 @@ function jwtToken(token) {
     var remaining = self.getRemainingTime();
 
     self.expirationTimeout = setTimeout(function onTokenExpired() {
-      self.events.emit('token-expired');
+      self.emit('token-expired');
     }, remaining);
   }
+
+  return self;
 }
 
 jwtToken.prototype = object.create(EventEmitter.prototype);
@@ -39,24 +41,6 @@ jwtToken.prototype.getToken = function getToken() {
 
 jwtToken.prototype.getDecoded = function getDecoded() {
   return this.decoded;
-};
-
-jwtToken.prototype.once = function once(event, cb) {
-  this.events.once(event, cb);
-};
-
-jwtToken.prototype.on = function on(event, cb) {
-  this.events.once(event, cb);
-};
-
-jwtToken.prototype.removeAllListeners = function removeAllListeners() {
-  clearTimeout(this.expirationTimeout);
-
-  this.events.removeAllListeners();
-};
-
-jwtToken.prototype.removeListener = function removeListener(event, cb) {
-  this.events.removeListener(event, cb);
 };
 
 module.exports = jwtToken;

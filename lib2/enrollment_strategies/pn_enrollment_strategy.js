@@ -1,6 +1,7 @@
 'use strict';
 
 var object = require('../utils/object');
+var async = require('../utils/async');
 
 /**
  * @param {HttpClient} options.httpClient
@@ -24,8 +25,8 @@ function pnEnrollmentStrategy(data, options) {
  *
  * @public
  */
-pnEnrollmentStrategy.prototype.enroll = function enroll(callback) {
-  object.setImmediate(callback);
+pnEnrollmentStrategy.prototype.enroll = function enroll(data, callback) {
+  async.setImmediate(callback);
 };
 
 /**
@@ -35,7 +36,7 @@ pnEnrollmentStrategy.prototype.enroll = function enroll(callback) {
  * @param {string} data.otpCode
  */
 pnEnrollmentStrategy.prototype.confirm = function confirm(data, callback) {
-  object.setImmediate(callback);
+  async.setImmediate(callback);
 };
 
 /**
@@ -53,3 +54,5 @@ pnEnrollmentStrategy.prototype.getUri = function getUri() {
     '&base_url=' + encodeURIComponent(this.enrollmentAttempt.getBaseUri()) +
     '&algorithm=sha1&digits=6&counter=0&period=30';
 };
+
+module.exports = pnEnrollmentStrategy;

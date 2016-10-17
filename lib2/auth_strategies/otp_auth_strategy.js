@@ -2,6 +2,7 @@
 
 var errors = require('../errors');
 var object = require('../utils/object');
+var async = require('../utils/async');
 var validations = require('../utils/validations');
 
 /**
@@ -13,27 +14,27 @@ function otpAuthenticatorStrategy(data, options) {
 
   self.method = data.method || 'sms';
 
-  self.transactionToken = this.data.transactionToken;
+  self.transactionToken = data.transactionToken;
   self.httpClient = options.httpClient;
 
   return self;
 }
 
 otpAuthenticatorStrategy.prototype.request = function request(callback) {
-  object.setImmediate(callback);
+  async.setImmediate(callback);
 };
 
 otpAuthenticatorStrategy.prototype.verify = function verify(data, callback) {
   if (!data || !data.otpCode) {
-    return object.setImmediate(callback, new errors.FieldRequiredError('otpCode'));
+    return async.setImmediate(callback, new errors.FieldRequiredError('otpCode'));
   }
 
   if (!validations.validateOtp(data.otpCode)) {
-    return object.setImmediate(callback, new errors.OTPValidationError());
+    return async.setImmediate(callback, new errors.OTPValidationError());
   }
 
   return this.httpClient.post(
-    '/verify-otp',
+    'api/verify-otp',
     this.transactionToken.getToken(), {
       type: 'manual_input',
       code: data.otpCode

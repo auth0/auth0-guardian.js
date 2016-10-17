@@ -10,7 +10,7 @@ function GuardianError(payload) {
   this.stack = (payload.cause && payload.cause.stack) || this.stack;
 }
 
-GuardianError.prototype = object.create(Error.payload);
+GuardianError.prototype = object.create(Error.prototype);
 GuardianError.prototype.constructor = GuardianError;
 
 module.exports = GuardianError;

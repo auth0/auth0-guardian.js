@@ -12,17 +12,11 @@ var listenersMap = weakMap();
 function socketClient(urlBase) {
   var self = object.create(socketClient.prototype);
 
-  var urlObj;
   if (object.isObject(urlBase)) {
-    urlObj = url.parse(urlBase);
+    urlBase = url.format(urlBase); // eslint-disable-line no-param-reassign
   }
 
-  var baseUri = {
-    host: urlObj.host,
-    protocol: urlObj.protocol
-  };
-
-  self.socket = io(url.parse(baseUri), {
+  self.socket = io(urlBase, {
     reconnection: true,
     reconnectionDelay: 1000,
     reconnectionDelayMax: 50000,
@@ -53,7 +47,7 @@ socketClient.prototype.connect = function connect(token, callback) {
     },
 
     connect: function onConnect() {
-      events.onceAny(this.socket, handlers);
+      // events.onceAny(self.socket, handlers);
       self.socket.emit('authenticate', { token: token });
     },
 
@@ -64,9 +58,11 @@ socketClient.prototype.connect = function connect(token, callback) {
 
   events.onceAny(this.socket, handlers);
 
-  this.socket.once('connect', function onConnect() {
-    this.socket.emit('authenticate', { token: token });
-  });
+  // this.socket.once('connect', function onConnect() {
+  //   this.socket.emit('authenticate', { token: token });
+  // });
+
+  this.socket.connect();
 };
 
 socketClient.prototype.addListener = function addListener(kind, event, handler) {

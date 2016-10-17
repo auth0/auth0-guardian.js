@@ -53,7 +53,7 @@ function eventListenerHub(emitter, eventName) {
   self.emitter = emitter;
   self.eventName = eventName;
   self.handlers = [];
-  self.defaultHandler = null;
+  self.defaultHandlerFn = null;
 
   return self;
 }
@@ -72,19 +72,21 @@ eventListenerHub.prototype.listenOnce = function listenOnce(handler) {
  * Default action if there are no other handlers listening on the hub
  */
 eventListenerHub.prototype.defaultHandler = function defaultHandler(handler) {
-  self.defaultHandler = handler;
+  var self = this;
 
-  if (self.defaultHandler) {
+  if (self.defaultHandlerFn) {
     return;
   }
 
-  self.listen(function defaultListener(payload) {
-    if (!self.defaultHandler) {
+  self.defaultHandlerFn = handler;
+
+  this.emitter.on(this.eventName, function defaultListener(payload) {
+    if (!self.defaultHandlerFn) {
       return;
     }
 
     if (self.handlers.length === 0) {
-      self.defaultHandler(payload);
+      self.defaultHandlerFn(payload);
     }
   });
 };
