@@ -79,14 +79,19 @@ function transaction(data, options) {
   self.enrollmentCompleteHub.defaultHandler(function enrollmentCompleteDef(apiPayload) {
     self.addEnrollment(enrollmentBuilder(apiPayload.deviceAccount));
 
-    // TODO Add this to the payload and remove this workaround
-    apiPayload.txId = self.txId; // eslint-disable-line no-param-reassign
+    // This is a workaround to prevent an edge case for when the enrollment
+    // is not from current tx. It doesn't avoid it completely but reduces
+    // its likehood.
+    var isEnrollmentAttemptActive = object.execute(data.enrollmentAttempt, 'isActive');
+
+    // eslint-disable-next-line no-param-reassign
+    apiPayload.txId = isEnrollmentAttemptActive ? self.txId : null;
 
     self.emit('enrollment-complete', buildEnrollmentCompletePayload({
       apiPayload: apiPayload,
       txId: self.txId,
       enrollmentAttempt: data.enrollmentAttempt,
-      method: 'push' // TODO Add method to the api message and remove it from here
+      method: apiPayload.method || 'push' // TODO Remove default when QA gets deployed
     }));
   });
 
@@ -111,6 +116,11 @@ transaction.prototype = object.create(EventEmitter.prototype);
 transaction.prototype.enroll = function enroll(method, data, callback) {
   var self = this;
 
+  if (self.isEnrolled()) {
+    async.setImmediate(callback, new errors.AlreadyEnrolledError());
+    return;
+  }
+
   var strategy = self.enrollmentStrategies[method];
 
   if (!strategy) {
@@ -118,8 +128,12 @@ transaction.prototype.enroll = function enroll(method, data, callback) {
     return;
   }
 
+  self.enrollmentAttempt.setActive(true);
+
   strategy.enroll(data, function onEnrollmentStarted(err) {
     if (err) {
+      self.enrollmentAttempt.setActive(false);
+
       return callback(err);
     }
 
@@ -152,7 +166,10 @@ transaction.prototype.enroll = function enroll(method, data, callback) {
  * @param {sms|otp|push} options.method
  */
 transaction.prototype.requestAuth = function requestAuth(enrollment, options, callback) {
-  this.removeAuthListeners();
+  if (!this.isEnrolled()) {
+    async.setImmediate(callback, new errors.NotEnrolledError());
+    return;
+  }
 
   var availableMethods = enrollment.getAvailableMethods();
 
@@ -174,6 +191,7 @@ transaction.prototype.requestAuth = function requestAuth(enrollment, options, ca
     return;
   }
 
+  this.removeAuthListeners();
   this.requestStrategyAuth(strategy, callback);
 };
 

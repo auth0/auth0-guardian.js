@@ -406,3 +406,5 @@ the errors codes and its meaning
 | invalid_otp_format | Otp format validation error |
 | invalid_recovery_code_format | Recovery code format validation error |
 | transaction_expired | The transaction has already expired |
+| already_enrolled | You are already enrolled, cannot enroll again |
+| not_enrolled_error | You not enrolled. Must enroll first |

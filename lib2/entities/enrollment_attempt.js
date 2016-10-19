@@ -20,6 +20,7 @@ function enrollmentAttempt(data) {
   var self = object.create(enrollmentAttempt.prototype);
 
   self.data = data;
+  self.active = false;
 
   return self;
 }
@@ -77,6 +78,28 @@ enrollmentAttempt.prototype.getEnrollmentId = function getEnrollmentId() {
 
 enrollmentAttempt.prototype.getBaseUri = function getBaseUri() {
   return this.data.baseUrl;
+};
+
+/**
+ * @private
+ *
+ * NOTE: setActive and isActive are workaround methods for push notification
+ * enrollment-complete message with no transaction id
+ *
+ * @param {boolean} active
+ */
+enrollmentAttempt.prototype.setActive = function setActive(active) {
+  this.active = active;
+};
+
+/**
+ * @private
+ *
+ * NOTE: setActive and isActive are workaround methods for push notification
+ * enrollment-complete message with no transaction id
+ */
+enrollmentAttempt.prototype.isActive = function isActive() {
+  return this.active;
 };
 
 module.exports = enrollmentAttempt;

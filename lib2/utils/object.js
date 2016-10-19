@@ -345,7 +345,7 @@ var hasOwnProperty = exports.hasOwnProperty = function hasOwnProperty(obj, key) 
  * @param {string|array} path (array of keys or dot separated path)
  * @param {any} def default value
  */
-exports.get = function get(obj, path, def) {
+var get = exports.get = function get(obj, path, def) {
   var segments = isArray(path) ? path : path.split('.');
 
   if (!isObject(obj)) {
@@ -410,6 +410,23 @@ exports.intersec = function intersec(arr1, arr2) {
 
     return result;
   }, []);
+};
+
+/**
+ * Executes the method if it exists (undefined otherwise)
+ *
+ * @param {object} obj
+ * @param {array.<string>} methodPath dot separated path
+ */
+exports.execute = function execute(obj, methodPath) {
+  var args = toArray(arguments).slice(2);
+  var fn = get(obj, methodPath);
+
+  if (fn) {
+    return fn.apply(obj, args);
+  }
+
+  return undefined;
 };
 
 /**
