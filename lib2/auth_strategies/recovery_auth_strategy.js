@@ -40,7 +40,7 @@ recoveryAuthenticatorStrategy.prototype.verify = function verify(data, callback)
 
   return this.httpClient.post(
     'api/recover-account',
-    this.transactionToken.getToken(),
+    this.transactionToken,
     { recovery_code: data.recoveryCode },
     callback);
 };

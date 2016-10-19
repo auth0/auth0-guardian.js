@@ -36,7 +36,7 @@ smsEnrollmentStrategy.prototype.enroll = function enroll(data, callback) {
   return this.httpClient.post(
     url.join('api/device-accounts',
       encodeURIComponent(this.enrollmentAttempt.getEnrollmentId()), '/sms-enroll'),
-    this.transactionToken.getToken(),
+    this.transactionToken,
     { phone_number: data.phoneNumber },
     callback);
 };
@@ -58,7 +58,7 @@ smsEnrollmentStrategy.prototype.confirm = function confirm(data, callback) {
 
   return this.httpClient.post(
     'api/verify-otp',
-    this.transactionToken.getToken(), {
+    this.transactionToken, {
       type: 'manual_input',
       code: data.otpCode
     },
