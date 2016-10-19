@@ -47,7 +47,7 @@ authenticatorEnrollmentStrategy.prototype.confirm = function confirm(data, callb
 
   return this.httpClient.post(
     'api/verify-otp',
-    this.transactionToken.getToken(), {
+    this.transactionToken, {
       type: 'manual_input',
       code: data.otpCode
     },
