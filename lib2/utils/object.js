@@ -20,10 +20,10 @@ var camelCase = exports.camelCase = function camelCase(str) {
   // 2. Removes whitespace characters
   // 3. Turn first character to lowercase
   return str.toString()
-    .replace(/[\s_](.)/g, function uppercarse($1) {
+    .replace(/[\s_-](.)/g, function uppercarse($1) {
       return $1.toUpperCase();
     })
-    .replace(/[\s_]/g, '')
+    .replace(/[\s_-]/g, '')
     .replace(/^(.)/, function uncapitalize($1) {
       return $1.toLowerCase();
     });
@@ -41,7 +41,10 @@ var snakeCase = exports.snakeCase = function snakeCase(str) {
     return str;
   }
 
-  return str.toString().replace(/([A-Z])/g, '_$1');
+  return str.toString().replace(/([A-Z])/g, function separate($1) {
+    return '_' + $1.toLowerCase();
+  })
+  .replace(/\-/g, '_');
 };
 
 /**
