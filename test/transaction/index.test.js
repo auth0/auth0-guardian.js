@@ -402,7 +402,7 @@ describe('transaction/index', function () {
               expect(httpClient.post.calledOnce).to.be.true;
               expect(httpClient.post.getCall(0).args[0]).to
                 .equal('api/device-accounts/123456/sms-enroll');
-              expect(httpClient.post.getCall(0).args[1]).to.eql('123.123.123');
+              expect(httpClient.post.getCall(0).args[1].getToken()).to.eql('123.123.123');
               expect(httpClient.post.getCall(0).args[2]).to.eql({ phone_number: '+54 678909' });
               done();
             });
@@ -653,7 +653,7 @@ describe('transaction/index', function () {
             expect(httpClient.post.calledOnce).to.be.true;
             expect(httpClient.post.getCall(0).args[0]).to
               .equal('api/send-sms');
-            expect(httpClient.post.getCall(0).args[1]).to.eql('123.123.123');
+            expect(httpClient.post.getCall(0).args[1].getToken()).to.eql('123.123.123');
             expect(httpClient.post.getCall(0).args[2]).to.eql(null);
             done();
           });
@@ -685,7 +685,7 @@ describe('transaction/index', function () {
             expect(httpClient.post.calledOnce).to.be.true;
             expect(httpClient.post.getCall(0).args[0]).to
               .equal('api/send-push-notification');
-            expect(httpClient.post.getCall(0).args[1]).to.eql('123.123.123');
+            expect(httpClient.post.getCall(0).args[1].getToken()).to.eql('123.123.123');
             expect(httpClient.post.getCall(0).args[2]).to.eql(null);
             done();
           });
