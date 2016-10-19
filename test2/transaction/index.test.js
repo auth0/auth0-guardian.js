@@ -7,7 +7,7 @@ const benrollment = require('../../lib2/entities/enrollment');
 const sinon = require('sinon');
 const EventEmitter = require('events').EventEmitter;
 
-describe('utils/transaction', function () {
+describe('transaction/index', function () {
   let httpClient;
   let transactionEventsReceiver;
   let transactionToken;
@@ -157,6 +157,53 @@ describe('utils/transaction', function () {
           notEnrolledTransaction.enroll('push', null, function () {
             transactionEventsReceiver.emit('enrollment:confirmed', {
               txId: null,
+              method: 'push',
+              deviceAccount: {
+                availableMethods: ['push', 'otp'],
+                name: 'Test'
+              }
+            });
+          });
+        });
+      });
+
+      describe('when there is an active enrollment attempt and it ' +
+        'includes the transaction id', function () {
+        it('emit enrollment-complete event with ' +
+          'recoveryCode and authRequired = true', function (done) {
+          notEnrolledTransaction.once('enrollment-complete', (p) => {
+            expect(p.recoveryCode).to.equal('ABCDEFGHIJK');
+            expect(p.authRequired).to.be.true;
+            done();
+          });
+
+          notEnrolledTransaction.enroll('push', null, function () {
+            transactionEventsReceiver.emit('enrollment:confirmed', {
+              txId: 'tx_12345',
+              method: 'push',
+              deviceAccount: {
+                availableMethods: ['push'],
+                name: 'Test'
+              }
+            });
+          });
+        });
+
+        it('adds the enrollment to the transaction', function (done) {
+          notEnrolledTransaction.once('enrollment-complete', () => {
+            expect(notEnrolledTransaction.isEnrolled()).to.be.true;
+
+            const newEnrollment = notEnrolledTransaction.getEnrollments()[0];
+
+            expect(newEnrollment.getName()).to.equal('Test');
+            expect(newEnrollment.getPhoneNumber()).to.equal(undefined);
+            expect(newEnrollment.getAvailableMethods()).to.eql(['push', 'otp']);
+            done();
+          });
+
+          notEnrolledTransaction.enroll('push', null, function () {
+            transactionEventsReceiver.emit('enrollment:confirmed', {
+              txId: 'tx_12345',
               method: 'push',
               deviceAccount: {
                 availableMethods: ['push', 'otp'],

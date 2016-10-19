@@ -98,7 +98,7 @@ function transaction(data, options) {
     var isEnrollmentAttemptActive = object.execute(data.enrollmentAttempt, 'isActive');
 
     // eslint-disable-next-line no-param-reassign
-    apiPayload.txId = !apiPayload.txId && isEnrollmentAttemptActive ? self.txId : null;
+    apiPayload.txId = !apiPayload.txId && isEnrollmentAttemptActive ? self.txId : apiPayload.txId;
 
     if (apiPayload.txId !== self.txId) {
       self.dismissEnrollmentAttempt();

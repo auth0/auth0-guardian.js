@@ -140,7 +140,8 @@ eventSequencer.prototype.removeSequence = function removeSequence(name) {
   // Emit events that have been unblocked by deletion but that aren't in any
   // other sequence
   object.forEach(deletedSequence, function emitUnblocked(eventName) {
-    if (self.canEmitEventForSequences(self.sequences, eventName)) {
+    if (Object.keys(self.sequences).length > 0 &&
+      self.canEmitEventForSequences(self.sequences, eventName)) {
       self.doActualEmit(eventName);
     }
   });
