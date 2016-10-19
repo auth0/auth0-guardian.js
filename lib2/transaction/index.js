@@ -6,6 +6,10 @@ var EventEmitter = require('events').EventEmitter;
 var errors = require('./errors');
 var events = require('./utils/events');
 var enrollmentBuilder = require('./entities/enrollment');
+var helpers = require('./helpers');
+
+var authVerificationStep = require('./auth_verification_step');
+var enrollmentConfirmationStep = require('./enrollment_confirmation_step');
 
 var authRecoveryStrategy = require('./auth_strategies/recovery_auth_strategy');
 
@@ -91,7 +95,7 @@ function transaction(data, options) {
     // eslint-disable-next-line no-param-reassign
     apiPayload.txId = isEnrollmentAttemptActive ? self.txId : null;
 
-    self.emit('enrollment-complete', buildEnrollmentCompletePayload({
+    self.emit('enrollment-complete', helpers.buildEnrollmentCompletePayload({
       apiPayload: apiPayload,
       txId: self.txId,
       enrollmentAttempt: data.enrollmentAttempt,
@@ -100,7 +104,7 @@ function transaction(data, options) {
   });
 
   self.loginCompleteHub.defaultHandler(function loginCompleteDef(apiPayload) {
-    self.emit('auth-response', buildAuthCompletionPayload(true, apiPayload.signature));
+    self.emit('auth-response', helpers.buildAuthCompletionPayload(true, apiPayload.signature));
   });
 
   self.transactionToken.on('token-expired', function tokenExpiredDef() {
@@ -325,169 +329,5 @@ transaction.prototype.requestStrategyAuth = function requestStrategyAuth(strateg
     return callback(null, confirmationStep);
   });
 };
-
-/**
- * @param {EnrollmentStrategy} options.strategy
- * @param {EnrollmentAttempt} options.enrollmentAttempt
- * @param {EventEmitter} options.enrollmentCompleteHub
- * @param {Transaction} options.transaction
- */
-function enrollmentConfirmationStep(options) {
-  var self = object.create(enrollmentConfirmationStep.prototype);
-  EventEmitter.call(self);
-
-  self.strategy = options.strategy;
-  self.transaction = options.transaction;
-  self.enrollmentAttempt = options.enrollmentAttempt;
-  self.enrollmentCompleteHub = options.enrollmentCompleteHub;
-
-  return self;
-}
-
-enrollmentConfirmationStep.prototype = object.create(EventEmitter.prototype);
-
-enrollmentConfirmationStep.prototype.getUri = function getUri() {
-  return this.strategy.getUri();
-};
-
-enrollmentConfirmationStep.prototype.confirm = function confirm(data) {
-  var self = this;
-  self.enrollmentCompleteHub.removeAllListeners();
-
-  var listenToEnrollmentCompleteTask = function listenToEnrollmentCompleteTask(done) {
-    self.enrollmentCompleteHub.listenOnce(function onEnrollmentComplete(payload) {
-      done(null, payload);
-    });
-  };
-
-  var confirmTask = function confirmTask(done) {
-    self.strategy.confirm(data, done);
-  };
-
-  async.all([
-    listenToEnrollmentCompleteTask,
-    confirmTask
-  ], function onAllComplete(err, results) {
-    self.enrollmentCompleteHub.removeAllListeners();
-
-    if (err) {
-      return self.emit('error', err);
-    }
-
-    var apiPayload = results[0];
-
-    var payload = buildEnrollmentCompletePayload({
-      txId: self.transaction.txId,
-      apiPayload: apiPayload,
-      method: self.strategy.method,
-      enrollmentAttempt: self.enrollmentAttempt,
-      enrollment: enrollmentBuilder(apiPayload.deviceAccount)
-    });
-
-    return self.emit('enrollment-complete', payload);
-  });
-};
-
-function authVerificationStep(strategy, options) {
-  var self = object.create(authVerificationStep.prototype);
-  EventEmitter.call(self);
-
-  self.strategy = strategy;
-  self.transaction = options.transaction;
-  self.loginCompleteHub = options.loginCompleteHub;
-  self.loginRejectedHub = options.loginRejectedHub;
-
-  return self;
-}
-
-authVerificationStep.prototype = object.create(EventEmitter.prototype);
-
-authVerificationStep.prototype.verify = function verify(data, callback) {
-  var self = this;
-
-  self.loginCompleteHub.removeAllListeners();
-  self.loginRejectedHub.removeAllListeners();
-
-  var listenLoginCompleteTask = function listenLoginCompleteTask(done) {
-    self.loginCompleteHub.listenOnce(function onLoginComplete(completionPayload) {
-      done(null, buildAuthCompletionPayload(true, completionPayload.signature));
-    });
-  };
-
-  var listenLoginRejectedTask = function listenLoginRejectedTask(done) {
-    self.loginRejectedHub.listenOnce(function onLoginRejected() {
-      done(null, buildAuthCompletionPayload(false, null));
-    });
-  };
-
-  var loginOrRejectTask = function loginOrRejectTask(done) {
-    async.any([listenLoginCompleteTask, listenLoginRejectedTask], done);
-  };
-
-  var verifyAuthTask = function verifyAuthTask(done) {
-    self.strategy.verify(data, function onVerified(err, verificationPayload) {
-      if (err) {
-        return callback(err);
-      }
-
-      return done(null, {
-        // New recovery code if needed (recover)
-        recoverCode: verificationPayload.recoverCode
-      });
-    });
-  };
-
-  // This function takes care of the possible difference on arrival because
-  // of the difference on transportation layer, it is perfectly possible
-  // for completion event to arrive BEFORE the http call response
-  async.all([
-    loginOrRejectTask,
-    verifyAuthTask
-  ], function onCompletion(err, payloads) {
-    self.loginCompleteHub.removeAllListeners();
-    self.loginRejectedHub.removeAllListeners();
-
-    if (err) {
-      return self.emit('error', err);
-    }
-
-    return self.emit('auth-response', object.assign.apply(object, payloads));
-  });
-};
-
-function buildAuthCompletionPayload(accepted, signature) {
-  return {
-    accepted: accepted,
-    signature: signature
-  };
-}
-
-/**
- * @param {object} options.apiPayload
- * @param {string} options.method
- * @param {EnrollmentAttempt} options.enrollmentAttempt
- */
-function buildEnrollmentCompletePayload(options) {
-  var apiPayload = options.apiPayload;
-  var method = options.method;
-  var enrollmentAttempt = options.enrollmentAttempt;
-  var txId = options.txId;
-
-  var payload = {};
-
-  if (enrollmentAttempt && apiPayload.txId === txId) {
-    // Belongs to this transaction
-    payload.recoveryCode = enrollmentAttempt.getRecoveryCode();
-    payload.authRequired = enrollmentAttempt.isAuthRequired(method);
-  } else {
-    payload.recoveryCode = null;
-
-    // Enrollment was not made from this transaction which means
-    // you will have to login to continue
-    payload.authRequired = true;
-  }
-
-  return payload;
-}
 
 module.exports = transaction;
