@@ -1,7 +1,7 @@
 'use strict';
 
-var object = require('./utils/object');
-var async = require('./utils/async');
+var object = require('../utils/object');
+var async = require('../utils/async');
 var EventEmitter = require('events').EventEmitter;
 var helpers = require('./helpers');
 
@@ -19,7 +19,7 @@ function authVerificationStep(strategy, options) {
 
 authVerificationStep.prototype = object.create(EventEmitter.prototype);
 
-authVerificationStep.prototype.verify = function verify(data, callback) {
+authVerificationStep.prototype.verify = function verify(data) {
   var self = this;
 
   self.loginCompleteHub.removeAllListeners();
@@ -44,7 +44,7 @@ authVerificationStep.prototype.verify = function verify(data, callback) {
   var verifyAuthTask = function verifyAuthTask(done) {
     self.strategy.verify(data, function onVerified(err, verificationPayload) {
       if (err) {
-        return callback(err);
+        return done(err);
       }
 
       return done(null, {
@@ -71,3 +71,5 @@ authVerificationStep.prototype.verify = function verify(data, callback) {
     return self.emit('auth-response', object.assign.apply(object, payloads));
   });
 };
+
+module.exports = authVerificationStep;

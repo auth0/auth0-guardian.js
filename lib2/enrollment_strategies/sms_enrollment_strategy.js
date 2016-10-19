@@ -4,6 +4,7 @@ var url = require('../utils/url');
 var object = require('../utils/object');
 var errors = require('../errors');
 var async = require('../utils/async');
+var validations = require('../utils/validations');
 
 /**
  * @param {HttpClient} options.httpClient
@@ -49,6 +50,10 @@ smsEnrollmentStrategy.prototype.enroll = function enroll(data, callback) {
 smsEnrollmentStrategy.prototype.confirm = function confirm(data, callback) {
   if (!data.otpCode) {
     return async.setImmediate(callback, new errors.FieldRequiredError('otpCode'));
+  }
+
+  if (!validations.validateOtp(data.otpCode)) {
+    return async.setImmediate(callback, new errors.OTPValidationError());
   }
 
   return this.httpClient.post(

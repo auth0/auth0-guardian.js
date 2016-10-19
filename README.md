@@ -328,6 +328,8 @@ Emitted when an authentication have been accepted or rejected. SMS and OTP enrol
 also trigger this event since after those enrollments you are assumed to be
 authenticated; push enrollment doesn't trigger it and you should start the
 normal auth flow instead after enrollment.
+If there is an active enrollment in the current transaction, `auth-response` is
+guaranted to be triggered after `enrollment-complete`.
 
 ```js
 transaction.on('auth-response', function({ accepted, recoveryCode, signature }) {
@@ -409,4 +411,4 @@ the errors codes and its meaning
 | invalid_recovery_code_format | Recovery code format validation error |
 | transaction_expired | The transaction has already expired |
 | already_enrolled | You are already enrolled, cannot enroll again |
-| not_enrolled_error | You not enrolled. Must enroll first |
+| not_enrolled | You not enrolled. Must enroll first |

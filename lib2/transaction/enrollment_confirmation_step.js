@@ -1,7 +1,7 @@
-var object = require('./utils/object');
-var async = require('./utils/async');
+var object = require('../utils/object');
+var async = require('../utils/async');
 var EventEmitter = require('events').EventEmitter;
-var enrollmentBuilder = require('./entities/enrollment');
+var enrollmentBuilder = require('../entities/enrollment');
 var helpers = require('./helpers');
 
 /**
@@ -65,3 +65,5 @@ enrollmentConfirmationStep.prototype.confirm = function confirm(data) {
     return self.emit('enrollment-complete', payload);
   });
 };
+
+module.exports = enrollmentConfirmationStep;

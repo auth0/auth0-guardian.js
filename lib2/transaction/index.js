@@ -1,25 +1,27 @@
 'use strict';
 
-var object = require('./utils/object');
-var async = require('./utils/async');
+var object = require('../utils/object');
+var async = require('../utils/async');
 var EventEmitter = require('events').EventEmitter;
-var errors = require('./errors');
-var events = require('./utils/events');
-var enrollmentBuilder = require('./entities/enrollment');
+var errors = require('../errors');
+var events = require('../utils/events');
+var enrollmentBuilder = require('../entities/enrollment');
 var helpers = require('./helpers');
 
 var authVerificationStep = require('./auth_verification_step');
 var enrollmentConfirmationStep = require('./enrollment_confirmation_step');
 
-var authRecoveryStrategy = require('./auth_strategies/recovery_auth_strategy');
+var authRecoveryStrategy = require('../auth_strategies/recovery_auth_strategy');
 
-var smsEnrollmentStrategy = require('./enrollment_strategies/sms_enrollment_strategy');
-var pnEnrollmentStrategy = require('./enrollment_strategies/pn_enrollment_strategy');
-var otpEnrollmentStrategy = require('./enrollment_strategies/otp_enrollment_strategy');
+var smsEnrollmentStrategy = require('../enrollment_strategies/sms_enrollment_strategy');
+var pnEnrollmentStrategy = require('../enrollment_strategies/pn_enrollment_strategy');
+var otpEnrollmentStrategy = require('../enrollment_strategies/otp_enrollment_strategy');
 
-var smsAuthStrategy = require('./auth_strategies/sms_auth_strategy');
-var pnAuthStrategy = require('./auth_strategies/pn_auth_strategy');
-var otpAuthStrategy = require('./auth_strategies/otp_auth_strategy');
+var smsAuthStrategy = require('../auth_strategies/sms_auth_strategy');
+var pnAuthStrategy = require('../auth_strategies/pn_auth_strategy');
+var otpAuthStrategy = require('../auth_strategies/otp_auth_strategy');
+
+var eventSequencer = require('../utils/event_sequencer');
 
 /**
  * @public
@@ -81,6 +83,9 @@ function transaction(data, options) {
   self.enrollmentCompleteHub = events.buildEventHub(
     self.transactionEventsReceiver, 'enrollment:confirmed');
 
+  self.eventSequencer = eventSequencer();
+  self.eventSequencer.pipe(self);
+
   self.enrollmentCompleteHub.defaultHandler(function enrollmentCompleteDef(apiPayload) {
     self.addEnrollment(enrollmentBuilder(apiPayload.deviceAccount));
 
@@ -93,9 +98,13 @@ function transaction(data, options) {
     var isEnrollmentAttemptActive = object.execute(data.enrollmentAttempt, 'isActive');
 
     // eslint-disable-next-line no-param-reassign
-    apiPayload.txId = isEnrollmentAttemptActive ? self.txId : null;
+    apiPayload.txId = !apiPayload.txId && isEnrollmentAttemptActive ? self.txId : null;
 
-    self.emit('enrollment-complete', helpers.buildEnrollmentCompletePayload({
+    if (apiPayload.txId !== self.txId) {
+      self.dismissEnrollmentAttempt();
+    }
+
+    self.eventSequencer.emit('enrollment-complete', helpers.buildEnrollmentCompletePayload({
       apiPayload: apiPayload,
       txId: self.txId,
       enrollmentAttempt: data.enrollmentAttempt,
@@ -104,11 +113,16 @@ function transaction(data, options) {
   });
 
   self.loginCompleteHub.defaultHandler(function loginCompleteDef(apiPayload) {
-    self.emit('auth-response', helpers.buildAuthCompletionPayload(true, apiPayload.signature));
+    self.eventSequencer.emit('auth-response',
+      helpers.buildAuthCompletionPayload(true, apiPayload.signature));
   });
 
   self.transactionToken.on('token-expired', function tokenExpiredDef() {
-    self.emit('timeout');
+    self.eventSequencer.emit('timeout');
+  });
+
+  self.transactionEventsReceiver.on('error', function onError() {
+    self.eventSequencer.emit('error');
   });
 
   return self;
@@ -131,10 +145,12 @@ transaction.prototype.enroll = function enroll(method, data, callback) {
 
   if (object.get(self, 'availableEnrollmentMethods', []).length === 0) {
     async.setImmediate(callback, new errors.NoMethodAvailableError());
+    return;
   }
 
   if (!object.contains(self.availableEnrollmentMethods, method)) {
     async.setImmediate(callback, new errors.EnrollmentMethodDisabledError(method));
+    return;
   }
 
   var strategy = self.enrollmentStrategies[method];
@@ -145,10 +161,11 @@ transaction.prototype.enroll = function enroll(method, data, callback) {
   }
 
   self.enrollmentAttempt.setActive(true);
+  self.eventSequencer.addSequence('local-enrollment', ['auth-response', 'enrollment-complete']);
 
   strategy.enroll(data, function onEnrollmentStarted(err) {
     if (err) {
-      self.enrollmentAttempt.setActive(false);
+      self.dismissEnrollmentAttempt();
 
       return callback(err);
     }
@@ -162,19 +179,26 @@ transaction.prototype.enroll = function enroll(method, data, callback) {
 
     confirmationStep.once('enrollment-complete', function onEnrollmentComplete(payload) {
       self.addEnrollment(payload.enrollment);
-      self.emit('enrollment-complete', payload);
+      self.eventSequencer.emit('enrollment-complete', payload);
 
-      self.enrollmentAttempt.setActive(false);
+      self.dismissEnrollmentAttempt();
     });
 
     confirmationStep.on('error', function onError(iErr) {
-      self.enrollmentAttempt.setActive(false);
+      self.dismissEnrollmentAttempt();
 
-      self.emit('error', iErr);
+      self.eventSequencer.emit('error', iErr);
     });
 
     return callback(null, confirmationStep);
   });
+};
+
+transaction.prototype.dismissEnrollmentAttempt = function () {
+  var self = this;
+
+  self.eventSequencer.removeSequence('local-enrollment');
+  self.enrollmentAttempt.setActive(false);
 };
 
 /**
@@ -204,12 +228,14 @@ transaction.prototype.requestAuth = function requestAuth(enrollment, options, ca
     options.method = availableMethods[0]; // eslint-disable-line no-param-reassign
   }
 
-  if (object.get(self, 'availableAuthenticationMethods', []).length === 0) {
+  if (object.get(this, 'availableAuthenticationMethods', []).length === 0) {
     async.setImmediate(callback, new errors.NoMethodAvailableError());
+    return;
   }
 
-  if (!object.contains(self.availableAuthenticationMethods, options.method)) {
+  if (!object.contains(this.availableAuthenticationMethods, options.method)) {
     async.setImmediate(callback, new errors.AuthMethodDisabledError(options.method));
+    return;
   }
 
   var strategy = this.authStrategies[options.method];
@@ -236,7 +262,7 @@ transaction.prototype.recover = function recover(data) {
   self.requestStrategyAuth(self.authRecoveryStrategy,
     function onRecoveryRequested(err, recoveryAuth) {
       if (err) {
-        return self.emit('error', err);
+        return self.eventSequencer.emit('error', err);
       }
 
       return recoveryAuth.verify(data);
@@ -313,20 +339,20 @@ transaction.prototype.requestStrategyAuth = function requestStrategyAuth(strateg
       return callback(err);
     }
 
-    var confirmationStep = authVerificationStep(strategy, {
+    var verificationStep = authVerificationStep(strategy, {
       loginCompleteHub: self.loginCompleteHub,
       loginRejectedHub: self.loginRejectedHub
     });
 
-    confirmationStep.once('auth-response', function onAuthResponse(payload) {
-      self.emit('auth-response', payload);
+    verificationStep.once('auth-response', function onAuthResponse(payload) {
+      self.eventSequencer.emit('auth-response', payload);
     });
 
-    confirmationStep.once('error', function onAuthResponse(error) {
-      self.emit('error', error);
+    verificationStep.on('error', function onError(error) {
+      self.eventSequencer.emit('error', error);
     });
 
-    return callback(null, confirmationStep);
+    return callback(null, verificationStep);
   });
 };
 

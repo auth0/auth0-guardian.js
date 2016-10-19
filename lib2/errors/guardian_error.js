@@ -19,6 +19,7 @@ function GuardianError(payload) {
 
   this.statusCode = payload.statusCode;
   this.stack = (payload.cause && payload.cause.stack) || this.stack;
+  this.message = payload.message;
 }
 
 GuardianError.prototype = object.create(Error.prototype);

@@ -165,6 +165,71 @@ exports.some = function some(obj, fn) {
 };
 
 /**
+ * Returns true if fn(value, key, arr/obj) returns true
+ * for all values of the array / object key-value
+ *
+ * @param {object|array} obj object to check
+ * @param {function} fn detector function
+ *
+ * @returns {boolean} true all match fn
+ */
+exports.every = function some(obj, fn) {
+  var found = true;
+
+  forEach(obj, function someFinder(value, key, arr) {
+    if (fn(value, key, arr)) {
+      return true;
+    }
+
+    found = false;
+    return false;
+  });
+
+  return found;
+};
+
+/**
+ * Returns the value for witch fn(value, key, arr/obj) returns a truthy value
+ *
+ * @param {object|array} obj object to check
+ * @param {function} fn detector function
+ *
+ * @returns {any} value for which fn(value, key, arr/obj) is truthy
+ */
+exports.find = function find(obj, fn) {
+  var found;
+
+  forEach(obj, function finder(value, key, arr) {
+    if (fn(value, key, arr)) {
+      found = value;
+      return false;
+    }
+
+    return true;
+  });
+
+  return found;
+};
+
+/**
+ * Returns an array of values for witch fn(value, key, arr/obj) returns a truthy value
+ *
+ * @param {object|array} obj object to check
+ * @param {function} fn detector function
+ *
+ * @returns {array.<any>} values for which fn(value, key, arr/obj) is truthy
+ */
+exports.filter = function filter(obj, fn) {
+  return reduce(obj, function finder(found, value, key, arr) {
+    if (fn(value, key, arr)) {
+      found.push(value);
+    }
+
+    return found;
+  }, []);
+};
+
+/**
  * Transforms an array-like object to a real array object
  *
  * @param {object} obj array like object
@@ -355,7 +420,7 @@ var get = exports.get = function get(obj, path, def) {
   var level = obj;
   var result;
   forEach(segments, function pathGetter(segment) {
-    if (hasOwnProperty(level, segment)) {
+    if (level[segment] != null) {
       level = level[segment];
       result = level;
       return true;

@@ -101,36 +101,6 @@ auth0GuardianJS.prototype.formPostHelper = function formPostHelper(url, obj) {
   form({ document: global.document }).post(url, obj);
 };
 
-function parseAvailableEnrollmentMethods(txLegacyData) {
-  var methods = [];
-
-  if (object.get(txLegacyData, 'featureSwitches.mfaSms.enroll', false)) {
-    methods.push('sms');
-  }
-
-  if (object.get(txLegacyData, 'featureSwitches.mfaApp.enroll', false)) {
-    methods.push('push');
-    methods.push('otp');
-  }
-
-  return methods;
-}
-
-function parseAvailableAuthMethods(txLegacyData) {
-  var methods = [];
-
-  if (object.get(txLegacyData, 'featureSwitches.mfaSms.login', false)) {
-    methods.push('sms');
-  }
-
-  if (object.get(txLegacyData, 'featureSwitches.mfaApp.login', false)) {
-    methods.push('push');
-    methods.push('otp');
-  }
-
-  return methods;
-}
-
 function buildTransaction(data, options) {
   var txLegacyData = data.txLegacyData;
   var issuer = data.issuer;
@@ -144,10 +114,6 @@ function buildTransaction(data, options) {
   txData.availableAuthenticationMethods = txLegacyData.availableAuthenticationMethods;
 
   if (txLegacyData.enrollmentTxId) {
-    // if (availableEnrollmentMethods.length === 0) {
-    //   throw new errors.NoMethodAvailableError();
-    // }
-
     txData.enrollmentAttempt = enrollmentAttempt({
       enrollmentId: txLegacyData.deviceAccount.id,
       enrollmentTxId: txLegacyData.enrollmentTxId,
@@ -157,10 +123,6 @@ function buildTransaction(data, options) {
       baseUrl: serviceUrl
     });
   } else {
-    // if (availableMethods.length === 0) {
-    //   throw new errors.NoMethodAvailableError();
-    // }
-
     var defaultEnrollment = enrollment({
       availableMethods: txLegacyData.deviceAccount.availableMethods,
       name: txLegacyData.deviceAccount.name,

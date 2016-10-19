@@ -4,7 +4,7 @@
   "description": "Interface",
   "main": "index.js",
   "directories": {
-    "test": "test"
+    "test": "test2"
   },
   "dependencies": {
     "jwt-decode": "^2.1.0",
@@ -21,17 +21,17 @@
     "eslint-config-auth0-base": "^6.0.0",
     "eslint-plugin-import": "^1.16.0",
     "eslint-plugin-jsx-a11y": "^2.2.2",
-    "eslint-plugin-mocha": "^4.5.1",
+    "eslint-plugin-mocha": "^4.7.0",
     "eslint-plugin-react": "^6.2.2",
     "jsonwebtoken": "^7.1.9",
-    "mocha": "^3.0.2",
+    "mocha": "^3.1.2",
     "pem": "^1.8.3",
     "sinon": "^1.17.5",
     "watch": "^1.0.1",
     "webpack": "^1.13.2"
   },
   "scripts": {
-    "test": "npm run eslint && mocha --recursive test",
+    "test": "npm run eslint && mocha --recursive test2",
     "build": "webpack --config webpack.config.js",
     "lint": "npm run eslint",
     "watch:build": "watch 'npm run build' --ignoreDirectoryPattern=/dist/",

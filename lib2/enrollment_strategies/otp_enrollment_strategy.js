@@ -3,6 +3,7 @@
 var object = require('../utils/object');
 var async = require('../utils/async');
 var errors = require('../errors');
+var validations = require('../utils/validations');
 
 /**
  * @param {HttpClient} options.httpClient
@@ -38,6 +39,10 @@ authenticatorEnrollmentStrategy.prototype.enroll = function enroll(data, callbac
 authenticatorEnrollmentStrategy.prototype.confirm = function confirm(data, callback) {
   if (!data.otpCode) {
     return async.setImmediate(callback, new errors.FieldRequiredError('otpCode'));
+  }
+
+  if (!validations.validateOtp(data.otpCode)) {
+    return async.setImmediate(callback, new errors.OTPValidationError());
   }
 
   return this.httpClient.post(
