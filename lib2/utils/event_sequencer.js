@@ -133,13 +133,13 @@ eventSequencer.prototype.addSequence = function addSequence(name, sequence) {
 
 eventSequencer.prototype.removeSequence = function removeSequence(name) {
   var self = this;
-  var deletedSequence = this.sequences[name];
+  var deletedSequence = this.sequences[name] || [];
 
   delete this.sequences[name];
 
   // Emit events that have been unblocked by deletion but that aren't in any
   // other sequence
-  deletedSequence.forEach(function emitUnblocked(eventName) {
+  object.forEach(deletedSequence, function emitUnblocked(eventName) {
     if (self.canEmitEventForSequences(self.sequences, eventName)) {
       self.doActualEmit(eventName);
     }

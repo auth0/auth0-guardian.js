@@ -47,7 +47,7 @@ socketClient.prototype.connect = function connect(token, callback) {
     },
 
     connect: function onConnect() {
-      // events.onceAny(self.socket, handlers);
+      events.onceAny(self.socket, handlers);
       self.socket.emit('authenticate', { token: token });
     },
 

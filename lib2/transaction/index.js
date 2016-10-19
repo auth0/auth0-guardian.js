@@ -4,7 +4,6 @@ var object = require('../utils/object');
 var async = require('../utils/async');
 var EventEmitter = require('events').EventEmitter;
 var errors = require('../errors');
-var events = require('../utils/events');
 var enrollmentBuilder = require('../entities/enrollment');
 var helpers = require('./helpers');
 
@@ -109,7 +108,7 @@ function transaction(data, options) {
       apiPayload: apiPayload,
       txId: self.txId,
       enrollmentAttempt: data.enrollmentAttempt,
-      method: apiPayload.method || 'push' // TODO Remove default when QA gets deployed
+      method: apiPayload.method || 'push' // TODO Remove
     }));
   });
 
@@ -122,8 +121,8 @@ function transaction(data, options) {
     self.eventSequencer.emit('timeout');
   });
 
-  self.transactionEventsReceiver.on('error', function onError() {
-    self.eventSequencer.emit('error');
+  self.transactionEventsReceiver.on('error', function onError(err) {
+    self.eventSequencer.emit('error', err);
   });
 
   return self;
@@ -162,7 +161,7 @@ transaction.prototype.enroll = function enroll(method, data, callback) {
   }
 
   self.enrollmentAttempt.setActive(true);
-  self.eventSequencer.addSequence('local-enrollment', ['auth-response', 'enrollment-complete']);
+  self.eventSequencer.addSequence('local-enrollment', ['enrollment-complete', 'auth-response']);
 
   strategy.enroll(data, function onEnrollmentStarted(err) {
     if (err) {
