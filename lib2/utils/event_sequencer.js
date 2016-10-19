@@ -40,7 +40,7 @@ eventSequencer.prototype.emit = function emit(eventName, payload) {
   // The event might not have been in any sequense, let's send it
   // right away then
   if (self.canEmitEventForSequences(sequences, eventName)) {
-    self.doActualEmit(eventName, payload);
+    self.doActualEmit(eventName);
   }
 };
 
@@ -58,14 +58,15 @@ eventSequencer.prototype.applySequences = function applySequences(sequences) {
         return false;
       }
 
-      self.doActualEmit(seqEventName, self.received[seqEventName].payload);
+      self.doActualEmit(seqEventName);
       return true;
     });
   });
 };
 
-eventSequencer.prototype.doActualEmit = function doActualEmit(eventName, payload) {
+eventSequencer.prototype.doActualEmit = function doActualEmit(eventName) {
   var self = this;
+  var payload = self.received[eventName].payload;
   self.received[eventName].emitted = true;
 
   if (self.pipedEmitter) {
@@ -131,7 +132,18 @@ eventSequencer.prototype.addSequence = function addSequence(name, sequence) {
 };
 
 eventSequencer.prototype.removeSequence = function removeSequence(name) {
+  var self = this;
+  var deletedSequence = this.sequences[name];
+
   delete this.sequences[name];
+
+  // Emit events that have been unblocked by deletion but that aren't in any
+  // other sequence
+  deletedSequence.forEach(function emitUnblocked(eventName) {
+    if (self.canEmitEventForSequences(self.sequences, eventName)) {
+      self.doActualEmit(eventName);
+    }
+  });
 
   this.applySequences(this.sequences);
 };

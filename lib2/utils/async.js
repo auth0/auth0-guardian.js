@@ -72,21 +72,36 @@ exports.all = function all(tasks, callback) {
 exports.any = function any(tasks, callback) {
   var finished = false;
 
-  var resultCollecterHandler = function resultCollecterHandler(err, result) {
-    if (finished) {
-      return undefined; // Discard if already finished
-    }
+  var errorCount = 0;
+  var errors = [];
 
-    if (err) {
+  var wrapper = function wrapper(i) {
+    return function resultCollecterHandler(err, result) {
+      if (finished) {
+        return undefined; // Discard if already finished
+      }
+
+      if (err) {
+        errors[i] = err;
+        errorCount += 1;
+
+        if (errorCount === tasks.length) {
+          finished = true;
+          var error = new Error();
+          error.message = 'All events have failed';
+          error.internals = errors;
+          return callback(error);
+        }
+
+        return undefined;
+      }
+
       finished = true;
-      return callback(err);
-    }
-
-    finished = true;
-    return callback(null, result);
+      return callback(null, result);
+    };
   };
 
-  object.forEach(tasks, function taskIterator(task) {
-    task(resultCollecterHandler);
+  object.forEach(tasks, function taskIterator(task, index) {
+    task(wrapper(index));
   });
 };

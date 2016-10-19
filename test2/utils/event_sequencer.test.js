@@ -104,15 +104,15 @@ describe('utils/event_sequences', function () {
         received.push({ name: 'test-3', payload: p });
       });
 
-      events.on('other', function (p) {
-        received.push({ name: 'other', payload: p });
+      events.on('other-1', function (p) {
+        received.push({ name: 'other-1', payload: p });
       });
 
       events.on('test-4', function (p) {
         received.push({ name: 'test-4', payload: p });
 
         expect(received).to.eql([
-          { name: 'other-1', payload: 'payloadOther-1' },
+          { name: 'other-1', payload: 'payloadOther1' },
           { name: 'test-1', payload: 'payload1' },
           { name: 'test-2', payload: 'payload2' },
           { name: 'test-3', payload: 'payload3' },

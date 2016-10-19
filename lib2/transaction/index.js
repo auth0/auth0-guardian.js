@@ -22,6 +22,7 @@ var pnAuthStrategy = require('../auth_strategies/pn_auth_strategy');
 var otpAuthStrategy = require('../auth_strategies/otp_auth_strategy');
 
 var eventSequencer = require('../utils/event_sequencer');
+var eventListenerHub = require('../utils/event_listener_hub');
 
 /**
  * @public
@@ -76,11 +77,11 @@ function transaction(data, options) {
   self.availableEnrollmentMethods = data.availableEnrollmentMethods;
   self.availableAuthenticationMethods = data.availableAuthenticationMethods;
 
-  self.loginCompleteHub = events.buildEventHub(
+  self.loginCompleteHub = eventListenerHub(
     self.transactionEventsReceiver, 'login:complete');
-  self.loginRejectedHub = events.buildEventHub(
+  self.loginRejectedHub = eventListenerHub(
     self.transactionEventsReceiver, 'login:rejected');
-  self.enrollmentCompleteHub = events.buildEventHub(
+  self.enrollmentCompleteHub = eventListenerHub(
     self.transactionEventsReceiver, 'enrollment:confirmed');
 
   self.eventSequencer = eventSequencer();
