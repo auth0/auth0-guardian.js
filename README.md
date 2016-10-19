@@ -403,6 +403,8 @@ the errors codes and its meaning
 | field_required | A field is required to perform the operation (this errors has a `field` attribute with a code for the field: `otpCode`, `recoveryCode`) |
 | method_not_found | You have requested a method that is currently not supported (should not happen) |
 | no_method_available | There is currently no method to enroll (all of them are disabled) |
+| enrollment_method_disabled | The specified enrollment method is disabled, this error has also a `.method` field |
+| auth_method_disabled | The specified authentication method is disabled, this error has also a `.method` field |
 | invalid_otp_format | Otp format validation error |
 | invalid_recovery_code_format | Recovery code format validation error |
 | transaction_expired | The transaction has already expired |

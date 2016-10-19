@@ -430,6 +430,20 @@ exports.execute = function execute(obj, methodPath) {
 };
 
 /**
+ * Returns true if array contains the value (search by reference for objects)
+ *
+ * @param {array.<string>} array
+ * @param {any} value
+ */
+exports.contains = function contains(array, value) {
+  if (!array) {
+    return false;
+  }
+
+  return array.indexOf(value) >= 0;
+};
+
+/**
  * No operation
  */
 exports.noop = function noop() {};

@@ -68,6 +68,7 @@ function transaction(data, options) {
   self.transactionToken = data.transactionToken;
   self.transactionEventsReceiver = options.transactionEventsReceiver;
   self.availableEnrollmentMethods = data.availableEnrollmentMethods;
+  self.availableAuthenticationMethods = data.availableAuthenticationMethods;
 
   self.loginCompleteHub = events.buildEventHub(
     self.transactionEventsReceiver, 'login:complete');
@@ -82,6 +83,9 @@ function transaction(data, options) {
     // This is a workaround to prevent an edge case for when the enrollment
     // is not from current tx. It doesn't avoid it completely but reduces
     // its likehood.
+    //
+    // The source of the problem is that the transaction id is not easily
+    // available from the mobile device
     var isEnrollmentAttemptActive = object.execute(data.enrollmentAttempt, 'isActive');
 
     // eslint-disable-next-line no-param-reassign
@@ -121,6 +125,14 @@ transaction.prototype.enroll = function enroll(method, data, callback) {
     return;
   }
 
+  if (object.get(self, 'availableEnrollmentMethods', []).length === 0) {
+    async.setImmediate(callback, new errors.NoMethodAvailableError());
+  }
+
+  if (!object.contains(self.availableEnrollmentMethods, method)) {
+    async.setImmediate(callback, new errors.EnrollmentMethodDisabledError(method));
+  }
+
   var strategy = self.enrollmentStrategies[method];
 
   if (!strategy) {
@@ -147,9 +159,13 @@ transaction.prototype.enroll = function enroll(method, data, callback) {
     confirmationStep.once('enrollment-complete', function onEnrollmentComplete(payload) {
       self.addEnrollment(payload.enrollment);
       self.emit('enrollment-complete', payload);
+
+      self.enrollmentAttempt.setActive(false);
     });
 
     confirmationStep.on('error', function onError(iErr) {
+      self.enrollmentAttempt.setActive(false);
+
       self.emit('error', iErr);
     });
 
@@ -182,6 +198,14 @@ transaction.prototype.requestAuth = function requestAuth(enrollment, options, ca
 
   if (!options.method) {
     options.method = availableMethods[0]; // eslint-disable-line no-param-reassign
+  }
+
+  if (object.get(self, 'availableAuthenticationMethods', []).length === 0) {
+    async.setImmediate(callback, new errors.NoMethodAvailableError());
+  }
+
+  if (!object.contains(self.availableAuthenticationMethods, options.method)) {
+    async.setImmediate(callback, new errors.AuthMethodDisabledError(options.method));
   }
 
   var strategy = this.authStrategies[options.method];
@@ -259,6 +283,16 @@ transaction.prototype.removeAuthListeners = function removeAuthListeners() {
 transaction.prototype.getAvailableEnrollmentMethods = function getAvailableEnrollmentMethods() {
   return this.availableEnrollmentMethods;
 };
+
+/**
+ * @private
+ *
+ * @returns {array.<string>}
+ */
+transaction.prototype.getAvailableAuthenticationMethods
+  = function getAvailableAuthenticationMethods() {
+    return this.availableAuthenticationMethods;
+  };
 
 /**
  * @private

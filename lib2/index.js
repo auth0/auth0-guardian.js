@@ -55,7 +55,7 @@ auth0GuardianJS.prototype.start = function start(callback) {
   var self = this;
 
   if (self.requestToken.isExpired()) {
-    return async.setImmediate(callback, new errors.TransactionTokenExpiredError());
+    return async.setImmediate(callback, new errors.TransactionExpiredError());
   }
 
   return self.httpClient.post('/api/start-flow',
@@ -136,17 +136,17 @@ function buildTransaction(data, options) {
   var issuer = data.issuer;
   var serviceUrl = data.serviceUrl;
   var transactionToken = txLegacyData.transactionToken;
-  var availableEnrollmentMethods = parseAvailableEnrollmentMethods(txLegacyData);
   var txData = {};
 
 
   txData.transactionToken = jwtToken(transactionToken);
-  txData.availableEnrollmentMethods = availableEnrollmentMethods;
+  txData.availableEnrollmentMethods = txLegacyData.availableEnrollmentMethods;
+  txData.availableAuthenticationMethods = txLegacyData.availableAuthenticationMethods;
 
   if (txLegacyData.enrollmentTxId) {
-    if (availableEnrollmentMethods.length === 0) {
-      throw new errors.NoMethodAvailableError();
-    }
+    // if (availableEnrollmentMethods.length === 0) {
+    //   throw new errors.NoMethodAvailableError();
+    // }
 
     txData.enrollmentAttempt = enrollmentAttempt({
       enrollmentId: txLegacyData.deviceAccount.id,
@@ -157,19 +157,12 @@ function buildTransaction(data, options) {
       baseUrl: serviceUrl
     });
   } else {
-    var availableAuthMethod = ['sms', 'push', 'otp']; // parseAvailableAuthMethods(txLegacyData);
-    var availableMethodsForCurrentEnrollment = txLegacyData.deviceAccount.availableMethods;
-    var availableMethods = object.intersec(
-      availableAuthMethod,
-      availableMethodsForCurrentEnrollment
-    );
-
     // if (availableMethods.length === 0) {
     //   throw new errors.NoMethodAvailableError();
     // }
 
     var defaultEnrollment = enrollment({
-      availableMethods: availableMethods,
+      availableMethods: txLegacyData.deviceAccount.availableMethods,
       name: txLegacyData.deviceAccount.name,
       phoneNumber: txLegacyData.deviceAccount.phoneNumber
     });
