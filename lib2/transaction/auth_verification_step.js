@@ -22,6 +22,7 @@ authVerificationStep.prototype = object.create(EventEmitter.prototype);
 authVerificationStep.prototype.verify = function verify(data) {
   var self = this;
 
+  // TODO Move this to the transaction
   self.loginCompleteHub.removeAllListeners();
   self.loginRejectedHub.removeAllListeners();
 
@@ -43,6 +44,9 @@ authVerificationStep.prototype.verify = function verify(data) {
 
   var verifyAuthTask = function verifyAuthTask(done) {
     self.strategy.verify(data, function onVerified(err, verificationPayload) {
+      // eslint-disable-next-line no-param-reassign
+      verificationPayload = verificationPayload || {};
+
       if (err) {
         return done(err);
       }
@@ -61,6 +65,7 @@ authVerificationStep.prototype.verify = function verify(data) {
     loginOrRejectTask,
     verifyAuthTask
   ], function onCompletion(err, payloads) {
+    // TODO Move this to the transaction
     self.loginCompleteHub.removeAllListeners();
     self.loginRejectedHub.removeAllListeners();
 
