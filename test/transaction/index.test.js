@@ -100,6 +100,7 @@ describe('transaction/index', function () {
           notEnrolledTransaction.once('enrollment-complete', (p) => {
             expect(p.recoveryCode).not.to.exist;
             expect(p.authRequired).to.be.true;
+            expect(p.enrollment.getPhoneNumber()).to.equal('+54 3416 77777777');
             done();
           });
 
@@ -143,6 +144,7 @@ describe('transaction/index', function () {
           notEnrolledTransaction.once('enrollment-complete', (p) => {
             expect(p.recoveryCode).to.equal('ABCDEFGHIJK');
             expect(p.authRequired).to.be.true;
+            expect(p.enrollment.getName()).to.equal('Test');
             done();
           });
 
@@ -190,6 +192,7 @@ describe('transaction/index', function () {
           notEnrolledTransaction.once('enrollment-complete', (p) => {
             expect(p.recoveryCode).to.equal('ABCDEFGHIJK');
             expect(p.authRequired).to.be.true;
+            expect(p.enrollment.getName()).to.equal('Test');
             done();
           });
 

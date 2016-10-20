@@ -94,7 +94,7 @@ auth0GuardianJS.start(function(err, transaction) {
 		}
 
 		if (payload.authRequired) {
-			showAuthentication();
+			showAuthenticationFor(transaction, payload.enrollment);
 			return undefined;
 		}
 	});
@@ -313,13 +313,16 @@ completed in a different transaction (for example in another tab), you should
 show authentication (`authRequired` will be true).
 
 ```javascript
-transaction.on('enrollment-complete', function ({ authRequired, recoveryCode }) {
+transaction.on('enrollment-complete', function ({ authRequired, recoveryCode, enrollment }) {
 	// Enrollment confirmed
 
 	// authRequired will be true if the enrollment methods require authentication
 
 	// recoveryCode will be available only in case that the enrollment has been started from
 	// the current transaction, you should show it for the user to write it down.
+
+	// enrollment the shinny new enrollment, use it to authenticate if authRequired
+	// is true
 });
 ```
 

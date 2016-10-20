@@ -155,7 +155,10 @@ describe('transaction/auth_verificatin_step', function () {
             httpClient.post = sinon.spy(function (path, token, data, callback) {
               transactionEventsReceiver.emit('enrollment:confirmed', {
                 txId: 'tx_12345',
-                method: 'sms'
+                method: 'sms',
+                deviceAccount: {
+                  phoneNumber: '+1234'
+                }
               });
 
               setImmediate(callback);
@@ -166,6 +169,8 @@ describe('transaction/auth_verificatin_step', function () {
             step.on('enrollment-complete', function (payload) {
               expect(payload).to.have.property('recoveryCode', 'ABCDEFGHIJK');
               expect(payload).to.have.property('authRequired', false);
+              expect(payload).to.have.property('enrollment');
+              expect(payload.enrollment.getPhoneNumber()).to.equal('+1234');
 
               done();
             });
