@@ -49,7 +49,7 @@ authVerificationStep.prototype.verify = function verify(data) {
 
       return done(null, {
         // New recovery code if needed (recover)
-        recoverCode: verificationPayload.recoverCode
+        recoveryCode: verificationPayload.recoveryCode
       });
     });
   };

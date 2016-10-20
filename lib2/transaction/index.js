@@ -194,13 +194,6 @@ transaction.prototype.enroll = function enroll(method, data, callback) {
   });
 };
 
-transaction.prototype.dismissEnrollmentAttempt = function () {
-  var self = this;
-
-  self.eventSequencer.removeSequence('local-enrollment');
-  self.enrollmentAttempt.setActive(false);
-};
-
 /**
  * @public
  *
@@ -210,19 +203,29 @@ transaction.prototype.dismissEnrollmentAttempt = function () {
  * @param {sms|otp|push} options.method
  */
 transaction.prototype.requestAuth = function requestAuth(enrollment, options, callback) {
+  if (arguments.length === 2) {
+    callback = options; // eslint-disable-line no-param-reassign
+    options = {}; // eslint-disable-line no-param-reassign
+  }
+
+  options = options || {}; // eslint-disable-line no-param-reassign
+
   if (!this.isEnrolled()) {
     async.setImmediate(callback, new errors.NotEnrolledError());
     return;
   }
 
-  var availableMethods = enrollment.getAvailableMethods();
-
-  if (arguments.length === 2) {
-    callback = options; // eslint-disable-line no-param-reassign
-    options = { method: availableMethods[0] }; // eslint-disable-line no-param-reassign
+  if (!enrollment) {
+    async.setImmediate(callback, new errors.InvalidEnrollmentError());
+    return;
   }
 
-  options = options || {}; // eslint-disable-line no-param-reassign
+  var availableMethods = enrollment.getAvailableMethods();
+
+  if (!availableMethods) {
+    async.setImmediate(callback, new errors.InvalidEnrollmentError());
+    return;
+  }
 
   if (!options.method) {
     options.method = availableMethods[0]; // eslint-disable-line no-param-reassign
@@ -259,6 +262,12 @@ transaction.prototype.requestAuth = function requestAuth(enrollment, options, ca
 transaction.prototype.recover = function recover(data) {
   var self = this;
 
+  if (!this.isEnrolled()) {
+    async.setImmediate(self.eventSequencer.emit.bind(self.eventSequencer), 'error',
+      new errors.NotEnrolledError());
+    return;
+  }
+
   self.requestStrategyAuth(self.authRecoveryStrategy,
     function onRecoveryRequested(err, recoveryAuth) {
       if (err) {
@@ -288,6 +297,23 @@ transaction.prototype.getEnrollments = function getEnrollments() {
 };
 
 /**
+ * @public
+ */
+transaction.prototype.getAvailableEnrollmentMethods = function getAvailableEnrollmentMethods() {
+  return this.availableEnrollmentMethods;
+};
+
+/**
+ * @private
+ */
+transaction.prototype.dismissEnrollmentAttempt = function () {
+  var self = this;
+
+  self.eventSequencer.removeSequence('local-enrollment');
+  self.enrollmentAttempt.setActive(false);
+};
+
+/**
  * @private
  *
  * TODO: This goes against immutability but it is the easiest way to prepare
@@ -305,13 +331,6 @@ transaction.prototype.removeAuthListeners = function removeAuthListeners() {
 
   self.loginCompleteHub.removeAllListeners();
   self.loginRejectedHub.removeAllListeners();
-};
-
-/**
- * @public
- */
-transaction.prototype.getAvailableEnrollmentMethods = function getAvailableEnrollmentMethods() {
-  return this.availableEnrollmentMethods;
 };
 
 /**

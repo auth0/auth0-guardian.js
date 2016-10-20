@@ -11,3 +11,4 @@ exports.AlreadyEnrolledError = require('./already_enrolled_error');
 exports.NotEnrolledError = require('./not_enrolled_error');
 exports.AuthMethodDisabledError = require('./auth_method_disabled_error');
 exports.EnrollmentMethodDisabledError = require('./enrollment_method_disabled_error');
+exports.InvalidEnrollmentError = require('./invalid_enrollment_error');

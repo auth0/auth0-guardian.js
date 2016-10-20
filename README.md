@@ -412,3 +412,4 @@ the errors codes and its meaning
 | transaction_expired | The transaction has already expired |
 | already_enrolled | You are already enrolled, cannot enroll again |
 | not_enrolled | You not enrolled. Must enroll first |
+| invalid_enrollment | The enrollment provided to `transaction#requestAuth` method is not valid or is null/undefined |

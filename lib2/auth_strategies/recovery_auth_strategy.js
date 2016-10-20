@@ -24,14 +24,14 @@ recoveryAuthenticatorStrategy.prototype.request = function request(callback) {
   async.setImmediate(callback);
 };
 
-  /**
-   * Account login using recovery code
-   *
-   * @param {string} data.recoveryCode
-   */
+/**
+ * Account login using recovery code
+ *
+ * @param {string} data.recoveryCode
+ */
 recoveryAuthenticatorStrategy.prototype.verify = function verify(data, callback) {
   if (!data || !data.recoveryCode) {
-    return async.setImmediate(callback, new errors.FieldRequiredError('otpCode'));
+    return async.setImmediate(callback, new errors.FieldRequiredError('recoveryCode'));
   }
 
   if (!validations.validateRecoveryCode(data.recoveryCode)) {
