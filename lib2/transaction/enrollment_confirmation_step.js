@@ -8,7 +8,6 @@ var helpers = require('./helpers');
  * @param {EnrollmentStrategy} options.strategy
  * @param {EnrollmentAttempt} options.enrollmentAttempt
  * @param {EventEmitter} options.enrollmentCompleteHub
- * @param {Transaction} options.transaction
  */
 function enrollmentConfirmationStep(options) {
   var self = object.create(enrollmentConfirmationStep.prototype);
@@ -30,6 +29,8 @@ enrollmentConfirmationStep.prototype.getUri = function getUri() {
 
 enrollmentConfirmationStep.prototype.confirm = function confirm(data) {
   var self = this;
+
+  // TODO Move this to the transaction
   self.enrollmentCompleteHub.removeAllListeners();
 
   var listenToEnrollmentCompleteTask = function listenToEnrollmentCompleteTask(done) {
@@ -46,6 +47,7 @@ enrollmentConfirmationStep.prototype.confirm = function confirm(data) {
     listenToEnrollmentCompleteTask,
     confirmTask
   ], function onAllComplete(err, results) {
+    // TODO Move this to the transaction
     self.enrollmentCompleteHub.removeAllListeners();
 
     if (err) {

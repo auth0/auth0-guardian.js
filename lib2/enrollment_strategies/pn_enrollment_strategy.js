@@ -12,7 +12,7 @@ var async = require('../utils/async');
 function pnEnrollmentStrategy(data, options) {
   var self = object.create(pnEnrollmentStrategy.prototype);
 
-  self.method = 'otp';
+  self.method = 'push';
   self.enrollmentAttempt = data.enrollmentAttempt;
   self.transactionToken = data.transactionToken;
   self.httpClient = options.httpClient;
