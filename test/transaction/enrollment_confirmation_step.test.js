@@ -1,15 +1,15 @@
 'use strict';
 
 const expect = require('chai').expect;
-const btransaction = require('../../lib2/transaction');
-const benrollmentAttempt = require('../../lib2/entities/enrollment_attempt');
+const btransaction = require('../../lib/transaction');
+const benrollmentAttempt = require('../../lib/entities/enrollment_attempt');
 const sinon = require('sinon');
 const EventEmitter = require('events').EventEmitter;
-const botpEnrollmentStrategy = require('../../lib2/enrollment_strategies/otp_enrollment_strategy');
-const bsmsEnrollmentStrategy = require('../../lib2/enrollment_strategies/sms_enrollment_strategy');
-const bpnEnrollmentStrategy = require('../../lib2/enrollment_strategies/pn_enrollment_strategy');
-const enrollmentConfirmationStep = require('../../lib2/transaction/enrollment_confirmation_step');
-const GuardianError = require('../../lib2/errors/guardian_error');
+const botpEnrollmentStrategy = require('../../lib/enrollment_strategies/otp_enrollment_strategy');
+const bsmsEnrollmentStrategy = require('../../lib/enrollment_strategies/sms_enrollment_strategy');
+const bpnEnrollmentStrategy = require('../../lib/enrollment_strategies/pn_enrollment_strategy');
+const enrollmentConfirmationStep = require('../../lib/transaction/enrollment_confirmation_step');
+const GuardianError = require('../../lib/errors/guardian_error');
 
 describe('transaction/auth_verificatin_step', function () {
   let httpClient;

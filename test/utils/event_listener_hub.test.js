@@ -1,7 +1,7 @@
 'use strict';
 
 const expect = require('chai').expect;
-const eventListenerHub = require('../../lib2/utils/event_listener_hub');
+const eventListenerHub = require('../../lib/utils/event_listener_hub');
 const EventEmitter = require('events').EventEmitter;
 
 describe('utils/event_listener_hub', function () {

@@ -1,15 +1,15 @@
 'use strict';
 
 const expect = require('chai').expect;
-const btransaction = require('../../lib2/transaction');
-const benrollment = require('../../lib2/entities/enrollment');
+const btransaction = require('../../lib/transaction');
+const benrollment = require('../../lib/entities/enrollment');
 const sinon = require('sinon');
 const EventEmitter = require('events').EventEmitter;
-const botpAuthStrategy = require('../../lib2/auth_strategies/otp_auth_strategy');
-const bsmsAuthStrategy = require('../../lib2/auth_strategies/sms_auth_strategy');
-const bpnAuthStrategy = require('../../lib2/auth_strategies/pn_auth_strategy');
-const authVerificationStep = require('../../lib2/transaction/auth_verification_step');
-const GuardianError = require('../../lib2/errors/guardian_error');
+const botpAuthStrategy = require('../../lib/auth_strategies/otp_auth_strategy');
+const bsmsAuthStrategy = require('../../lib/auth_strategies/sms_auth_strategy');
+const bpnAuthStrategy = require('../../lib/auth_strategies/pn_auth_strategy');
+const authVerificationStep = require('../../lib/transaction/auth_verification_step');
+const GuardianError = require('../../lib/errors/guardian_error');
 
 describe('transaction/auth_verificatin_step', function () {
   let httpClient;

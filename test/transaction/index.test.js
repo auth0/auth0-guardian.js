@@ -1,9 +1,9 @@
 'use strict';
 
 const expect = require('chai').expect;
-const btransaction = require('../../lib2/transaction');
-const benrollmentAttempt = require('../../lib2/entities/enrollment_attempt');
-const benrollment = require('../../lib2/entities/enrollment');
+const btransaction = require('../../lib/transaction');
+const benrollmentAttempt = require('../../lib/entities/enrollment_attempt');
+const benrollment = require('../../lib/entities/enrollment');
 const sinon = require('sinon');
 const EventEmitter = require('events').EventEmitter;
 

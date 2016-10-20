@@ -1,7 +1,7 @@
 'use strict';
 
 const expect = require('chai').expect;
-const async = require('../../lib2/utils/async');
+const async = require('../../lib/utils/async');
 
 describe('utils/async', function () {
   describe('#setImmediate', function () {

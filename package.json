@@ -31,7 +31,7 @@
     "webpack": "^1.13.2"
   },
   "scripts": {
-    "test": "npm run eslint && mocha --recursive test2",
+    "test": "npm run eslint && mocha --recursive test",
     "build": "webpack --config webpack.config.js",
     "lint": "npm run eslint",
     "watch:build": "watch 'npm run build' --ignoreDirectoryPattern=/dist/",
