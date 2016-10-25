@@ -1,13 +1,13 @@
 'use strict';
 
 const expect = require('chai').expect;
-const async = require('../../lib/utils/async');
+const asyncHelpers = require('../../lib/utils/async');
 
 describe('utils/async', function () {
   describe('#setImmediate', function () {
     describe('when setImmediate is available', function () {
       it('calls the function with the provided args', function (done) {
-        async.setImmediate(function (a1, a2, a3) {
+        asyncHelpers.setImmediate(function (a1, a2, a3) {
           expect(a1).to.equal('1');
           expect(a2).to.equal('2');
           expect(a3).to.equal('3');
@@ -19,7 +19,7 @@ describe('utils/async', function () {
     describe('when setImmediate is not available', function () {
       it('calls the function with the provided args', function (done) {
         const old = global.setImmediate;
-        async.setImmediate(function (a1, a2, a3) {
+        asyncHelpers.setImmediate(function (a1, a2, a3) {
           expect(a1).to.equal('1');
           expect(a2).to.equal('2');
           expect(a3).to.equal('3');
@@ -34,7 +34,7 @@ describe('utils/async', function () {
     describe('when there is no error', function () {
       it('calls the final callback with the results of the ' +
       'intermediate functions in the given order', function (done) {
-        async.all([
+        asyncHelpers.all([
           (pdone) => setTimeout(() => pdone(null, 1), 30),
           (pdone) => setTimeout(() => pdone(null, 2), 20),
           (pdone) => setTimeout(() => pdone(null, 3), 10)
@@ -48,7 +48,7 @@ describe('utils/async', function () {
 
     describe('when there is one or more errors', function () {
       it('calls final callback with the error', function (done) {
-        async.all([
+        asyncHelpers.all([
           (pdone) => setTimeout(() => pdone(new Error('error1'), 1), 30),
           (pdone) => setTimeout(() => pdone(null, 2), 20),
           (pdone) => setTimeout(() => pdone(null, 3), 10)
@@ -66,7 +66,7 @@ describe('utils/async', function () {
     describe('when there is no error', function () {
       it('calls the final callback with the ' +
       'result of the one that finished first', function (done) {
-        async.any([
+        asyncHelpers.any([
           (pdone) => setTimeout(() => pdone(null, 1), 30),
           (pdone) => setTimeout(() => pdone(null, 2), 20),
           (pdone) => setTimeout(() => pdone(null, 3), 10)
@@ -80,7 +80,7 @@ describe('utils/async', function () {
 
     describe('when there is one error after one has finished', function () {
       it('ignores the error', function (done) {
-        async.any([
+        asyncHelpers.any([
           (pdone) => setTimeout(() => pdone(new Error('error1'), 1), 30),
           (pdone) => setTimeout(() => pdone(null, 2), 20),
           (pdone) => setTimeout(() => pdone(null, 3), 10)
@@ -94,7 +94,7 @@ describe('utils/async', function () {
 
     describe('when there is one error before one has finished', function () {
       it('ignores the error', function (done) {
-        async.any([
+        asyncHelpers.any([
           (pdone) => setTimeout(() => pdone(new Error('error1'), 1), 1),
           (pdone) => setTimeout(() => pdone(null, 2), 200),
           (pdone) => setTimeout(() => pdone(null, 3), 100)
@@ -108,7 +108,7 @@ describe('utils/async', function () {
 
     describe('when all tasks ends with error', function () {
       it('calls the final callback with the errors', function (done) {
-        async.any([
+        asyncHelpers.any([
           (pdone) => setTimeout(() => pdone(new Error('error1'), 1), 1),
           (pdone) => setTimeout(() => pdone(new Error('error2'), 2), 20),
           (pdone) => setTimeout(() => pdone(new Error('error3'), 3), 10)
