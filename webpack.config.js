@@ -6,8 +6,8 @@ var webpack = require('webpack');
 module.exports = {
   context: __dirname,
   entry: {
-    'bundle.min': './index.js',
-    bundle: './index.js'
+    'guardian-js.min': './index.js',
+    'guardian-js': './index.js'
   },
   devtool: 'source-map',
   output: {
