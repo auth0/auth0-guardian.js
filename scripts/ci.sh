@@ -46,8 +46,9 @@ bower_release()
     git add --force dist/*
     git commit -am "$TAG_NAME"
     git tag "$TAG_NAME" -m "$LAST_COMMIT"
-    echo "git push origin $TAG_NAME"
-    #git push origin $TAG_NAME
+
+    git push origin $TAG_NAME
+
     success "$NPM_NAME version ready for bower"
   fi
 }
@@ -61,12 +62,12 @@ npm_release()
   else
     if [ ! -z "$STABLE" ]; then
       verbose "Deploying $1 to npm"
-      echo "npm publish"
-      #npm publish
+
+      npm publish
     else
       verbose "Deploying $1 to npm with tag $NPM_TAG"
-      echo "npm publish --tag \"$NPM_TAG\""
-      #npm publish --tag "$NPM_TAG"
+
+      npm publish --tag "$NPM_TAG"
     fi
     success "$NPM_NAME uploaded to npm registry"
   fi

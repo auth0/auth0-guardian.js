@@ -56,6 +56,5 @@ verbose "Remote path is: $REMOTE_PATH"
 
 cd $LOCAL_PATH
 for file in *.{js,map}; do
-  #s3_upload "$file"
-  echo "s3_upload \"$file\""
+  s3_upload "$file"
 done;
