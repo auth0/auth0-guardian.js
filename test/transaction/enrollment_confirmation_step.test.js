@@ -109,9 +109,9 @@ describe('transaction/auth_verificatin_step', function () {
 
       describe('when setup is ok', function () {
         it('calls the server for otp verification', function (done) {
-          httpClient.post = function (path, token, data, callback) {
+          httpClient.post = function (path, credentials, data, callback) {
             expect(path).to.equal('api/verify-otp');
-            expect(token).to.equal('123.123.123');
+            expect(credentials.getToken()).to.equal('123.123.123');
             expect(data).to.eql({
               code: '123456',
               type: 'manual_input'
@@ -232,9 +232,9 @@ describe('transaction/auth_verificatin_step', function () {
 
       describe('when setup is ok', function () {
         it('calls the server for otp verification', function (done) {
-          httpClient.post = function (path, token, data, callback) {
+          httpClient.post = function (path, credentials, data, callback) {
             expect(path).to.equal('api/verify-otp');
-            expect(token).to.equal('123.123.123');
+            expect(credentials.getToken()).to.equal('123.123.123');
             expect(data).to.eql({
               code: '123456',
               type: 'manual_input'
