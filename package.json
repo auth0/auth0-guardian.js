@@ -33,6 +33,8 @@
   "scripts": {
     "test": "npm run eslint && mocha --recursive test",
     "build": "webpack --config webpack.config.js",
+    "build:clean": "rm -rf ./dist && mkdir dist",
+    "dist": "npm run build:clean && npm run build",
     "lint": "npm run eslint",
     "watch:build": "watch 'npm run build' --ignoreDirectoryPattern=/dist/",
     "watch:lint": "watch 'npm run eslint'",
