@@ -419,6 +419,7 @@ transaction.on('timeout', function () {
 ###### error
 Emmited when there is an error on the transaction
 
+```
 transaction.on('error', function(error /* instanceOf GuardianError */) {
 	// Errors that cannot be associated to a particular action, like socket.io errors or so
 });
