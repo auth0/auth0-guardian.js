@@ -262,6 +262,21 @@ describe('transaction/index', function () {
         });
       });
 
+      describe('when login:rejected is emitted', function () {
+        it('emits auth-response', function (done) {
+          enrolledTransaction.once('auth-response', (p) => {
+            expect(p.signature).not.to.exist;
+            expect(p.accepted).to.be.false;
+
+            done();
+          });
+
+          transactionEventsReceiver.emit('login:rejected', {
+            txId: 'tx_12345'
+          });
+        });
+      });
+
       describe('when login:complete is emitted before enrollment:complete', function () {
         it('emits the right sequence of events', function (done) {
           const received = [];
