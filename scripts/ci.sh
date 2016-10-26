@@ -85,7 +85,7 @@ elif [ -n "$AUTH0_WIDGET_CI_NAME" ]; then
   git checkout -b dist
   bower_release
   new_line
-  npm_release "$VERSION"
+  #npm_release "$VERSION"
   new_line
   CDN_EXISTS=$(curl -s -o /dev/null -w "%{http_code}" https://cdn.auth0.com/js/$CDN_NAME/$VERSION/$CDN_FILE | grep 200 || true)
   if [ -z "$CDN_EXISTS" ]; then
