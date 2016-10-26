@@ -1,4 +1,4 @@
-# auth0-guardian-js [![Build Status](https://travis-ci.com/auth0/auth0-guardian.js.svg?token=yqCyABa23Ae4fxDwqe1c&branch=master)](https://travis-ci.com/auth0/auth0-guardian.js)
+# auth0-guardian-js (beta) [![Build Status](https://travis-ci.com/auth0/auth0-guardian.js.svg?token=yqCyABa23Ae4fxDwqe1c&branch=master)](https://travis-ci.com/auth0/auth0-guardian.js)
 
 UI-less client for Guardian, it works both on the client and on the server side, regarding server side opening
 a websocket is not advisable so we will provide some configurations to avoid this behavior for the modes
@@ -8,6 +8,18 @@ that don't need it (all factors but push notifications).
 ```javascript
 npm install auth0-guardian-js
 ```
+
+## CDN
+Full version
+```
+https://cdn.auth0.com/js/guardian-js/0.2.0/guardian-js.js
+```
+
+Minified version
+```
+https://cdn.auth0.com/js/guardian-js/0.2.0/guardian-js.min.js
+```
+
 ## Basic Usage
 
 ### Configuration
