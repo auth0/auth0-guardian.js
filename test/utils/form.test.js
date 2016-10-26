@@ -1,22 +1,22 @@
 'use strict';
 
 const expect = require('chai').expect;
-const formBuilder = require('../../lib/utils/form');
+const form = require('../../lib/utils/form');
 const Document = require('../support/document');
 
 describe('utils/form', function () {
-  let form;
+  let fm;
   let document;
 
   beforeEach(function () {
     document = new Document();
 
-    form = formBuilder({ document });
+    fm = form({ document });
   });
 
   describe('#post', function () {
     beforeEach(function () {
-      form.post('http://action.com', {
+      fm.post('http://action.com', {
         a: 1,
         b: 2,
         c: 3

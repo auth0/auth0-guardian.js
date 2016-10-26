@@ -1,4 +1,5 @@
 {
+  "extends": "auth0-base",
   "env": {
     "mocha": true
   },
@@ -22,6 +23,9 @@
 
     // Mocha team recomends not to use arrow blocks
     // in test to keep `this` meaning
-    "prefer-arrow-callback": "off"
+    "prefer-arrow-callback": "off",
+
+    // Tests should run on node 4+
+    "strict": "off"
   }
 }

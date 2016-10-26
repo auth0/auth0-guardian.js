@@ -1,24 +1,25 @@
-const path = require('path');
+'use strict';
+
+var path = require('path');
+var webpack = require('webpack');
 
 module.exports = {
   context: __dirname,
-  entry: './index.js',
+  entry: {
+    'guardian-js.min': './index.js',
+    'guardian-js': './index.js'
+  },
+  devtool: 'source-map',
   output: {
     path: path.join(__dirname, '/dist'),
-    filename: 'bundle.js',
+    filename: '[name].js',
     libraryTarget: 'umd',
-    library: 'Auth0GuardianJS'
+    library: 'auth0GuardianJS'
   },
-  module: {
-    loaders: [
-      {
-        test: /\.js$/,
-        exclude: /(node_modules|bower_components)/,
-        loader: 'babel',
-        query: {
-          presets: ['es2015']
-        }
-      }
-    ]
-  }
+  plugins: [
+    new webpack.optimize.UglifyJsPlugin({
+      include: /\.min\.js$/,
+      minimize: true
+    })
+  ]
 };

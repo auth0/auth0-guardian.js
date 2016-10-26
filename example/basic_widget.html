@@ -35,7 +35,7 @@
     <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="   crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
     <!-- TODO: Replace by Auth0 cdn version -->
-    <script src="https://rawgit.com/dafortune/ecac93fbe831fc3f1480e4f7698af5ba/raw/3d8fbec67fe01108804fe83deb5d6d1fe8fcd7c9/guardianjs.bundle.js"></script>
+    <script src="https://localhost:4001/bundle.js"></script>
 
     <style>
       .hidden {
@@ -68,7 +68,7 @@
 
       <div data-loading data-screen>Loading...</div>
 
-      <div class="hidden" data-screen data-enrollment-enroll data-factor="sms">
+      <div class="hidden" data-screen data-enrollment-enroll data-method="sms">
         <div data-enrollment-toolbar>
           <button type="button" data-show-enrollment="push" class="hidden">Push</button>
           <button type="button" data-show-enrollment="sms" class="hidden">SMS</button>
@@ -82,7 +82,7 @@
         </form>
       </div>
 
-      <div class="hidden" data-screen data-enrollment-confirm data-factor="sms">
+      <div class="hidden" data-screen data-enrollment-confirm data-method="sms">
         <div data-enrollment-toolbar>
           <button type="button" data-show-enrollment="push" class="hidden">Push</button>
           <button type="button" data-show-enrollment="sms" class="hidden">SMS</button>
@@ -96,7 +96,7 @@
         </form>
       </div>
 
-      <div class="hidden" data-screen data-enrollment-enroll data-factor="push">
+      <div class="hidden" data-screen data-enrollment-enroll data-method="push">
         <div data-enrollment-toolbar>
           <button type="button" data-show-enrollment="push" class="hidden">Push</button>
           <button type="button" data-show-enrollment="sms" class="hidden">SMS</button>
@@ -107,7 +107,7 @@
         <div data-qr></div>
       </div>
 
-      <div class="hidden" data-screen data-enrollment-enroll data-factor="otp" data-enrollment-confirm>
+      <div class="hidden" data-screen data-enrollment-enroll data-method="otp" data-enrollment-confirm>
         <div data-enrollment-toolbar>
           <button type="button" data-show-enrollment="push" class="hidden">Push</button>
           <button type="button" data-show-enrollment="sms" class="hidden">SMS</button>
@@ -202,19 +202,23 @@
           };
         })();
 
-        var pendingReports = {};
+        var state = {
+          pendingReports: {},
+          current: {
+            authPayload: null
+          }
+        };
 
         screen.transitionTo('[data-loading]');
 
-        $root.off('click.saved-recovery')
-          .on('click.saved-recovery', '[data-saved-recovery]', function() {
-            guardianjs.plugins.formPostCallback();
-          });
+        function postCallServer(authPayload) {
+          guardianjs.formPostHelper("{{ postActionURL }}", authPayload);
+        }
 
         // --------------------- Setup Guardian JS ----------------------------
 
-        var guardianjs = new Auth0GuardianJS({
-          serviceDomain: "{{ userData.tenant }}.guardian.auth0.com", // {name}.guardian.auth0.com
+        var guardianjs = auth0GuardianJS({
+          serviceUrl: "https://{{ userData.tenant }}.guardian.qa.auth0.com", // https://{name}.guardian.auth0.com
           requestToken: "{{ requestToken }}",
 
           issuer: {
@@ -223,217 +227,228 @@
           }
         });
 
-        // Setup the formPostCallback plugin so it takes care of sending the
-        // login result to callback url (probably auth0) for us
-        Auth0GuardianJS.plugins
-          .formPostCallback({
-            callbackUrl: "{{ postActionURL }}",
-            before: function(cb) {
-              // Delay login a little bit so you can see congrats message
-              setTimeout(cb, 5000);
-            }
-          })(guardianjs);
+        $root
+          .off('click.saved-recovery')
+          .on('click.saved-recovery', '[data-saved-recovery]', function() {
+            if (state.current.authPayload) { postCallServer(state.current.authPayload); }
+          });
 
-        // Let's start listening for timeout in case the user takes too long
-        // to login and the transaction expires
-        guardianjs.events.on('timeout', function(p) {
-          showError('Seems that you\'ve taken too long to login');
-        });
+        $root
+          .off('click.request')
+          .on('click.request', '[data-request]', function() {
+            requestAuth(state.current.transaction, state.current.enrollment, state.current.method);
+          });
 
-        // Let's start listening for errors
-        guardianjs.events.on('error', function(err) {
-          showError(err);
-        });
+        $root
+          .off('submit.login-verify')
+          .on('submit.login-verify', '[data-login-verify]', function(e) {
+            e.preventDefault();
+
+            var data = getData(screen.getActive(), '[data-verify-field]', 'verify-field');
+            state.current.auth.verify(data);
+          });
+
+        $root
+          .off('click.show-recovery')
+          .on('click.show-recovery', '[data-show-recovery]', function() {
+            screen.transitionTo('[data-recovery]');
+          });
+
+        $root
+          .off('click.login-verify-show')
+          .on('click.login-verify-show', '[data-login-verify-show]', function() {
+            startAuth(state.current.transaction, 'otp');
+          });
+
+        $root
+          .off('submit.recovery-verify')
+          .on('submit.recovery-verify', '[data-recovery-verify]', function(evt) {
+            evt.preventDefault();
+
+            recoverAccount(state.current.transaction);
+          });
 
         // ------------------- START Guardian transaction ---------------------
-        guardianjs.start().then(function(tx) {
-          guardianjs.events.on('enrollment-complete', function(p) {
+        guardianjs.start(function(err, transaction) {
+          if (err) {
+            state.transaction = null;
+            showError(err);
+            return;
+          }
+
+          state.current.transaction = transaction;
+
+          // Let's start listening for timeout in case the user takes too long
+          // to login and the transaction expires
+          transaction.on('timeout', function(p) {
+            showError('Seems that you\'ve taken too long to login');
+          });
+
+          // Let's start listening for errors
+          transaction.on('error', function(err) {
+            showError(err);
+          });
+
+          transaction.on('enrollment-complete', function(p) {
             // If enrollment is complete but not the transaction
             // we need to render the login screen to continue the
             // transaction
-            if (!p.transactionComplete) {
-              renderLogin(tx);
+            if (p.authRequired) {
+              startAuth(transaction);
             }
 
             if (p.recoveryCode) {
               $('[data-recovery-report-container]').removeClass('hidden');
               $('[data-recovery-report]').text('Recovery code: ' + p.recoveryCode);
-              pendingReports.recovery = true;
+              state.pendingReports.recovery = true;
             }
           });
 
-          guardianjs.events.on('auth-complete', function(p) {
-            if (Object.keys(pendingReports).length === 0) {
-              // Login is complete and it is not enrolled, since we have setup the
-              // `formPostCallback` plugin the result is going to be sent to the
-              // callback url immediatelly (`formPostCallback` call). In case of
-              // an enrollment or recovery, we need the user to save the recovery
-              // code, so enrollment is delayed up to that point
-              guardianjs.plugins.formPostCallback();
+          transaction.on('auth-response', function(p) {
+            state.current.authPayload = p;
+
+            if (!p.accepted) {
+              // Login has been rejected, the transaction can continue anyway
+              showLocalError('Login rejected');
+              return;
+            }
+
+            if (p.recoveryCode) {
+              // New recovery code
+              $('[data-recovery-report-container]').removeClass('hidden');
+              $('[data-recovery-report]').text('New recovery code: ' + p.recoveryCode);
+              state.pendingReports.recovery = true;
+            }
+
+            if (Object.keys(state.pendingReports).length === 0) {
+              // Login is complete and there is nothing else to post let's callback the server
+              postCallServer(state.current.authPayload);
             }
 
             showSuccess('Login complete');
           });
 
-          guardianjs.events.on('auth-rejected', function(p) {
-            // Login has been rejected, the transaction can continue anyway
-            showLocalError('Login rejected');
-          });
-
-          if (tx.isEnrolled()) {
+          if (transaction.isEnrolled()) {
+            startAuth(transaction)
             // If user is enrolled let's go to login screen
-            renderLogin(tx);
+            //renderLogin(transaction);
           } else {
             // If user is not enrolled let's go to enrollment screen
-            renderEnrollment(tx);
+            startEnrollment(transaction);
           }
 
           return null;
-        })
-        .catch(showError);
+        });
 
-        function requestFactorAuth(authFactor) {
+        function startAuth(transaction, method) {
+          var enrollment = state.current.enrollment = transaction.getEnrollments()[0];
+          var availableMethods = state.current.availableMethods = enrollment.getAvailableMethods();
+          method = state.current.method = method || availableMethods[0];
+
+          screen.transitionTo('[data-login-confirm="' + method + '"]');
+
+          requestAuth(transaction, enrollment, method);
+        }
+
+        function requestAuth(transaction, enrollment, method) {
           var $active = screen.getActive();
           $active.find('[data-request-loading]').removeClass('hidden');
           $active.find('[data-request-done]').addClass('hidden');
 
-          // Authentication has two different parts, request auth and
-          // verify auth, the request part is used to request an auth
-          // based on the enrolled factor. You will get a push if you have
-          // enrolled with push, an sms if you have enrolled with sms, nothing
-          // if you have enrolled with otp
-          authFactor.request()
-            .then(function() {
-              var $active = screen.getActive();
-              $active.find('[data-request-loading]').addClass('hidden');
-              $active.find('[data-request-done]').removeClass('hidden');
+          transaction.requestAuth(enrollment, { method: method }, function(err, auth) {
+            if (err) {
+              return showError(err);
+            }
 
-              return null;
-            })
-            .catch(showLocalError);
-        }
+            var $active = screen.getActive();
+            $active.find('[data-request-loading]').addClass('hidden');
+            $active.find('[data-request-done]').removeClass('hidden');
 
-        function renderLogin(tx, factor) {
-          var auth = tx.startAuth();
-          factor = factor || auth.getDefaultFactor();
-          var authFactor = auth.forFactor(factor);
-
-          screen.transitionTo('[data-login-confirm="' + factor + '"]');
-
-          requestFactorAuth(authFactor);
-
-          $root
-            .off('submit.login-verify')
-            .on('submit.login-verify', '[data-login-verify]', function(evt) {
-              evt.preventDefault();
-
-              var data = getData(screen.getActive(), '[data-verify-field]',
-                              'verify-field');
-
-              authFactor.verify(data).catch(showLocalError);
-            });
-
-          $root
-            .off('submit.recovery-verify')
-            .on('submit.recovery-verify', '[data-recovery-verify]', function(evt) {
-              evt.preventDefault();
-
-              delete pendingReports.recovery;
-
-              var data = getData(screen.getActive(), '[data-recovery-field]',
-                              'recovery-field');
-
-              tx.startAuthForRecovery().verify(data).catch(showLocalError);
-            });
-
-        $root
-          .off('click.login-verify-show')
-          .on('click.login-verify-show', '[data-login-verify-show]', function() {
-            renderLogin(tx, 'otp');
+            state.current.auth = auth;
           });
-
-          $root
-            .off('click.request')
-            .on('click.request', '[data-request]', function() {
-              requestFactorAuth(authFactor)
-            });
-
-          $root
-            .off('click.show-recovery')
-            .on('click.show-recovery', '[data-show-recovery]', function() {
-              screen.transitionTo('[data-recovery]');
-            });
         }
 
-        function renderEnrollmentToFactor(enrollmentFlow, factor) {
-          // Get a transaction for a given factor
-          var enrollmentFactor = enrollmentFlow.forFactor(factor);
+        function startEnrollment(transaction) {
+          var availableMethods = transaction.getAvailableEnrollmentMethods();
 
+          var i;
+          for (i = 0; i < availableMethods.length; i++) {
+            $root.find('[data-show-enrollment="' + availableMethods[i] + '"]')
+              .removeClass('hidden');
+          }
+
+          screen.transitionTo('[data-enrollment-enroll][data-method="' + availableMethods[0] + '"]');
+
+          renderEnrollmentToMethod(transaction, availableMethods[0]);
+
+          $root
+            .off('click.show-enrollment')
+            .on('click.show-enrollment', '[data-show-enrollment]', function(evt) {
+              var method = $(evt.target).data('show-enrollment');
+              renderEnrollmentToMethod(transaction, method);
+            });
+
+        }
+
+        function renderEnrollmentToMethod(transaction, method) {
           screen.transitionTo('[data-enrollment-enroll]' +
-                              '[data-factor="' + factor + '"]');
+                              '[data-method="' + method + '"]');
 
           // Show the QR if there is an enrollment URI, if the factor
           // doesn't support an URI you will get null on getUri() method
           var $qr = screen.getActive().find('[data-qr]');
           if ($qr.length) {
-            $qr.empty().qrcode(enrollmentFactor.getUri());
+            transaction.enroll(method, null, function(err, enroll) {
+              if (err) {
+                return showLocalError(err);
+              }
+
+              state.current.enroll = enroll;
+
+              $qr.empty().qrcode(enroll.getUri());
+            });
           }
 
           $root
             .off('submit.enroll')
             .on('submit.enroll', '[data-enroll]', function(evt) {
               evt.preventDefault();
-
               var data = getData(screen.getActive(),
                                   '[data-enroll-field]', 'enroll-field');
-
               // Sends enrollment data to the server. This is the first step of
               // enrollment. You need to send phoneNumber for sms, the other
               // factors doesn't need sending data, but the method is a
               // NOOP that returns a promise just as a convenience
-              enrollmentFactor.enroll(data).then(function() {
-                screen.transitionTo('[data-enrollment-confirm]' +
-                                    '[data-factor="' + factor + '"]');
+              transaction.enroll(method, data, function(err, enroll) {
+                if (err) {
+                  return showLocalError(err);
+                }
 
-                return null;
-              })
-              .catch(showLocalError);
+                state.current.enroll = enroll;
+
+                screen.transitionTo('[data-enrollment-confirm]' +
+                                    '[data-method="' + method + '"]');
+              });
             });
 
           $root
             .off('submit.confirm')
             .on('submit.confirm', '[data-confirm]', function(evt) {
               evt.preventDefault();
-
               var data = getData(screen.getActive(),
                                   '[data-confirm-field]', 'confirm-field');
+              var enroll = state.current.enroll;
 
               // Once enroll information is sent you have to confirm the
               // enrollment by sending the first otp code
-              enrollmentFactor.confirm(data).catch(showLocalError);
+              enroll.confirm(data);
           });
         }
 
-        function renderEnrollment(tx) {
-          var enrollmentFlow = tx.startEnrollment();
-          var availableFactors = enrollmentFlow.getAvailableFactors();
-
-          var i;
-          for (i = 0; i < availableFactors.length; i++) {
-            $root.find('[data-show-enrollment="' + availableFactors[i] + '"]')
-              .removeClass('hidden');
-          }
-
-          screen.transitionTo('[data-enrollment-enroll][data-factor="' + availableFactors[0] + '"]');
-
-          renderEnrollmentToFactor(enrollmentFlow, availableFactors[0]);
-
-          $root
-            .off('click.show-enrollment')
-            .on('click.show-enrollment', '[data-show-enrollment]', function(evt) {
-              factor = $(evt.target).data('show-enrollment');
-              renderEnrollmentToFactor(enrollmentFlow, factor);
-            });
+        function recoverAccount(transaction) {
+          delete state.pendingReports.recovery;
+          var data = getData(screen.getActive(), '[data-recovery-field]', 'recovery-field');
+          transaction.recover(data);
         }
 
         // ----------------------------- Utilities ------------------------------
@@ -450,8 +465,51 @@
           return null;
         }
 
+        var errors = {
+          local: [
+            'error_sending_push_notification',
+            'push_notification_wrong_credentials',
+            'invalid_otp',
+            'invalid_recovery_code',
+            'invalid_body',
+            'invalid_query_string',
+            'invalid_phone_number',
+            'error_sending_sms',
+            'pn_endpoint_disabled',
+            'too_many_sms',
+            'too_many_pn',
+            'too_many_sms_per_tenant',
+            'too_many_pn_per_tenant',
+            'invalid_otp_format',
+            'invalid_recovery_code_format'
+          ],
+          global: [
+            'invalid_token',
+            'insufficient_scope',
+            'invalid_bearer_format',
+            'enrollment_conflict',
+            'tenant_not_found',
+            'login_transaction_not_found',
+            'enrollment_transaction_not_found',
+            'feature_disabled',
+            'feature_disabled_by_admin',
+            'method_not_found',
+            'no_method_available',
+            'enrollment_method_disabled',
+            'auth_method_disabled',
+            'transaction_expired',
+            'already_enrolled',
+            'not_enrolled'
+          ]
+        };
+
         function showError(message) {
           if (message instanceof Error) {
+            if (errors.local.indexOf(message.errorCode) >= 0) {
+              showLocalError(message);
+              return;
+            }
+
             message = message.message || 'Something went wrong...';
           }
 
