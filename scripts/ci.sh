@@ -22,6 +22,9 @@ WILDCARD_VERSION=$(node scripts/utils/wildcard_version.js)
 # doesn't match.
 set -e
 
+git checkout master
+git branch -D dist || true
+
 cdn_release()
 {
   scripts/upload.sh "$CDN_NAME" "$1"
@@ -55,7 +58,7 @@ bower_release()
 
 npm_release()
 {
-  NPM_EXISTS=$(npm info -s $NPM_NAME@$1 version)
+  NPM_EXISTS=$(npm info -s $NPM_NAME@$1 version || true)
 
   if [ ! -z "$NPM_EXISTS" ]; then
     verbose "There is already a version $NPM_EXISTS in npm. Skiping npm publish…"
@@ -85,7 +88,7 @@ elif [ -n "$AUTH0_WIDGET_CI_NAME" ]; then
   git checkout -b dist
   bower_release
   new_line
-  #npm_release "$VERSION"
+  npm_release "$VERSION"
   new_line
   CDN_EXISTS=$(curl -s -o /dev/null -w "%{http_code}" https://cdn.auth0.com/js/$CDN_NAME/$VERSION/$CDN_FILE | grep 200 || true)
   if [ -z "$CDN_EXISTS" ]; then
