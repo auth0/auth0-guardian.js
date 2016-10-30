@@ -67,6 +67,12 @@ describe('transaction/auth_verificatin_step', function () {
       });
     });
 
+    describe('#getMethod', function () {
+      it('returns sms', function () {
+        expect(step.getMethod()).to.equal('sms');
+      });
+    });
+
     describe('#verify', function () {
       describe('when otpCode is not provided', function () {
         it('emits FieldRequiredError', function (done) {
@@ -178,6 +184,12 @@ describe('transaction/auth_verificatin_step', function () {
       });
     });
 
+    describe('#getMethod', function () {
+      it('returns otp', function () {
+        expect(step.getMethod()).to.equal('otp');
+      });
+    });
+
     describe('#verify', function () {
       describe('when otpCode is not provided', function () {
         it('emits FieldRequiredError', function (done) {
@@ -286,6 +298,12 @@ describe('transaction/auth_verificatin_step', function () {
         enrolledTransaction,
         loginCompleteHub: enrolledTransaction.loginCompleteHub,
         loginRejectedHub: enrolledTransaction.loginRejectedHub
+      });
+    });
+
+    describe('#getMethod', function () {
+      it('returns push', function () {
+        expect(step.getMethod()).to.equal('push');
       });
     });
 

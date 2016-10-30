@@ -475,6 +475,9 @@ Auth verification data:
 - For Push: No data needed, the auth is verified by accepting the push notification on your
 cell phone; you can omit this step but it is provided as a noop so you can write uniform code.
 
+### authFlow.getMethod()
+Returns the method associated with current auth flow; it might be sms, otp or push.
+
 ### Enrollment
 
 #### enrollment.getAvailableMethods()
