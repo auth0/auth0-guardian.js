@@ -25,6 +25,10 @@
     // in test to keep `this` meaning
     "prefer-arrow-callback": "off",
 
+    // Some of the versions of node we need to support
+    // does not support spread operator
+    "prefer-spread": "off",
+
     // Tests should run on node 4+
     "strict": "off"
   }

@@ -32,7 +32,12 @@ var auth0GuardianJS = require('auth0-guardian-js')({
 	issuer: {
 		label: "{{ userData.friendlyUserId }}",
 		name: "{{ userData.tenant }}",
-	}
+	},
+
+	// Optional, for debugging purpose only,
+	// ID that allows to associate a group of requests
+	// together as belonging to the same "group" (in a wide sense)
+	globalTrackingId: "{{ globalTrackingId }}"
 });
 ```
 
