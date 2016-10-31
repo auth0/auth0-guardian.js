@@ -448,6 +448,15 @@ Returns the enrollment URI for methods that support uri-based enrollments (push 
 this URI is usually presented as a QR code. It is a noop that returns `null` for
 for methods that don't support URI-based enrollment.
 
+#### enrollmentFlow.getData()
+Returns the enrollment data for methods that to transfer some data between devices in
+order to enroll (such as push and otp). This data could be used to generate the enrollment
+uri to show in a QR but since this is a common use case we provide `enrollmentFlow.getUri()`
+as a convenience method. The main use case for this data is when you want to use a
+different way to transfer the data instead of a QR code.
+For methods that don't need to transfer any data (such as sms)
+it is a noop that returns `null`.
+
 #### enrollmentFlow.confirm(data)
 Confirms the enrollment, an enrollment is not considered valid until it is
 confirmed the data needed to confirm the enrollment depends on the method (see below).

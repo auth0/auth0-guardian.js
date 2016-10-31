@@ -81,6 +81,12 @@ describe('transaction/auth_verificatin_step', function () {
       });
     });
 
+    describe('#getData', function () {
+      it('returns null', function () {
+        expect(step.getData()).to.equal(null);
+      });
+    });
+
     describe('#confirm', function () {
       describe('when otpCode is not provided', function () {
         it('emits FieldRequiredError', function (done) {
@@ -185,7 +191,11 @@ describe('transaction/auth_verificatin_step', function () {
   describe('for otp', function () {
     beforeEach(function () {
       strategy = botpEnrollmentStrategy({
-        transactionToken
+        transactionToken,
+        enrollmentAttempt: {
+          getIssuerLabel: sinon.stub().returns('Awesome tenant'),
+          getOtpSecret: sinon.stub().returns('ABC123456')
+        }
       }, {
         httpClient
       });
@@ -200,7 +210,16 @@ describe('transaction/auth_verificatin_step', function () {
 
     describe('#getUri', function () {
       it('returns otp url', function () {
-        return 'otpauth://totp/Awesome%20tenant??secret=ABC123456';
+        expect(step.getUri()).to.equal('otpauth://totp/Awesome%20tenant?secret=ABC123456');
+      });
+    });
+
+    describe('#getData', function () {
+      it('returns data that allows enrollment', function () {
+        expect(step.getData()).to.eql({
+          issuerLabel: 'Awesome tenant',
+          otpSecret: 'ABC123456'
+        });
       });
     });
 
@@ -303,7 +322,15 @@ describe('transaction/auth_verificatin_step', function () {
   describe('for push', function () {
     beforeEach(function () {
       strategy = bpnEnrollmentStrategy({
-        transactionToken
+        transactionToken,
+        enrollmentAttempt: {
+          getIssuerLabel: sinon.stub().returns('Awesome tenant'),
+          getOtpSecret: sinon.stub().returns('ABC123456'),
+          getEnrollmentTransactionId: sinon.stub().returns('1234567'),
+          getIssuerName: sinon.stub().returns('tenant'),
+          getEnrollmentId: sinon.stub().returns('123456'),
+          getBaseUri: sinon.stub().returns('https://me.too')
+        }
       }, {
         httpClient
       });
@@ -318,9 +345,26 @@ describe('transaction/auth_verificatin_step', function () {
 
     describe('#getUri', function () {
       it('returns guardian url', function () {
-        return 'otpauth://totp/Awesome%20tenant??secret=ABC123456&' +
+        expect(step.getUri()).to.equal('otpauth://totp/Awesome%20tenant?secret=ABC123456&' +
           'enrollment_tx_id=1234567&issuer=tenant&id=123456&' +
-          'base_url=https%3A%2F%2Fme.too&algorithm=sha1&digits=6&counter=0&period=30';
+          'base_url=https%3A%2F%2Fme.too&algorithm=sha1&digits=6&counter=0&period=30');
+      });
+    });
+
+    describe('#getData', function () {
+      it('returns guardian url', function () {
+        expect(step.getData()).to.eql({
+          issuerLabel: 'Awesome tenant',
+          otpSecret: 'ABC123456',
+          enrollmentTransactionId: '1234567',
+          issuerName: 'tenant',
+          enrollmentId: '123456',
+          baseUrl: 'https://me.too',
+          algorithm: 'sha1',
+          digits: 6,
+          counter: 0,
+          period: 30
+        });
       });
     });
 
