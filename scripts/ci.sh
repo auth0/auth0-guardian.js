@@ -60,7 +60,7 @@ npm_release()
 {
   NPM_EXISTS=$(npm info -s $NPM_NAME@$1 version)
 
-  if [ ! -z "$NPM_EXISTS" ]; then
+  if [ ! -z "$NPM_EXISTS" -a "$NPM_EXISTS" != "undefined" ]; then
     verbose "There is already a version $NPM_EXISTS in npm. Skiping npm publish…"
   else
     if [ ! -z "$STABLE" ]; then
