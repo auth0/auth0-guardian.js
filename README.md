@@ -30,7 +30,7 @@ var auth0GuardianJS = require('auth0-guardian-js')({
 	requestToken: "{{ requestToken }}",
 
 	issuer: {
-		label: "{{ userData.friendlyUserId }}",
+		label: "{{ userData.friendlyUserId }}:{{ userData.email }}",
 		name: "{{ userData.tenant }}",
 	}
 });
