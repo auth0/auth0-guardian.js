@@ -25,6 +25,7 @@
     "eslint-plugin-react": "^6.2.2",
     "jsonwebtoken": "^7.1.9",
     "mocha": "^3.1.2",
+    "mockuire": "^1.0.0",
     "pem": "^1.8.3",
     "semver": "^5.3.0",
     "sinon": "^1.17.6",
