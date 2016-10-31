@@ -457,6 +457,23 @@ different way to transfer the data instead of a QR code.
 For methods that don't need to transfer any data (such as sms)
 it is a noop that returns `null`.
 
+The data includes the following fields:
+```js
+{
+  issuerLabel: // Issuer label
+  otpSecret: // Base 64 encoded otp secret
+  enrollmentTransactionId: // Transaction id to start enrollment exchange
+  issuerName: // Issuer 'unique' name
+  enrollmentId: // Id of current enrollment (pending confirmation)
+  baseUrl: // Base url for mobile app
+  algorithm: // Algorithm for otp generation
+  digits: // Number of digits for otp generation
+  counter: // Counter for otp generation
+  period: // Duration of each otp code
+}
+
+```
+
 #### enrollmentFlow.confirm(data)
 Confirms the enrollment, an enrollment is not considered valid until it is
 confirmed the data needed to confirm the enrollment depends on the method (see below).
