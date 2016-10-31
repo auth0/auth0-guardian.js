@@ -403,6 +403,7 @@ describe('transaction/index', function () {
           it('callbacks with FieldRequiredError', function (done) {
             notEnrolledTransaction.enroll('sms', { phoneNumber: '' }, function (err) {
               expect(err).to.exist;
+              expect(err.stack).to.exist;
               expect(err).to.have.property('errorCode', 'field_required');
               expect(err).to.have.property('field', 'phoneNumber');
               done();

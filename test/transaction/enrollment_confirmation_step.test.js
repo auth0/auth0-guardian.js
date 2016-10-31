@@ -92,6 +92,7 @@ describe('transaction/auth_verificatin_step', function () {
         it('emits FieldRequiredError', function (done) {
           step.on('error', function (err) {
             expect(err).to.exist;
+            expect(err.stack).to.exist;
             expect(err).to.have.property('errorCode', 'field_required');
             expect(err).to.have.property('field', 'otpCode');
             done();
@@ -105,6 +106,7 @@ describe('transaction/auth_verificatin_step', function () {
         it('emits OTPValidationError', function (done) {
           step.on('error', function (err) {
             expect(err).to.exist;
+            expect(err.stack).to.exist;
             expect(err).to.have.property('errorCode', 'invalid_otp_format');
             done();
           });
@@ -146,6 +148,7 @@ describe('transaction/auth_verificatin_step', function () {
           it('emits that error', function (done) {
             step.on('error', function (err) {
               expect(err).to.exist;
+              expect(err.stack).to.exist;
               expect(err).to.have.property('errorCode', 'invalid_otp');
               expect(err).to.have.property('message', 'Invalid otp');
               expect(err).to.have.property('statusCode', 401);
@@ -228,6 +231,7 @@ describe('transaction/auth_verificatin_step', function () {
         it('emits FieldRequiredError', function (done) {
           step.on('error', function (err) {
             expect(err).to.exist;
+            expect(err.stack).to.exist;
             expect(err).to.have.property('errorCode', 'field_required');
             expect(err).to.have.property('field', 'otpCode');
             done();
@@ -241,6 +245,7 @@ describe('transaction/auth_verificatin_step', function () {
         it('emits OTPValidationError', function (done) {
           step.on('error', function (err) {
             expect(err).to.exist;
+            expect(err.stack).to.exist;
             expect(err).to.have.property('errorCode', 'invalid_otp_format');
             done();
           });
@@ -282,6 +287,7 @@ describe('transaction/auth_verificatin_step', function () {
           it('emits that error', function (done) {
             step.on('error', function (err) {
               expect(err).to.exist;
+              expect(err.stack).to.exist;
               expect(err).to.have.property('errorCode', 'invalid_otp');
               expect(err).to.have.property('message', 'Invalid otp');
               expect(err).to.have.property('statusCode', 401);
