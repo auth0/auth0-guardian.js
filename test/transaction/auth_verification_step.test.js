@@ -11,7 +11,7 @@ const bpnAuthStrategy = require('../../lib/auth_strategies/pn_auth_strategy');
 const authVerificationStep = require('../../lib/transaction/auth_verification_step');
 const GuardianError = require('../../lib/errors/guardian_error');
 
-describe('transaction/auth_verificatin_step', function () {
+describe('transaction/auth_verification_step', function () {
   let httpClient;
   let transactionEventsReceiver;
   let transactionToken;

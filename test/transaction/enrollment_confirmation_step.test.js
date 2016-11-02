@@ -197,7 +197,8 @@ describe('transaction/auth_verificatin_step', function () {
         transactionToken,
         enrollmentAttempt: {
           getIssuerLabel: sinon.stub().returns('Awesome tenant'),
-          getOtpSecret: sinon.stub().returns('ABC123456')
+          getOtpSecret: sinon.stub().returns('ABC123456'),
+          getAccountLabel: sinon.stub().returns('Account Label')
         }
       }, {
         httpClient
@@ -213,7 +214,7 @@ describe('transaction/auth_verificatin_step', function () {
 
     describe('#getUri', function () {
       it('returns otp url', function () {
-        expect(step.getUri()).to.equal('otpauth://totp/Awesome%20tenant?secret=ABC123456');
+        expect(step.getUri()).to.equal('otpauth://totp/Awesome%20tenant%3AAccount%20Label?secret=ABC123456');
       });
     });
 
@@ -221,7 +222,8 @@ describe('transaction/auth_verificatin_step', function () {
       it('returns data that allows enrollment', function () {
         expect(step.getData()).to.eql({
           issuerLabel: 'Awesome tenant',
-          otpSecret: 'ABC123456'
+          otpSecret: 'ABC123456',
+          accountLabel: 'Account Label'
         });
       });
     });
@@ -335,7 +337,8 @@ describe('transaction/auth_verificatin_step', function () {
           getEnrollmentTransactionId: sinon.stub().returns('1234567'),
           getIssuerName: sinon.stub().returns('tenant'),
           getEnrollmentId: sinon.stub().returns('123456'),
-          getBaseUri: sinon.stub().returns('https://me.too')
+          getBaseUri: sinon.stub().returns('https://me.too'),
+          getAccountLabel: sinon.stub().returns('Account Label')
         }
       }, {
         httpClient
@@ -351,7 +354,7 @@ describe('transaction/auth_verificatin_step', function () {
 
     describe('#getUri', function () {
       it('returns guardian url', function () {
-        expect(step.getUri()).to.equal('otpauth://totp/Awesome%20tenant?secret=ABC123456&' +
+        expect(step.getUri()).to.equal('otpauth://totp/Awesome%20tenant%3AAccount%20Label?secret=ABC123456&' +
           'enrollment_tx_id=1234567&issuer=tenant&id=123456&' +
           'base_url=https%3A%2F%2Fme.too&algorithm=sha1&digits=6&counter=0&period=30');
       });
@@ -364,6 +367,7 @@ describe('transaction/auth_verificatin_step', function () {
           otpSecret: 'ABC123456',
           enrollmentTransactionId: '1234567',
           issuerName: 'tenant',
+          accountLabel: 'Account Label',
           enrollmentId: '123456',
           baseUrl: 'https://me.too',
           algorithm: 'sha1',
