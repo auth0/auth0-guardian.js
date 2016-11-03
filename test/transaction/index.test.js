@@ -71,6 +71,49 @@ describe('transaction/index', function () {
     });
   });
 
+  describe('builder', function () {
+    describe('when there is no available authentication method', function () {
+      beforeEach(function () {
+        enrollment = benrollment({
+          availableMethods: ['sms'],
+          phoneNumber: '+1111111'
+        });
+      });
+
+      it('throws NoMethodAvailableError', function () {
+        expect(function () {
+          btransaction({
+            transactionToken,
+            enrollmentAttempt: null,
+            enrollments: [enrollment],
+            availableEnrollmentMethods: ['push', 'otp', 'sms'],
+            availableAuthenticationMethods: []
+          }, {
+            httpClient,
+            transactionEventsReceiver
+          });
+        }).to.throw().and.to.have.property('errorCode', 'no_method_available');
+      });
+    });
+
+    describe('when no enrollment method is available', function () {
+      it('throws NoMethodAvailableError', function () {
+        expect(function () {
+          btransaction({
+            transactionToken,
+            enrollmentAttempt,
+            enrollments: [],
+            availableEnrollmentMethods: [],
+            availableAuthenticationMethods: ['push', 'otp', 'sms']
+          }, {
+            httpClient,
+            transactionEventsReceiver
+          });
+        }).to.throw().and.to.have.property('errorCode', 'no_method_available');
+      });
+    });
+  });
+
   describe('events', function () {
     describe('when transaction-token expires', function () {
       it('emits timeout', function (done) {
@@ -323,29 +366,6 @@ describe('transaction/index', function () {
       });
     });
 
-    describe('when no enrollment method is available', function () {
-      beforeEach(function () {
-        notEnrolledTransaction = btransaction({
-          transactionToken,
-          enrollmentAttempt,
-          enrollments: [],
-          availableEnrollmentMethods: [],
-          availableAuthenticationMethods: ['push', 'otp', 'sms']
-        }, {
-          httpClient,
-          transactionEventsReceiver
-        });
-      });
-
-      it('callbacks with an NoMethodAvailableError', function (done) {
-        notEnrolledTransaction.enroll('sms', null, function (err) {
-          expect(err).to.exist;
-          expect(err).to.have.property('errorCode', 'no_method_available');
-          done();
-        });
-      });
-    });
-
     describe('when requested enrollment method is disabled', function () {
       beforeEach(function () {
         notEnrolledTransaction = btransaction({
@@ -567,34 +587,6 @@ describe('transaction/index', function () {
         enrolledTransaction.requestAuth(null, function (err) {
           expect(err).to.exist;
           expect(err).to.have.property('errorCode', 'invalid_enrollment');
-          done();
-        });
-      });
-    });
-
-    describe('when there is not available authentication method', function () {
-      beforeEach(function () {
-        enrollment = benrollment({
-          availableMethods: ['sms'],
-          phoneNumber: '+1111111'
-        });
-
-        enrolledTransaction = btransaction({
-          transactionToken,
-          enrollmentAttempt: null,
-          enrollments: [enrollment],
-          availableEnrollmentMethods: ['push', 'otp', 'sms'],
-          availableAuthenticationMethods: []
-        }, {
-          httpClient,
-          transactionEventsReceiver
-        });
-      });
-
-      it('callbacks with NoMethodAvailableError', function (done) {
-        enrolledTransaction.requestAuth(enrollment, function (err) {
-          expect(err).to.exist;
-          expect(err).to.have.property('errorCode', 'no_method_available');
           done();
         });
       });
