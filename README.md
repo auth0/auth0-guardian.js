@@ -30,9 +30,13 @@ var auth0GuardianJS = require('auth0-guardian-js')({
 	requestToken: "{{ requestToken }}",
 
 	issuer: {
-		label: "{{ userData.friendlyUserId }}",
+		// The issuer name to show in OTP Generator apps
+		label: "{{ userData.tenantFriendlyName }}",
 		name: "{{ userData.tenant }}",
 	},
+
+	// The account label to show in OTP Generator apps
+	accountLabel: "{{ userData.friendlyUserId }}",
 
 	// Optional, for debugging purpose only,
 	// ID that allows to associate a group of requests
