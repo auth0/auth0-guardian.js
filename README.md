@@ -35,7 +35,7 @@ var auth0GuardianJS = require('auth0-guardian-js')({
 		name: "{{ userData.tenant }}",
 	},
 
-	// The account name to show in OTP Generator apps
+	// The account label to show in OTP Generator apps
 	accountLabel: "{{ userData.friendlyUserId }}",
 
 	// Optional, for debugging purpose only,
