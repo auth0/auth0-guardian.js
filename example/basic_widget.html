@@ -211,7 +211,7 @@
         screen.transitionTo('[data-loading]');
 
         function postCallServer(authPayload) {
-          guardianjs.formPostHelper("{{ postActionURL }}", authPayload);
+          auth0GuardianJS.formPostHelper("{{ postActionURL }}", authPayload);
         }
 
         // --------------------- Setup Guardian JS ----------------------------
@@ -344,6 +344,10 @@
         function startAuth(transaction, method) {
           var enrollment = state.current.enrollment = transaction.getEnrollments()[0];
           var availableMethods = state.current.availableMethods = enrollment.getAvailableMethods();
+          if (availableMethods.length === 0) {
+            screen.transitionTo('[data-recovery]');
+          }
+
           method = state.current.method = method || availableMethods[0];
 
           screen.transitionTo('[data-login-confirm="' + method + '"]');
