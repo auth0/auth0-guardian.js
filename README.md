@@ -64,7 +64,7 @@ an extra authentication step. You can know that by listening to the
 function enroll(transaction, method) {
 	if (transaction.isEnrolled()) {
 		console.log('You are already enrolled');
-		return undefined;
+		return;
 	}
 
 	var enrollData = {};
@@ -76,7 +76,7 @@ function enroll(transaction, method) {
 	return transaction.enroll(method, enrollData, function (err, otpEnrollment) {
 		if (err) {
 			console.error(err);
-			return undefined;
+			return;
 		}
 
 		var uri = otpEnrollment.getUri();
@@ -96,7 +96,7 @@ function enroll(transaction, method) {
 auth0GuardianJS.start(function(err, transaction) {
 	if (err) {
 		console.error(err);
-		return undefined;
+		return;
 	}
 
 	transaction.on('error', function(error) {
@@ -114,7 +114,7 @@ auth0GuardianJS.start(function(err, transaction) {
 
 		if (payload.authRequired) {
 			showAuthenticationFor(transaction, payload.enrollment);
-			return undefined;
+			return;
 		}
 	});
 
@@ -125,7 +125,7 @@ auth0GuardianJS.start(function(err, transaction) {
 
 		if (!payload.accepted) {
 			alert('Authentication has been rejected');
-			return undefined;
+			return;
 		}
 
 		auth0GuardianJS.formPostHelper('{{ postActionURL }}', { signature: payload.signature });
@@ -163,12 +163,12 @@ function authenticate(method) {
 	auth0GuardianJS.start(function (err, transaction) {
 		if (err) {
 			console.error(err);
-			return undefined;
+			return;
 		}
 
 		if (!transaction.isEnrolled()) {
 			console.log('You are not enrolled');
-			return undefined;
+			return;
 		}
 
 		transaction.on('error', function(error) {
@@ -186,7 +186,7 @@ function authenticate(method) {
 
 			if (!payload.accepted) {
 				alert('Authentication has been rejected');
-				return undefined;
+				return;
 			}
 
 			auth0GuardianJS.formPostHelper('{{ postActionURL }}', { signature: payload.signature });
@@ -194,10 +194,18 @@ function authenticate(method) {
 
 		var enrollment = transaction.getEnrollments()[0];
 
+		if (enrollment.getAvailableMethods().length === 0) {
+			// If the enrollment does not have any available method
+			// you can only show an error or the recovery view, to let
+			// the user recover its account based on the recovery code.
+			showRecoveryView();
+			return;
+		}
+
 		transaction.requestAuth(enrollment, { method: method } function(err, auth) {
 			if (err) {
 				console.error(err);
-				return undefined;
+				return;
 			}
 
 			var data = {};
@@ -219,7 +227,7 @@ to pass a recovery code to verify method
 auth0GuardianJS.start(function(err, transaction) {
 	if (err) {
 		console.error(err);
-		return undefined;
+		return;
 	}
 
 	transaction.on('error', function(error) {
@@ -237,7 +245,7 @@ auth0GuardianJS.start(function(err, transaction) {
 
 		if (!payload.accepted) {
 			alert('Authentication has been rejected');
-			return undefined;
+			return;
 		}
 
 		auth0GuardianJS.formPostHelper('{{ postActionURL }}', { signature: payload.signature });
@@ -245,7 +253,7 @@ auth0GuardianJS.start(function(err, transaction) {
 
 	if (!transaction.isEnrolled()) {
 		console.log('You are not enrolled');
-		return undefined;
+		return;
 	}
 
 	var recoveryData = {};
@@ -264,8 +272,9 @@ const auth0GuardianJS = require('auth0-guardian-js')({
 	serviceUrl: //...,
 	issuer: {
 		name: //...,
-		friendlyName: //...
-	}
+		label: //...
+	},
+	accountLabel: //...
 });
 ```
 
@@ -511,12 +520,22 @@ Returns the method associated with current auth flow; it might be sms, otp or pu
 ### Enrollment
 
 #### enrollment.getAvailableMethods()
+Returns an array of strings that represent the authentication methods that can
+be used for this enrollment in the current transaction (the available methods
+might change from transaction to transaction). They depends on the methods supported
+by the enrollment and the methods currently allowed by the tenant.
+
+```js
+enrollments[i].getAvailableMethods();
+```
+
+#### enrollment.getMethods()
 Returns an array of strings that represent the authentication methods associated
 with this enrollments, they are the only methods that (if available for this transaction)
 can be used to authenticate the user based on the given enrollment.
 
 ```js
-enrollments[i].getAvailableMethods();
+enrollments[i].getMethods();
 ```
 
 #### enrollment.getName()
