@@ -196,7 +196,7 @@ describe('transaction/auth_verificatin_step', function () {
       strategy = botpEnrollmentStrategy({
         transactionToken,
         enrollmentAttempt: {
-          getIssuerLabel: sinon.stub().returns('Awesome tenant'),
+          getIssuerName: sinon.stub().returns('awesome-tenant'),
           getOtpSecret: sinon.stub().returns('ABC123456'),
           getAccountLabel: sinon.stub().returns('Account Label')
         }
@@ -214,14 +214,14 @@ describe('transaction/auth_verificatin_step', function () {
 
     describe('#getUri', function () {
       it('returns otp url', function () {
-        expect(step.getUri()).to.equal('otpauth://totp/Awesome%20tenant%3AAccount%20Label?secret=ABC123456');
+        expect(step.getUri()).to.equal('otpauth://totp/awesome-tenant:Account%20Label?secret=ABC123456&issuer=awesome-tenant');
       });
     });
 
     describe('#getData', function () {
       it('returns data that allows enrollment', function () {
         expect(step.getData()).to.eql({
-          issuerLabel: 'Awesome tenant',
+          issuerName: 'awesome-tenant',
           otpSecret: 'ABC123456',
           accountLabel: 'Account Label'
         });
@@ -354,7 +354,7 @@ describe('transaction/auth_verificatin_step', function () {
 
     describe('#getUri', function () {
       it('returns guardian url', function () {
-        expect(step.getUri()).to.equal('otpauth://totp/Awesome%20tenant%3AAccount%20Label?secret=ABC123456&' +
+        expect(step.getUri()).to.equal('otpauth://totp/tenant:Account%20Label?secret=ABC123456&' +
           'enrollment_tx_id=1234567&issuer=tenant&id=123456&' +
           'base_url=https%3A%2F%2Fme.too&algorithm=sha1&digits=6&counter=0&period=30');
       });
