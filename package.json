@@ -1,6 +1,6 @@
 {
   "name": "auth0-guardian-js",
-  "version": "0.2.5",
+  "version": "0.2.4",
   "description": "Interface",
   "main": "index.js",
   "directories": {

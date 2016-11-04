@@ -17,7 +17,7 @@ describe('utils/enrollment_uri_helper', function () {
         digits: 6,
         counter: 0,
         period: 30
-      })).to.equal(['otpauth://totp/issuer%20label',
+      })).to.equal(['otpauth://totp/issuer%20name',
         '?secret=superSecret',
         '&enrollment_tx_id=aa1%20234',
         '&issuer=issuer%20name',
@@ -44,7 +44,7 @@ describe('utils/enrollment_uri_helper', function () {
         digits: 6,
         counter: 0,
         period: 30
-      })).to.equal(['otpauth://totp/issuer%20label%3Amyuser%40gmail.com',
+      })).to.equal(['otpauth://totp/issuer%20name:myuser%40gmail.com',
         '?secret=superSecret',
         '&enrollment_tx_id=aa1%20234',
         '&issuer=issuer%20name',
@@ -60,9 +60,9 @@ describe('utils/enrollment_uri_helper', function () {
   describe('when only issuer label and otp secret is specified', function () {
     it('returns the correct url', function () {
       expect(enrollmentUriHelper({
-        issuerLabel: 'issuer label',
+        issuerName: 'issuer name',
         otpSecret: 'superSecret'
-      })).to.equal('otpauth://totp/issuer%20label?secret=superSecret');
+      })).to.equal('otpauth://totp/issuer%20name?secret=superSecret&issuer=issuer%20name');
     });
   });
 });
