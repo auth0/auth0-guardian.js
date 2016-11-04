@@ -523,7 +523,7 @@ Returns the method associated with current auth flow; it might be sms, otp or pu
 Returns an array of strings that represent the authentication methods that can
 be used for this enrollment in the current transaction (the available methods
 might change from transaction to transaction). They depends on the methods supported
-by the enrollment and the methods currently active.
+by the enrollment and the methods currently allowed by the tenant.
 
 ```js
 enrollments[i].getAvailableMethods();
