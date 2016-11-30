@@ -312,6 +312,54 @@ describe('transaction/index', function () {
     });
   });
 
+  describe('#getState', function () {
+    beforeEach(function () {
+      httpClient.post.yields(null, {
+        id: 'test',
+        state: 'pending',
+        enrollment: { test: 1 }
+      });
+    });
+
+    describe('when everything works ok', function () {
+      it('callbacks with transaction state', function (done) {
+        enrolledTransaction.getState(function (err, state) {
+          expect(err).not.to.exist;
+          expect(httpClient.post.calledOnce).to.be.true;
+          expect(httpClient.post.args[0][0]).to.equal('/api/transaction-state');
+          expect(httpClient.post.args[0][1]).to.equal(transactionToken);
+          expect(httpClient.post.args[0][2]).to.equal(null);
+
+          expect(state).to.eql({ id: 'test', state: 'pending', enrollment: { test: 1 } });
+          done();
+        });
+      });
+    });
+
+    describe('when there is an error', function () {
+      let err;
+
+      beforeEach(function () {
+        err = new Error();
+
+        httpClient.post.yields(err);
+      });
+
+      it('callbacks with an error', function (done) {
+        enrolledTransaction.getState(function (ierr) {
+          expect(ierr).to.equal(err);
+
+          expect(httpClient.post.calledOnce).to.be.true;
+          expect(httpClient.post.args[0][0]).to.equal('/api/transaction-state');
+          expect(httpClient.post.args[0][1]).to.equal(transactionToken);
+          expect(httpClient.post.args[0][2]).to.equal(null);
+
+          done();
+        });
+      });
+    });
+  });
+
   describe('#enroll', function () {
     describe('when you are already enrolled', function () {
       it('callbacks with an AlreadyEnrolledError', function (done) {

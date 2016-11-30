@@ -5,7 +5,7 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 const pollingClient = require('../../lib/utils/polling_client');
 
-describe.only('utils/polling_client', function () {
+describe('utils/polling_client', function () {
   let httpClient;
   let iPollingClient;
   let clock;
