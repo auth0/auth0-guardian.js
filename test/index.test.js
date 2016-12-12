@@ -174,7 +174,7 @@ describe('guardian.js', function () {
             const call = httpClient.post.getCall(0);
             expect(call.args[0]).to.equal('/api/start-flow');
             expect(call.args[1].getAuthHeader()).to.equal(`Bearer ${requestToken}`);
-            expect(call.args[2]).to.equal(null);
+            expect(call.args[2]).to.eql({ state_transport: 'socket' });
 
             done();
           });
