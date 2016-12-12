@@ -27,7 +27,7 @@ var auth0GuardianJS = require('auth0-guardian-js')({
  	// For AU: https://{name}.au.guardian.auth0.com
  	// For EU: https://{name}.eu.guardian.auth0.com
 	serviceUrl: "https://{{ userData.tenant }}.guardian.auth0.com", // {name}.guardian.auth0.com
-	requestToken: "{{ requestToken }}",
+	requestToken: "{{ requestToken }}", // or ticket: "{{ ticket }}"
 
 	issuer: {
 		// The issuer name to show in OTP Generator apps
@@ -44,6 +44,7 @@ var auth0GuardianJS = require('auth0-guardian-js')({
 	globalTrackingId: "{{ globalTrackingId }}"
 });
 ```
+Use `requestToken` or `ticket` depends on the authentication method. Ticket correponds to a previous generated  _enrollment ticket_. 
 
 ### Enrollment
 To enroll a device is a process composed of the following steps:

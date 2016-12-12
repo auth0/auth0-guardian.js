@@ -211,14 +211,20 @@
         screen.transitionTo('[data-loading]');
 
         function postCallServer(authPayload) {
+          {% if postActionURL %}
           auth0GuardianJS.formPostHelper("{{ postActionURL }}", authPayload);
+          {% endif %}
         }
 
         // --------------------- Setup Guardian JS ----------------------------
 
         var guardianjs = auth0GuardianJS({
           serviceUrl: "https://{{ userData.tenant }}.guardian.auth0.com", // https://{name}.guardian.auth0.com
+          {% if ticket %}
+          ticket: "{{ ticket }}",
+          {% else %}
           requestToken: "{{ requestToken }}",
+          {% endif %}
 
           issuer: {
             label: "{{ userData.friendlyUserId }}",
