@@ -292,6 +292,35 @@ auth0GuardianJS.start(function(err, transaction) {
   //...
 });
 ```
+### auth0GuardianJS.resume(options, transactionState, callback) 
+This continues a transaction saved by `transaction.serialize()`. The option parameter provides 
+the final user the opportunity to specify which kind of `transport` to use. That been:
+
+- `socket`: a socket.io transport
+- `pooling`: a pooling transport.
+
+The default one is `socket`. 
+
+This is a factory method, you SHOULD NOT instantiate`auth0GuardianJS`.
+
+at some point in your code you stored the transaction:
+```js
+auth0GuardianJS.start(function(err, transaction) {
+  //...
+
+  secureStorage.store('guardiantx', transaction.serialize());
+});
+```
+
+Later, in another part of the code:
+```js
+var serializedTransaction = secureStorage.get('guardiantx');
+
+auth0GuardianJS.resume({ transport: 'pooling' }, serializedTransaction, function(err, transaction) {
+  //... continue using that transaction object.
+});
+
+```
 
 ### Transaction
 
@@ -388,6 +417,12 @@ recovery code is the new recovery code you must show to the user from him to sav
 ```js
 transaction.recover({ recoveryCode: recoveryCode });
 ```
+
+#### transaction.serialize() 
+The .serialize() method creates a plain javascript Object that should remind opaque 
+to the final user. This must be stored by the user in a secure way.
+
+This object is used in combination with `auth0GuardianJS.resume` 
 
 #### transaction.on(eventName, handler)
 Listen for `eventName` and execute the handler if that event is received. The
