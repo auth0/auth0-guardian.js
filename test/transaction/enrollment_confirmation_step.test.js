@@ -10,6 +10,11 @@ const bsmsEnrollmentStrategy = require('../../lib/enrollment_strategies/sms_enro
 const bpnEnrollmentStrategy = require('../../lib/enrollment_strategies/pn_enrollment_strategy');
 const enrollmentConfirmationStep = require('../../lib/transaction/enrollment_confirmation_step');
 const GuardianError = require('../../lib/errors/guardian_error');
+const jwtToken = require('../../lib/utils/jwt_token');
+const transactionFactory = require('../../lib/transaction/factory');
+
+// eslint-disable-next-line
+const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjI5NTY0MzE2MjksInR4aWQiOiJ0eF8xMjM0NSIsImFkbWluIjp0cnVlfQ.KYkrYwJJg-QuG1IVtCs7q7y-532t50xk3f8jIXcmsJc';
 
 describe('transaction/auth_verificatin_step', function () {
   let httpClient;
@@ -26,14 +31,16 @@ describe('transaction/auth_verificatin_step', function () {
       get: sinon.stub(),
       put: sinon.stub(),
       patch: sinon.stub(),
-      del: sinon.stub()
+      del: sinon.stub(),
+      getBaseUrl: sinon.stub()
     };
     transactionEventsReceiver = new EventEmitter();
-    transactionToken = new EventEmitter();
-    transactionToken.getToken = sinon.stub().returns('123.123.123');
-    transactionToken.getDecoded = sinon.stub().returns({
-      txid: 'tx_12345'
-    });
+    transactionToken = jwtToken(token);
+
+    const txOptions = {
+      httpClient,
+      transactionEventsReceiver
+    };
 
     enrollmentAttempt = benrollmentAttempt({
       enrollmentTxId: '1234567',
@@ -47,16 +54,25 @@ describe('transaction/auth_verificatin_step', function () {
       baseUrl: 'https://me.too/'
     });
 
-    notEnrolledTransaction = btransaction({
+    //
+    // Creating a transaction, serializing it; then
+    // deserialize using the factory in order to test
+    // all functionality using that transaction
+    // this will be enough proof that the ser/des works
+    // fine
+    // c = new C()
+    // C.deserialize(c.serialize) == c;
+    //
+    const notEnrolledTransactionState = btransaction({
       transactionToken,
       enrollmentAttempt,
       enrollments: [],
       availableEnrollmentMethods: ['push', 'otp', 'sms'],
       availableAuthenticationMethods: ['push', 'otp', 'sms']
-    }, {
-      httpClient,
-      transactionEventsReceiver
-    });
+    }, txOptions).serialize();
+
+    notEnrolledTransaction = transactionFactory.fromTransactionState(
+      notEnrolledTransactionState, txOptions);
   });
 
   describe('for sms', function () {
@@ -119,7 +135,7 @@ describe('transaction/auth_verificatin_step', function () {
         it('calls the server for otp verification', function (done) {
           httpClient.post = function (path, credentials, data, callback) {
             expect(path).to.equal('api/verify-otp');
-            expect(credentials.getToken()).to.equal('123.123.123');
+            expect(credentials.getToken()).to.equal(token);
             expect(data).to.eql({
               code: '123456',
               type: 'manual_input'
@@ -161,7 +177,7 @@ describe('transaction/auth_verificatin_step', function () {
 
         describe('when server returns ok and enrollment:confirmed event is received', function () {
           beforeEach(function () {
-            httpClient.post = sinon.spy(function (path, token, data, callback) {
+            httpClient.post = sinon.spy(function (path, t, data, callback) {
               transactionEventsReceiver.emit('enrollment:confirmed', {
                 txId: 'tx_12345',
                 method: 'sms',
@@ -260,7 +276,7 @@ describe('transaction/auth_verificatin_step', function () {
         it('calls the server for otp verification', function (done) {
           httpClient.post = function (path, credentials, data, callback) {
             expect(path).to.equal('api/verify-otp');
-            expect(credentials.getToken()).to.equal('123.123.123');
+            expect(credentials.getToken()).to.equal(token);
             expect(data).to.eql({
               code: '123456',
               type: 'manual_input'
@@ -302,7 +318,7 @@ describe('transaction/auth_verificatin_step', function () {
 
         describe('when server returns ok and enrollment:confirmed event is received', function () {
           beforeEach(function () {
-            httpClient.post = sinon.spy(function (path, token, data, callback) {
+            httpClient.post = sinon.spy(function (path, t, data, callback) {
               transactionEventsReceiver.emit('enrollment:confirmed', {
                 txId: 'tx_12345',
                 method: 'otp'

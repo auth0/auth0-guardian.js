@@ -10,6 +10,11 @@ const bsmsAuthStrategy = require('../../lib/auth_strategies/sms_auth_strategy');
 const bpnAuthStrategy = require('../../lib/auth_strategies/pn_auth_strategy');
 const authVerificationStep = require('../../lib/transaction/auth_verification_step');
 const GuardianError = require('../../lib/errors/guardian_error');
+const jwtToken = require('../../lib/utils/jwt_token');
+const transactionFactory = require('../../lib/transaction/factory');
+
+// eslint-disable-next-line
+const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjI5NTY0MzE2MjksInR4aWQiOiJ0eF8xMjM0NSIsImFkbWluIjp0cnVlfQ.KYkrYwJJg-QuG1IVtCs7q7y-532t50xk3f8jIXcmsJc';
 
 describe('transaction/auth_verification_step', function () {
   let httpClient;
@@ -26,30 +31,40 @@ describe('transaction/auth_verification_step', function () {
       get: sinon.stub(),
       put: sinon.stub(),
       patch: sinon.stub(),
-      del: sinon.stub()
+      del: sinon.stub(),
+      getBaseUrl: sinon.stub()
+
     };
     transactionEventsReceiver = new EventEmitter();
-    transactionToken = new EventEmitter();
-    transactionToken.getToken = sinon.stub().returns('123.123.123');
-    transactionToken.getDecoded = sinon.stub().returns({
-      txid: 'tx_12345'
-    });
+    transactionToken = jwtToken(token);
+    const txOptions = { httpClient, transactionEventsReceiver };
 
     enrollment = benrollment({
       availableMethods: ['sms'],
       phoneNumber: '+1111111'
     });
 
-    enrolledTransaction = btransaction({
+    //
+    // Creating a transaction, serializing it; then
+    // deserialize using the factory in order to test
+    // all functionality using that transaction
+    // this will be enough proof that the ser/des works
+    // fine
+    // c = new C()
+    // C.deserialize(c.serialize) == c;
+    //
+    const enrolledTransactionState = btransaction({
       transactionToken,
       enrollmentAttempt: null,
       enrollments: [enrollment],
       availableEnrollmentMethods: ['push', 'otp', 'sms'],
       availableAuthenticationMethods: ['push', 'otp', 'sms']
-    }, {
-      httpClient,
-      transactionEventsReceiver
-    });
+    }, txOptions).serialize();
+
+    enrolledTransaction = transactionFactory.fromTransactionState(
+      enrolledTransactionState,
+      txOptions
+    );
   });
 
   describe('for sms', function () {
@@ -105,7 +120,7 @@ describe('transaction/auth_verification_step', function () {
         it('calls the server for otp verification', function (done) {
           httpClient.post = function (path, credentials, data, callback) {
             expect(path).to.equal('api/verify-otp');
-            expect(credentials.getToken()).to.equal('123.123.123');
+            expect(credentials.getToken()).to.equal(token);
             expect(data).to.eql({
               code: '123456',
               type: 'manual_input'
@@ -147,7 +162,7 @@ describe('transaction/auth_verification_step', function () {
 
         describe('when server returns ok and login:complete event is received', function () {
           beforeEach(function () {
-            httpClient.post = sinon.spy(function (path, token, data, callback) {
+            httpClient.post = sinon.spy(function (path, t, data, callback) {
               transactionEventsReceiver.emit('login:complete', {
                 txId: 'tx_12345',
                 signature: '123.123.123'
@@ -225,7 +240,7 @@ describe('transaction/auth_verification_step', function () {
         it('calls the server for otp verification', function (done) {
           httpClient.post = function (path, credentials, data, callback) {
             expect(path).to.equal('api/verify-otp');
-            expect(credentials.getToken()).to.equal('123.123.123');
+            expect(credentials.getToken()).to.equal(token);
             expect(data).to.eql({
               code: '123456',
               type: 'manual_input'
@@ -267,7 +282,7 @@ describe('transaction/auth_verification_step', function () {
 
         describe('when server returns ok and login:complete event is received', function () {
           beforeEach(function () {
-            httpClient.post = sinon.spy(function (path, token, data, callback) {
+            httpClient.post = sinon.spy(function (path, t, data, callback) {
               transactionEventsReceiver.emit('login:complete', {
                 txId: 'tx_12345',
                 signature: '123.123.123'
