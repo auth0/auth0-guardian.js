@@ -1,4 +1,4 @@
-# auth0-guardian-js (beta) [![Build Status](https://travis-ci.com/auth0/auth0-guardian.js.svg?token=yqCyABa23Ae4fxDwqe1c&branch=master)](https://travis-ci.com/auth0/auth0-guardian.js)
+# auth0-guardian-js [![Build Status](https://travis-ci.com/auth0/auth0-guardian.js.svg?token=yqCyABa23Ae4fxDwqe1c&branch=master)](https://travis-ci.com/auth0/auth0-guardian.js)
 
 UI-less client for Guardian.
 
@@ -10,12 +10,12 @@ npm install auth0-guardian-js
 ## CDN
 Full version
 ```
-https://cdn.auth0.com/js/guardian-js/0.2.0/guardian-js.js
+https://cdn.auth0.com/js/guardian-js/0.4.0/guardian-js.js
 ```
 
 Minified version
 ```
-https://cdn.auth0.com/js/guardian-js/0.2.0/guardian-js.min.js
+https://cdn.auth0.com/js/guardian-js/0.4.0/guardian-js.min.js
 ```
 
 ## Basic Usage
@@ -23,11 +23,11 @@ https://cdn.auth0.com/js/guardian-js/0.2.0/guardian-js.min.js
 ### Configuration
 ```js
 var auth0GuardianJS = require('auth0-guardian-js')({
-	// For US: https://{name}.guardian.auth0.com
- 	// For AU: https://{name}.au.guardian.auth0.com
- 	// For EU: https://{name}.eu.guardian.auth0.com
-	serviceUrl: "https://{{ userData.tenant }}.guardian.auth0.com", // {name}.guardian.auth0.com
-	requestToken: "{{ requestToken }}", // or ticket: "{{ ticket }}"
+	// For US tenants: https://{name}.guardian.auth0.com
+ 	// For AU tenants: https://{name}.au.guardian.auth0.com
+ 	// For EU tenants: https://{name}.eu.guardian.auth0.com
+	serviceUrl: "https://{{ userData.tenant }}.guardian.auth0.com", 
+	requestToken: "{{ requestToken }}", // or ticket: "{{ ticket }}" - see below
 
 	issuer: {
 		// The issuer name to show in OTP Generator apps
@@ -44,7 +44,7 @@ var auth0GuardianJS = require('auth0-guardian-js')({
 	globalTrackingId: "{{ globalTrackingId }}"
 });
 ```
-Use `requestToken` or `ticket` depends on the authentication method. Ticket correponds to a previous generated  _enrollment ticket_. 
+Use of `requestToken` or `ticket` depends on the authentication method. Ticket corresponds to a previously generated  _enrollment ticket_. 
 
 ### Enrollment
 To enroll a device is a process composed of the following steps:
