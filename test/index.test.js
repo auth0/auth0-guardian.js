@@ -309,4 +309,53 @@ describe('guardian.js', function () {
       });
     });
   });
+
+  describe('#resume', function () {
+    // eslint-disable-next-line
+    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE0NzgyMTU4OTUwMDAwMDAsInR4aWQiOiIyYTliNWI2YjQzYjFiNmIyYjkiLCJhZG1pbiI6dHJ1ZX0.E5-_n8sdEyZ1RuDUdMJr9JSJB0AuE4ODMyVGIrG8Jg8';
+    const serializedTransaction = {
+      transactionToken: token,
+      enrollments: [
+        {
+          availableMethods: ['sms'],
+          phoneNumber: '+1111111'
+        }
+      ],
+      baseUrl: 'http://42.org',
+      availableEnrollmentMethods: ['sms'],
+      availableAuthenticationMethods: ['push']
+    };
+
+    httpClient = {
+      post: sinon.stub(),
+      get: sinon.stub(),
+      put: sinon.stub(),
+      patch: sinon.stub(),
+      del: sinon.stub()
+    };
+
+    socketClient = {
+      connect: sinon.stub(),
+      on: sinon.stub()
+    };
+
+    const options = { dependencies: { httpClient, socketClient } };
+
+    socketClient.connect.yields();
+
+    it('callbacks with a enrolled transaction', function (done) {
+      guardianjsb.resume(options, serializedTransaction, (err, tx) => {
+        expect(err).not.to.exist;
+
+        const enrollment = tx.getEnrollments()[0];
+        expect(enrollment.getPhoneNumber()).to.equal('+1111111');
+        expect(enrollment.getAvailableMethods()).to.eql(['sms']);
+
+        expect(tx.getAvailableEnrollmentMethods()).to.eql(['sms']);
+        expect(tx.getAvailableAuthenticationMethods()).to.eql(['push']);
+
+        done();
+      });
+    });
+  });
 });

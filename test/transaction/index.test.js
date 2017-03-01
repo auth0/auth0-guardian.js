@@ -6,6 +6,11 @@ const benrollmentAttempt = require('../../lib/entities/enrollment_attempt');
 const benrollment = require('../../lib/entities/enrollment');
 const sinon = require('sinon');
 const EventEmitter = require('events').EventEmitter;
+const jwtToken = require('../../lib/utils/jwt_token');
+const transactionFactory = require('../../lib/transaction/factory');
+
+// eslint-disable-next-line
+const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjI5NTY0MzE2MjksInR4aWQiOiJ0eF8xMjM0NSIsImFkbWluIjp0cnVlfQ.KYkrYwJJg-QuG1IVtCs7q7y-532t50xk3f8jIXcmsJc';
 
 describe('transaction/index', function () {
   let httpClient;
@@ -22,14 +27,12 @@ describe('transaction/index', function () {
       get: sinon.stub(),
       put: sinon.stub(),
       patch: sinon.stub(),
-      del: sinon.stub()
+      del: sinon.stub(),
+      getBaseUrl: sinon.stub()
     };
     transactionEventsReceiver = new EventEmitter();
-    transactionToken = new EventEmitter();
-    transactionToken.getToken = sinon.stub().returns('123.123.123');
-    transactionToken.getDecoded = sinon.stub().returns({
-      txid: 'tx_12345'
-    });
+    transactionToken = jwtToken(token);
+    const txOptions = { httpClient, transactionEventsReceiver };
 
     enrollment = benrollment({
       availableMethods: ['sms'],
@@ -48,7 +51,19 @@ describe('transaction/index', function () {
       baseUrl: 'https://me.too/'
     });
 
-    notEnrolledTransaction = btransaction({
+    //
+    // Creating a transaction, serializing it; then
+    // deserialize using the factory in order to test
+    // all functionality using that transaction
+    // this will be enough proof that the ser/des works
+    // fine
+    // c = new C()
+    // C.deserialize(c.serialize) == c;
+    //
+    // Not all test uses notEnrolledTransaction and
+    // enrolledTransaction but still been a good amount
+    // of tests
+    const notEnrolledTransactionState = btransaction({
       transactionToken,
       enrollmentAttempt,
       enrollments: [],
@@ -56,10 +71,16 @@ describe('transaction/index', function () {
       availableAuthenticationMethods: ['push', 'otp', 'sms']
     }, {
       httpClient,
-      transactionEventsReceiver
-    });
+      transactionEventsReceiver: new EventEmitter()
+    }).serialize();
 
-    enrolledTransaction = btransaction({
+    notEnrolledTransaction = transactionFactory.fromTransactionState(
+      notEnrolledTransactionState,
+      txOptions
+    );
+
+
+    const enrolledTransactionState = btransaction({
       transactionToken,
       enrollmentAttempt: null,
       enrollments: [enrollment],
@@ -67,15 +88,20 @@ describe('transaction/index', function () {
       availableAuthenticationMethods: ['push', 'otp', 'sms']
     }, {
       httpClient,
-      transactionEventsReceiver
-    });
+      transactionEventsReceiver: new EventEmitter()
+    }).serialize();
+
+    enrolledTransaction = transactionFactory.fromTransactionState(
+      enrolledTransactionState,
+      txOptions
+    );
   });
 
   describe('events', function () {
     describe('when transaction-token expires', function () {
       it('emits timeout', function (done) {
         notEnrolledTransaction.once('timeout', () => done());
-        transactionToken.emit('token-expired');
+        notEnrolledTransaction.transactionToken.emit('token-expired');
       });
     });
 
@@ -238,7 +264,7 @@ describe('transaction/index', function () {
       describe('when login:complete is emitted', function () {
         it('emits auth-response', function (done) {
           notEnrolledTransaction.once('auth-response', (p) => {
-            expect(p.signature).to.equal('123.123.123');
+            expect(p.signature).to.equal('123.456.789');
             expect(p.accepted).to.be.true;
 
             done();
@@ -256,7 +282,7 @@ describe('transaction/index', function () {
 
             transactionEventsReceiver.emit('login:complete', {
               txId: 'tx_12345',
-              signature: '123.123.123'
+              signature: '123.456.789'
             });
           });
         });
@@ -327,7 +353,7 @@ describe('transaction/index', function () {
           expect(err).not.to.exist;
           expect(httpClient.post.calledOnce).to.be.true;
           expect(httpClient.post.args[0][0]).to.equal('/api/transaction-state');
-          expect(httpClient.post.args[0][1]).to.equal(transactionToken);
+          expect(httpClient.post.args[0][1].getToken()).to.equal(token);
           expect(httpClient.post.args[0][2]).to.equal(null);
 
           expect(state).to.eql({ id: 'test', state: 'pending', enrollment: { test: 1 } });
@@ -351,7 +377,7 @@ describe('transaction/index', function () {
 
           expect(httpClient.post.calledOnce).to.be.true;
           expect(httpClient.post.args[0][0]).to.equal('/api/transaction-state');
-          expect(httpClient.post.args[0][1]).to.equal(transactionToken);
+          expect(httpClient.post.args[0][1].getToken()).to.equal(token);
           expect(httpClient.post.args[0][2]).to.equal(null);
 
           done();
@@ -466,7 +492,7 @@ describe('transaction/index', function () {
               expect(httpClient.post.calledOnce).to.be.true;
               expect(httpClient.post.getCall(0).args[0]).to
                 .equal('api/device-accounts/123456/sms-enroll');
-              expect(httpClient.post.getCall(0).args[1].getToken()).to.eql('123.123.123');
+              expect(httpClient.post.getCall(0).args[1].getToken()).to.eql(token);
               expect(httpClient.post.getCall(0).args[2]).to.eql({ phone_number: '+54 678909' });
               done();
             });
@@ -717,7 +743,7 @@ describe('transaction/index', function () {
             expect(httpClient.post.calledOnce).to.be.true;
             expect(httpClient.post.getCall(0).args[0]).to
               .equal('api/send-sms');
-            expect(httpClient.post.getCall(0).args[1].getToken()).to.eql('123.123.123');
+            expect(httpClient.post.getCall(0).args[1].getToken()).to.eql(token);
             expect(httpClient.post.getCall(0).args[2]).to.eql(null);
             done();
           });
@@ -749,7 +775,7 @@ describe('transaction/index', function () {
             expect(httpClient.post.calledOnce).to.be.true;
             expect(httpClient.post.getCall(0).args[0]).to
               .equal('api/send-push-notification');
-            expect(httpClient.post.getCall(0).args[1].getToken()).to.eql('123.123.123');
+            expect(httpClient.post.getCall(0).args[1].getToken()).to.eql(token);
             expect(httpClient.post.getCall(0).args[2]).to.eql(null);
             done();
           });
@@ -870,7 +896,7 @@ describe('transaction/index', function () {
 
     describe('when recovery code is valid and servers sends the token', function () {
       beforeEach(function () {
-        httpClient.post = sinon.spy(function (path, token, data, callback) {
+        httpClient.post = sinon.spy(function (path, t, data, callback) {
           transactionEventsReceiver.emit('login:complete', {
             txId: 'tx_12345',
             signature: '123.456.789'
@@ -914,6 +940,42 @@ describe('transaction/index', function () {
       expect(enrolledTransaction.getEnrollments()).to.eql([enrollment]);
     });
   });
+
+  describe('#serialize', function () {
+    beforeEach(function () {
+      httpClient.getBaseUrl.returns('http://42.org');
+    });
+
+    describe('returns the serialized transaction', function () {
+      it('using a transaction that have an enrolled device', function () {
+        const serialized = enrolledTransaction.serialize();
+        expect(serialized).to.have.property('transactionToken', token);
+        expect(serialized).to.have.property('enrollmentAttempt', undefined);
+        expect(serialized).to.have.property('enrollments')
+          .that.deep.equals([enrollment.serialize()]);
+        expect(serialized).to.have.property('baseUrl', 'http://42.org');
+        expect(serialized).to.have.property('availableEnrollmentMethods')
+          .that.deep.equals(['push', 'otp', 'sms']);
+        expect(serialized).to.have.property('availableAuthenticationMethods')
+          .that.deep.equals(['push', 'otp', 'sms']);
+      });
+
+      it('using a transaction that not have an enrolled device', function () {
+        const serialized = notEnrolledTransaction.serialize();
+        expect(serialized).to.have.property('transactionToken', token);
+        expect(serialized).to.have.property('enrollmentAttempt')
+          .that.deep.equals(enrollmentAttempt.serialize());
+        expect(serialized).to.have.property('enrollments')
+          .that.deep.equals([]);
+        expect(serialized).to.have.property('baseUrl', 'http://42.org');
+        expect(serialized).to.have.property('availableEnrollmentMethods')
+          .that.deep.equals(['push', 'otp', 'sms']);
+        expect(serialized).to.have.property('availableAuthenticationMethods')
+          .that.deep.equals(['push', 'otp', 'sms']);
+      });
+    });
+  });
+
 
   describe('#getAvailableEnrollmentMethods', function () {
     it('returns the available enrollment methods', function () {
