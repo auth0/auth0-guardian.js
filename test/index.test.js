@@ -3,7 +3,7 @@
 const expect = require('chai').expect;
 const guardianjsb = require('../lib');
 const sinon = require('sinon');
-// const EventEmitter = require('events').EventEmitter;
+const nullClient = require('../lib/utils/null_client');
 
 describe('guardian.js', function () {
   let httpClient;
@@ -308,6 +308,193 @@ describe('guardian.js', function () {
         });
       });
     });
+
+    describe('when transport is manual', function () {
+      describe('when everything works ok', function () {
+        let response;
+
+        beforeEach(function () {
+          response = {
+            deviceAccount: {
+              methods: ['otp'],
+              availableMethods: ['otp'],
+              name: 'test',
+              phoneNumber: '+1234'
+            },
+            availableEnrollmentMethods: ['otp'],
+            availableAuthenticationMethods: ['push'],
+            transactionToken
+          };
+
+          socketClient.connect.yields();
+          httpClient.post.yields(null, response);
+
+          guardianjs = guardianjsb({
+            serviceUrl: 'https://tenant.guardian.auth0.com',
+            requestToken,
+            issuer: {
+              label: 'label',
+              name: 'name'
+            },
+            accountLabel: 'accountLabel',
+            globalTrackingId: 'globalTrackingId',
+            dependencies: {
+              httpClient
+            },
+            transport: 'manual'
+          });
+        });
+
+        it('calls start flow as expected', function (done) {
+          guardianjs.start((err) => {
+            expect(err).not.to.exist;
+            expect(httpClient.post.calledOnce).to.be.true;
+
+            const call = httpClient.post.getCall(0);
+            expect(call.args[0]).to.equal('/api/start-flow');
+            expect(call.args[1].getAuthHeader()).to.equal(`Bearer ${requestToken}`);
+            expect(call.args[2]).to.eql({ state_transport: 'polling' });
+
+            done();
+          });
+        });
+
+        it('uses nullClient', function () {
+          // This is an implementation detail, but worth checking IMO
+          expect(guardianjs.socketClient).to.be.an.instanceOf(nullClient);
+        });
+
+        describe('for an user already enrolled', function () {
+          beforeEach(function () {
+            response = {
+              deviceAccount: {
+                methods: ['otp'],
+                availableMethods: ['otp'],
+                name: 'test',
+                phoneNumber: '+1234'
+              },
+              availableEnrollmentMethods: ['otp'],
+              availableAuthenticationMethods: ['push'],
+              transactionToken,
+              transport: 'manual'
+            };
+
+            socketClient.connect.yields();
+            httpClient.post.yields(null, response);
+
+            guardianjs = guardianjsb({
+              serviceUrl: 'https://tenant.guardian.auth0.com',
+              requestToken,
+              issuer: {
+                label: 'label',
+                name: 'name'
+              },
+              accountLabel: 'accountLabel',
+              globalTrackingId: 'globalTrackingId',
+              dependencies: {
+                httpClient,
+                socketClient
+              },
+              transport: 'manual'
+            });
+          });
+
+          it('callbacks with an enrolled-transaction', function (done) {
+            guardianjs.start((err, tx) => {
+              expect(err).not.to.exist;
+
+              const enrollment = tx.getEnrollments()[0];
+              expect(enrollment).to.exist;
+
+              expect(tx.isEnrolled()).to.be.true;
+
+              expect(enrollment.getAvailableMethods())
+                .to.eql(response.deviceAccount.availableMethods);
+              expect(enrollment.getMethods())
+                .to.eql(response.deviceAccount.methods);
+              expect(enrollment.getName())
+                .to.eql(response.deviceAccount.name);
+              expect(enrollment.getPhoneNumber())
+                .to.eql(response.deviceAccount.phoneNumber);
+
+              expect(tx.transactionToken.getAuthHeader())
+                .to.equal(`Bearer ${transactionToken}`);
+
+              done();
+            });
+          });
+        });
+
+        describe('for an user not enrolled', function () {
+          beforeEach(function () {
+            response = {
+              deviceAccount: {
+                id: '1234',
+                otpSecret: 'abcd1234',
+                recoveryCode: '12asddasdasdasd'
+              },
+              availableEnrollmentMethods: ['otp'],
+              availableAuthenticationMethods: ['push'],
+              enrollmentTxId: '1234678',
+              transactionToken,
+              transport: 'manual'
+            };
+
+            socketClient.connect.yields();
+            httpClient.post.yields(null, response);
+
+            guardianjs = guardianjsb({
+              serviceUrl: 'https://tenant.guardian.auth0.com',
+              requestToken,
+              issuer: {
+                label: 'label',
+                name: 'name'
+              },
+              accountLabel: 'accountLabel',
+              globalTrackingId: 'globalTrackingId',
+              dependencies: {
+                httpClient,
+                socketClient
+              }
+            });
+          });
+
+          it('callbacks with a non enrolled transaction', function (done) {
+            guardianjs.start((err, tx) => {
+              expect(err).not.to.exist;
+
+              const enrollment = tx.getEnrollments()[0];
+              expect(enrollment).not.to.exist;
+
+              expect(tx.getAvailableEnrollmentMethods()).to.eql(['otp']);
+              expect(tx.getAvailableAuthenticationMethods()).to.eql(['push']);
+
+              expect(tx.enrollmentAttempt.getEnrollmentTransactionId())
+                .to.eql(response.enrollmentTxId);
+              expect(tx.enrollmentAttempt.getOtpSecret())
+                .to.eql(response.deviceAccount.otpSecret);
+              expect(tx.enrollmentAttempt.getIssuerName())
+                .to.eql('name');
+              expect(tx.enrollmentAttempt.getIssuerLabel())
+                .to.eql('label');
+              expect(tx.enrollmentAttempt.getAccountLabel())
+                .to.eql('accountLabel');
+              expect(tx.enrollmentAttempt.getRecoveryCode())
+                .to.eql(response.deviceAccount.recoveryCode);
+              expect(tx.enrollmentAttempt.getEnrollmentId())
+                .to.eql(response.deviceAccount.id);
+              expect(tx.enrollmentAttempt.getBaseUri())
+                .to.equal('https://tenant.guardian.auth0.com');
+
+              expect(tx.transactionToken.getAuthHeader())
+                .to.equal(`Bearer ${transactionToken}`);
+
+              done();
+            });
+          });
+        });
+      });
+    });
   });
 
   describe('#resume', function () {
@@ -359,3 +546,4 @@ describe('guardian.js', function () {
     });
   });
 });
+
