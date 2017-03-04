@@ -91,6 +91,12 @@ describe('transaction/auth_verificatin_step', function () {
       });
     });
 
+    describe('#serialize', function () {
+      it('returns method: sms', function () {
+        expect(step.serialize()).to.eql({ method: 'sms' });
+      });
+    });
+
     describe('#getUri', function () {
       it('returns null', function () {
         expect(step.getUri()).to.equal(null);
@@ -227,6 +233,12 @@ describe('transaction/auth_verificatin_step', function () {
         transaction: notEnrolledTransaction,
         enrollmentCompleteHub: notEnrolledTransaction.enrollmentCompleteHub,
         enrollmentAttempt: notEnrolledTransaction.enrollmentAttempt
+      });
+    });
+
+    describe('#serialize', function () {
+      it('returns method: otp', function () {
+        expect(step.serialize()).to.eql({ method: 'otp' });
       });
     });
 
@@ -369,6 +381,12 @@ describe('transaction/auth_verificatin_step', function () {
         transaction: notEnrolledTransaction,
         enrollmentCompleteHub: notEnrolledTransaction.enrollmentCompleteHub,
         enrollmentAttempt: notEnrolledTransaction.enrollmentAttempt
+      });
+    });
+
+    describe('#serialize', function () {
+      it('returns method: push', function () {
+        expect(step.serialize()).to.eql({ method: 'push' });
       });
     });
 

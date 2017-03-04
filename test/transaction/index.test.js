@@ -946,8 +946,8 @@ describe('transaction/index', function () {
       httpClient.getBaseUrl.returns('http://42.org');
     });
 
-    describe('returns the serialized transaction', function () {
-      it('using a transaction that have an enrolled device', function () {
+    describe('using a transaction that have an enrolled device', function () {
+      it('returns correct transaction serialization', function () {
         const serialized = enrolledTransaction.serialize();
         expect(serialized).to.have.property('transactionToken', token);
         expect(serialized).to.have.property('enrollmentAttempt', undefined);
@@ -959,8 +959,10 @@ describe('transaction/index', function () {
         expect(serialized).to.have.property('availableAuthenticationMethods')
           .that.deep.equals(['push', 'otp', 'sms']);
       });
+    });
 
-      it('using a transaction that not have an enrolled device', function () {
+    describe('using a transaction that not have an enrolled device', function () {
+      it('returns correct transaction serialization', function () {
         const serialized = notEnrolledTransaction.serialize();
         expect(serialized).to.have.property('transactionToken', token);
         expect(serialized).to.have.property('enrollmentAttempt')
@@ -972,6 +974,75 @@ describe('transaction/index', function () {
           .that.deep.equals(['push', 'otp', 'sms']);
         expect(serialized).to.have.property('availableAuthenticationMethods')
           .that.deep.equals(['push', 'otp', 'sms']);
+      });
+    });
+
+    describe('when there is an enrollment confirmation step', function () {
+      let enrollmentConfirmationStep;
+
+      beforeEach(function (done) {
+        httpClient.post.yields();
+        notEnrolledTransaction.enroll('sms', { phoneNumber: '+54 0000000' },
+        function (err, ienrollmentConfirmationStep) {
+          if (err) {
+            done(err);
+            return;
+          }
+
+          enrollmentConfirmationStep = ienrollmentConfirmationStep;
+          enrollmentAttempt.setActive(true);
+          done();
+        });
+      });
+
+      it('returns correct transaction serialization with enrollmentConfirmationStep', function () {
+        const serialized = notEnrolledTransaction.serialize();
+        expect(serialized).to.have.property('transactionToken', token);
+        expect(serialized).to.have.property('enrollmentAttempt')
+          .that.deep.equals(enrollmentAttempt.serialize());
+        expect(serialized).to.have.property('enrollments')
+          .that.deep.equals([]);
+        expect(serialized).to.have.property('baseUrl', 'http://42.org');
+        expect(serialized).to.have.property('availableEnrollmentMethods')
+          .that.deep.equals(['push', 'otp', 'sms']);
+        expect(serialized).to.have.property('availableAuthenticationMethods')
+          .that.deep.equals(['push', 'otp', 'sms']);
+        expect(serialized).to.have.property('enrollmentConfirmationStep').and
+          .eql(enrollmentConfirmationStep.serialize());
+      });
+    });
+
+
+    describe('when there is an auth veritication step', function () {
+      let authVerificationStep;
+
+      beforeEach(function (done) {
+        httpClient.post.yields();
+        enrolledTransaction.requestAuth(enrollment, { method: 'push' },
+        function (err, iauthVerificationStep) {
+          if (err) {
+            done(err);
+            return;
+          }
+
+          authVerificationStep = iauthVerificationStep;
+          done();
+        });
+      });
+
+      it('returns correct transaction serialization with authVerificationStep', function () {
+        const serialized = enrolledTransaction.serialize();
+        expect(serialized).to.have.property('transactionToken', token);
+        expect(serialized).to.have.property('enrollmentAttempt', undefined);
+        expect(serialized).to.have.property('enrollments')
+          .that.deep.equals([enrollment.serialize()]);
+        expect(serialized).to.have.property('baseUrl', 'http://42.org');
+        expect(serialized).to.have.property('availableEnrollmentMethods')
+          .that.deep.equals(['push', 'otp', 'sms']);
+        expect(serialized).to.have.property('availableAuthenticationMethods')
+          .that.deep.equals(['push', 'otp', 'sms']);
+        expect(serialized).to.have.property('authVerificationStep').and
+          .eql(authVerificationStep.serialize());
       });
     });
   });

@@ -88,6 +88,12 @@ describe('transaction/auth_verification_step', function () {
       });
     });
 
+    describe('#serialize', function () {
+      it('returns method: sms', function () {
+        expect(step.serialize()).to.eql({ method: 'sms' });
+      });
+    });
+
     describe('#verify', function () {
       describe('when otpCode is not provided', function () {
         it('emits FieldRequiredError', function (done) {
@@ -201,6 +207,12 @@ describe('transaction/auth_verification_step', function () {
         enrolledTransaction,
         loginCompleteHub: enrolledTransaction.loginCompleteHub,
         loginRejectedHub: enrolledTransaction.loginRejectedHub
+      });
+    });
+
+    describe('#serialize', function () {
+      it('returns method: otp', function () {
+        expect(step.serialize()).to.eql({ method: 'otp' });
       });
     });
 
@@ -323,6 +335,12 @@ describe('transaction/auth_verification_step', function () {
         enrolledTransaction,
         loginCompleteHub: enrolledTransaction.loginCompleteHub,
         loginRejectedHub: enrolledTransaction.loginRejectedHub
+      });
+    });
+
+    describe('#serialize', function () {
+      it('returns method: push', function () {
+        expect(step.serialize()).to.eql({ method: 'push' });
       });
     });
 
