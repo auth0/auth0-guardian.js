@@ -26,7 +26,8 @@ describe('guardian.js', function () {
       get: sinon.stub(),
       put: sinon.stub(),
       patch: sinon.stub(),
-      del: sinon.stub()
+      del: sinon.stub(),
+      getBaseUrl: sinon.stub().returns('https://tenant.guardian.auth0.com')
     };
 
     socketClient = {
@@ -469,6 +470,8 @@ describe('guardian.js', function () {
               expect(tx.getAvailableEnrollmentMethods()).to.eql(['otp']);
               expect(tx.getAvailableAuthenticationMethods()).to.eql(['push']);
 
+              console.log('b!', JSON.stringify(tx.serialize()));
+
               expect(tx.enrollmentAttempt.getEnrollmentTransactionId())
                 .to.eql(response.enrollmentTxId);
               expect(tx.enrollmentAttempt.getOtpSecret())
@@ -498,20 +501,11 @@ describe('guardian.js', function () {
   });
 
   describe('#resume', function () {
-    // eslint-disable-next-line
+    // eslint-disable-next-line max-len
     const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE0NzgyMTU4OTUwMDAwMDAsInR4aWQiOiIyYTliNWI2YjQzYjFiNmIyYjkiLCJhZG1pbiI6dHJ1ZX0.E5-_n8sdEyZ1RuDUdMJr9JSJB0AuE4ODMyVGIrG8Jg8';
-    const serializedTransaction = {
-      transactionToken: token,
-      enrollments: [
-        {
-          availableMethods: ['sms'],
-          phoneNumber: '+1111111'
-        }
-      ],
-      baseUrl: 'http://42.org',
-      availableEnrollmentMethods: ['sms'],
-      availableAuthenticationMethods: ['push']
-    };
+    // eslint-disable-next-line max-len
+    const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjAsInR4aWQiOiIyYTliNWI2YjQzYjFiNmIyYjkiLCJhZG1pbiI6dHJ1ZX0.klPmsaVTzhDvVNUPCs0grJuWJdlc5_3B1dZfrCOqPIY';
+    let serializedTransaction;
 
     httpClient = {
       post: sinon.stub(),
@@ -530,6 +524,21 @@ describe('guardian.js', function () {
 
     socketClient.connect.yields();
 
+    beforeEach(function () {
+      serializedTransaction = {
+        transactionToken: token,
+        enrollments: [
+          {
+            availableMethods: ['sms'],
+            phoneNumber: '+1111111'
+          }
+        ],
+        baseUrl: 'http://42.org',
+        availableEnrollmentMethods: ['sms'],
+        availableAuthenticationMethods: ['push']
+      };
+    });
+
     it('callbacks with a enrolled transaction', function (done) {
       guardianjsb.resume(options, serializedTransaction, (err, tx) => {
         expect(err).not.to.exist;
@@ -540,8 +549,111 @@ describe('guardian.js', function () {
 
         expect(tx.getAvailableEnrollmentMethods()).to.eql(['sms']);
         expect(tx.getAvailableAuthenticationMethods()).to.eql(['push']);
+        expect(serializedTransaction.enrollmentConfirmationStep).not.to.exist;
+        expect(serializedTransaction.authVerificationStep).not.to.exist;
 
         done();
+      });
+    });
+
+    describe('when transaction token is expired', function () {
+      beforeEach(function () {
+        serializedTransaction.transactionToken = expiredToken;
+      });
+
+      it('callbacks with credentials expired error', function (done) {
+        guardianjsb.resume(options, serializedTransaction, (err) => {
+          expect(err).to.exist;
+          expect(err.message).to.equal('The credentials has expired.');
+          expect(err.errorCode).to.equal('credentials_expired');
+
+          done();
+        });
+      });
+    });
+
+    describe('when serialized transaction has enrollmentConfirmationStep', function () {
+      beforeEach(function () {
+        serializedTransaction.enrollmentConfirmationStep = { method: 'sms' };
+      });
+
+      describe('and when an enrollmentAttempt is not provided', function () {
+        it('callbacks with an error', function (done) {
+          guardianjsb.resume(options, serializedTransaction, (err) => {
+            expect(err).to.exist;
+            expect(err.message).to.equal('Expected enrollment attempt to be present: ' +
+            'try calling .enroll method first');
+            expect(err.errorCode).to.equal('invalid_state');
+            done();
+          });
+        });
+      });
+
+      describe('and when an enrollmentAttempt is provided', function () {
+        beforeEach(function () {
+          serializedTransaction.enrollmentConfirmationStep = { method: 'sms' };
+          serializedTransaction.enrollmentAttempt = {
+            data: {
+              enrollmentId: '1234',
+              enrollmentTxId: '1234678',
+              otpSecret: 'abcd1234',
+              recoveryCode: '12asddasdasdasd',
+              issuer: {
+                label: 'label',
+                name: 'name'
+              },
+              baseUrl: 'https://tenant.guardian.auth0.com',
+              accountLabel: 'accountLabel'
+            },
+            active: true
+          };
+        });
+
+        it('returns a transaction with enrollmentConfirmationStep', function (done) {
+          guardianjsb.resume(options, serializedTransaction, (err, tx) => {
+            expect(err).not.to.exist;
+            expect(tx.enrollmentConfirmationStep).to.exist;
+            expect(tx.enrollmentConfirmationStep.getMethod()).to.equal('sms');
+            expect(tx.enrollmentConfirmationStep.transaction).to.equal(tx);
+            expect(tx.enrollmentConfirmationStep.enrollmentAttempt).to.exist;
+            expect(tx.enrollmentConfirmationStep.enrollmentCompleteHub).to.exist;
+            done();
+          });
+        });
+      });
+    });
+
+    describe('when serialized transaction has authVerificationStep', function () {
+      beforeEach(function () {
+        serializedTransaction.authVerificationStep = { method: 'sms' };
+      });
+
+      describe('and when one enrollment is provided', function () {
+        it('returns a transaction with authVerificationStep', function (done) {
+          guardianjsb.resume(options, serializedTransaction, (err, tx) => {
+            expect(tx.authVerificationStep).to.exist;
+            expect(tx.authVerificationStep.getMethod()).to.equal('sms');
+            expect(tx.authVerificationStep.transaction).to.equal(tx);
+            expect(tx.authVerificationStep.loginCompleteHub).to.exist;
+            expect(tx.authVerificationStep.loginRejectedHub).to.exist;
+            done();
+          });
+        });
+      });
+
+      describe('and when an enrollment not not is provided', function () {
+        beforeEach(function () {
+          delete serializedTransaction.enrollments;
+        });
+
+        it('callbacks with an error', function (done) {
+          guardianjsb.resume(options, serializedTransaction, (err) => {
+            expect(err).to.exist;
+            expect(err.message).to.equal('Expected user to be enrolled');
+            expect(err.errorCode).to.equal('invalid_state');
+            done();
+          });
+        });
       });
     });
   });
