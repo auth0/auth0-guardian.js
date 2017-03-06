@@ -589,6 +589,37 @@ describe('guardian.js', function () {
         });
       });
 
+      describe('and when method is invalid', function () {
+        beforeEach(function () {
+          serializedTransaction.enrollmentConfirmationStep = { method: 'invalid' };
+          serializedTransaction.enrollmentAttempt = {
+            data: {
+              enrollmentId: '1234',
+              enrollmentTxId: '1234678',
+              otpSecret: 'abcd1234',
+              recoveryCode: '12asddasdasdasd',
+              issuer: {
+                label: 'label',
+                name: 'name'
+              },
+              baseUrl: 'https://tenant.guardian.auth0.com',
+              accountLabel: 'accountLabel'
+            },
+            active: true
+          };
+        });
+
+        it('callbacks with an error', function (done) {
+          guardianjsb.resume(options, serializedTransaction, (err) => {
+            expect(err).to.exist;
+            expect(err.message).to.equal('Expected data.method to be one of otp,' +
+            ' sms, push but found invalid');
+            expect(err.errorCode).to.equal('unexpected_input');
+            done();
+          });
+        });
+      });
+
       describe('and when an enrollmentAttempt is provided', function () {
         beforeEach(function () {
           serializedTransaction.enrollmentConfirmationStep = { method: 'sms' };
@@ -641,7 +672,7 @@ describe('guardian.js', function () {
         });
       });
 
-      describe('and when an enrollment not not is provided', function () {
+      describe('and when an enrollment is not provided', function () {
         beforeEach(function () {
           delete serializedTransaction.enrollments;
         });
@@ -651,6 +682,22 @@ describe('guardian.js', function () {
             expect(err).to.exist;
             expect(err.message).to.equal('Expected user to be enrolled');
             expect(err.errorCode).to.equal('invalid_state');
+            done();
+          });
+        });
+      });
+
+      describe('and when method is invalid', function () {
+        beforeEach(function () {
+          serializedTransaction.authVerificationStep = { method: 'invalid' };
+        });
+
+        it('callbacks with an error', function (done) {
+          guardianjsb.resume(options, serializedTransaction, (err) => {
+            expect(err).to.exist;
+            expect(err.message).to.equal('Expected data.method to be one of otp,' +
+            ' sms, push but found invalid');
+            expect(err.errorCode).to.equal('unexpected_input');
             done();
           });
         });
