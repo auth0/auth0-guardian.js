@@ -65,12 +65,12 @@ function getGuardianTransaction(req, options, cb) {
 ```js
 // WARNING 1: This is an advanced example, before using it consider if the
 // hosted-page option does not match you use case, they are easier to implement
-// and better suitted for most use cases.
+// and better suited for most use cases.
 //
 // WARNING 2: POST Methods require CSRF protection, don't forget to add them or
 // you will be at risk of CSRF attacks, this example left them out for simplicity
 // reasons and because there are many different ways to add them that
-// are really specific to your enrollment.
+// are really specific to your environment.
 
 'use strict'
 
