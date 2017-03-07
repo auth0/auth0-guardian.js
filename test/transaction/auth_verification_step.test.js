@@ -88,6 +88,12 @@ describe('transaction/auth_verification_step', function () {
       });
     });
 
+    describe('#serialize', function () {
+      it('returns method: sms', function () {
+        expect(step.serialize()).to.eql({ method: 'sms' });
+      });
+    });
+
     describe('#verify', function () {
       describe('when otpCode is not provided', function () {
         it('emits FieldRequiredError', function (done) {
@@ -185,6 +191,8 @@ describe('transaction/auth_verification_step', function () {
         });
       });
     });
+
+    callbackBasedVerificationExamples();
   });
 
   describe('for otp', function () {
@@ -199,6 +207,12 @@ describe('transaction/auth_verification_step', function () {
         enrolledTransaction,
         loginCompleteHub: enrolledTransaction.loginCompleteHub,
         loginRejectedHub: enrolledTransaction.loginRejectedHub
+      });
+    });
+
+    describe('#serialize', function () {
+      it('returns method: otp', function () {
+        expect(step.serialize()).to.eql({ method: 'otp' });
       });
     });
 
@@ -305,6 +319,8 @@ describe('transaction/auth_verification_step', function () {
         });
       });
     });
+
+    callbackBasedVerificationExamples();
   });
 
   describe('for push', function () {
@@ -319,6 +335,12 @@ describe('transaction/auth_verification_step', function () {
         enrolledTransaction,
         loginCompleteHub: enrolledTransaction.loginCompleteHub,
         loginRejectedHub: enrolledTransaction.loginRejectedHub
+      });
+    });
+
+    describe('#serialize', function () {
+      it('returns method: push', function () {
+        expect(step.serialize()).to.eql({ method: 'push' });
       });
     });
 
@@ -376,4 +398,100 @@ describe('transaction/auth_verification_step', function () {
       });
     });
   });
+
+  function callbackBasedVerificationExamples() {
+    describe('when a callback is available', function () {
+      describe('when otpCode is not provided', function () {
+        it('callbacks with FieldRequiredError', function (done) {
+          step.verify({ otpCode: '' }, function (err) {
+            expect(err).to.exist;
+            expect(err.stack).to.exist;
+            expect(err).to.have.property('errorCode', 'field_required');
+            expect(err).to.have.property('field', 'otpCode');
+            done();
+          });
+        });
+      });
+
+      describe('when otpCode has an invalid format', function () {
+        it('callbacks with OTPValidationError', function (done) {
+          step.verify({ otpCode: 'ABCD234' }, function (err) {
+            expect(err).to.exist;
+            expect(err.stack).to.exist;
+            expect(err).to.have.property('errorCode', 'invalid_otp_format');
+            done();
+          });
+        });
+      });
+
+      describe('when setup is ok', function () {
+        it('calls the server for otp verification', function (done) {
+          let path;
+          let credentials;
+          let data;
+
+          // eslint-disable-next-line no-param-reassign
+          httpClient.post = function (ipath, icredentials, idata, callback) {
+            path = ipath;
+            credentials = icredentials;
+            data = idata;
+
+            callback();
+          };
+
+          step.verify({ otpCode: '123456' }, function () {
+            expect(path).to.equal('api/verify-otp');
+            expect(credentials.getToken()).to.equal(token);
+            expect(data).to.eql({
+              code: '123456',
+              type: 'manual_input'
+            });
+
+            done();
+          });
+        });
+
+        describe('when server returns an error', function () {
+          let error;
+
+          beforeEach(function () {
+            error = new GuardianError({
+              message: 'Invalid otp',
+              errorCode: 'invalid_otp',
+              statusCode: 401
+            });
+
+            httpClient.post.yields(error);
+          });
+
+          it('callbacks with the error', function (done) {
+            step.verify({ otpCode: '123456' }, function (err) {
+              expect(err).to.exist;
+              expect(err.stack).to.exist;
+              expect(err).to.have.property('errorCode', 'invalid_otp');
+              expect(err).to.have.property('message', 'Invalid otp');
+              expect(err).to.have.property('statusCode', 401);
+              done();
+            });
+          });
+        });
+
+        describe('when server returns ok', function () {
+          beforeEach(function () {
+            // eslint-disable-next-line no-param-reassign
+            httpClient.post = sinon.spy(function (path, t, data, callback) {
+              setImmediate(callback);
+            });
+          });
+
+          it('callbacks without error', function (done) {
+            step.verify({ otpCode: '123456' }, function (err) {
+              expect(err).not.to.exist;
+              done();
+            });
+          });
+        });
+      });
+    });
+  }
 });
