@@ -174,7 +174,7 @@ router.post('/api/mfa/guardian/state', function(req, res, next) {
 ```js
 // WARNING 1: This is an advanced example, before using it consider if the
 // hosted-page option does not match you use case, they are easier to implement
-// and better suitted for most use cases.
+// and better suited for most use cases.
 //
 // WARNING 2: POST Methods require CSRF protection, don't forget to add them or
 // you will be at risk of CSRF attacks, this example left them out for simplicity
