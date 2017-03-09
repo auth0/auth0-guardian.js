@@ -1,4 +1,4 @@
-# Using Guardian JS Client from server side
+# Using Guardian JS Client from server side (beta)
 
 You can use Guardian Client from server side, by default Guardian Client from server side
 works exactly like in the browser. Meaning, it opens a web socket connection through socket.io
