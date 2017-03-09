@@ -28,6 +28,10 @@ once the request finishes and resume it in a follow up request.
 The following method will create a new transaction if a ticket is available or try to resume it
 from session.
 
+WARNING: keep in mind that during enrollment, a serialized transaction contains "secrets" as
+the recovery code, it is important to protect it accordingly and remove it after finishing the 
+process.
+
 ```js
 function getGuardianTransaction(req, options, cb) {
   options = options || {};
