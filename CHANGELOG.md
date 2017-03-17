@@ -25,4 +25,4 @@
 [Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.0.1...v1.0.0)
 
 **Fix**
-- Callback with invalid token error when resuming transaction instead of throwing it.
+- Callback with invalid token error when resuming transaction instead of throwing it [\#29](https://github.com/auth0/auth0-guardian.js/pull/29) ([dafortune](https://github.com/dafortune)).
