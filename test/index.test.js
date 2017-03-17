@@ -539,6 +539,18 @@ describe('guardian.js', function () {
       };
     });
 
+    describe('when token is invalid', function () {
+      it('callbacks with a enrolled transaction', function (done) {
+        guardianjsb.resume(options, '123', (err) => {
+          expect(err).to.exist;
+          expect(err.message).to.equal('Invalid transaction token');
+          expect(err.errorCode).to.equal('invalid_token');
+
+          done();
+        });
+      });
+    });
+
     it('callbacks with a enrolled transaction', function (done) {
       guardianjsb.resume(options, serializedTransaction, (err, tx) => {
         expect(err).not.to.exist;
