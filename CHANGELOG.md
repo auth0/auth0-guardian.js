@@ -20,3 +20,9 @@
   * Manual transaction state checking: call `transaction.getState` to get the state without relying on an open websocket or automatic polling.
   * Know the result of otp code validation (SMS / TOTP) without relying on a socket.
   * Allow to confirm the enrollment after serializing the transaction.
+
+# [v1.0.1](https://github.com/auth0/auth0-guardian.js/tree/v1.0.1) (2017-03-01)
+[Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.0.1...v1.0.0)
+
+**Fix**
+- Callback with invalid token error when resuming transaction instead of throwing it [\#29](https://github.com/auth0/auth0-guardian.js/pull/29) ([dafortune](https://github.com/dafortune)).
