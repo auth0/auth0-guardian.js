@@ -26,3 +26,9 @@
 
 **Fix**
 - Callback with invalid token error when resuming transaction instead of throwing it [\#29](https://github.com/auth0/auth0-guardian.js/pull/29) ([dafortune](https://github.com/dafortune)).
+
+# [v1.0.2](https://github.com/auth0/auth0-guardian.js/tree/v1.0.2) (2017-03-21)
+[Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.0.1...v1.0.0)
+
+**Fix**
+- Fix uncaught error event thrown even when there is a listener [\#30](https://github.com/auth0/auth0-guardian.js/pull/30) ([dafortune](https://github.com/dafortune)).
