@@ -134,4 +134,28 @@ describe('utils/event_sequences', function () {
       iEventSequence.removeSequence('s2');
     });
   });
+
+  describe('when an error is emitted', function () {
+    describe('when there is a piped emitter', function () {
+      it('does not emits an uncaught', function (done) {
+        const error = new Error();
+        const events = new EventEmitter();
+        const sequence = eventSequence();
+        sequence.pipe(events);
+
+        events.on('error', (err) => {
+          expect(err).to.equal(error);
+
+          // Mocha is really jealous about uncaughts errors, it captures them
+          // making difficult to listen for them, there are workarounds,
+          // for that, this is an easy one, just delay done, if there is an
+          // uncaught before it won't be executed and you will get the uncaught
+          // error instead.
+          setTimeout(() => done(), 50);
+        });
+
+        sequence.emit('error', error);
+      });
+    });
+  });
 });
