@@ -867,6 +867,22 @@ describe('transaction/index', function () {
 
         notEnrolledTransaction.recover({ recoveryCode: '123456789012345678901234' });
       });
+
+      describe('and when callback is provided', function () {
+        it('callbacks with error instead of emitting it', function (done) {
+          notEnrolledTransaction.on('error', function () {
+            done(new Error('Expected not to emit error'));
+          });
+
+          notEnrolledTransaction.recover({
+            recoveryCode: '123456789012345678901234'
+          }, function (err) {
+            expect(err).to.exist;
+            expect(err).to.have.property('errorCode', 'not_enrolled');
+            done();
+          });
+        });
+      });
     });
 
     describe('when recovery code format is invalid', function () {
@@ -878,6 +894,22 @@ describe('transaction/index', function () {
         });
 
         enrolledTransaction.recover({ recoveryCode: '1234567890123456789ass' });
+      });
+
+      describe('and when callback is provided', function () {
+        it('callbacks with RecoveryCodeValidationError', function (done) {
+          enrolledTransaction.on('error', function () {
+            done(new Error('Expected not to emit error'));
+          });
+
+          enrolledTransaction.recover({
+            recoveryCode: '1234567890123456789ass'
+          }, function (err) {
+            expect(err).to.exist;
+            expect(err).to.have.property('errorCode', 'invalid_recovery_code_format');
+            done();
+          });
+        });
       });
     });
 
@@ -891,6 +923,23 @@ describe('transaction/index', function () {
         });
 
         enrolledTransaction.recover({ recoveryCode: '' });
+      });
+
+      describe('and when callback is provided', function () {
+        it('callbacks with FieldRequiredError', function (done) {
+          enrolledTransaction.on('error', function () {
+            done(new Error('Expected not to emit error'));
+          });
+
+          enrolledTransaction.recover({
+            recoveryCode: ''
+          }, function (err) {
+            expect(err).to.exist;
+            expect(err).to.have.property('errorCode', 'field_required');
+            expect(err).to.have.property('field', 'recoveryCode');
+            done();
+          });
+        });
       });
     });
 
@@ -917,6 +966,19 @@ describe('transaction/index', function () {
         });
 
         enrolledTransaction.recover({ recoveryCode: '123456789012345678901234' });
+      });
+
+      describe('and when callback is available', function () {
+        it('callbacks with new recovery code', function (done) {
+          enrolledTransaction.recover({
+            recoveryCode: '123456789012345678901234'
+          }, function (err, payload) {
+            expect(err).not.to.exist;
+            expect(payload.recoveryCode).to.equal('12345ABC');
+
+            done();
+          });
+        });
       });
     });
   });
