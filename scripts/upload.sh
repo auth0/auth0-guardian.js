@@ -35,13 +35,7 @@ s3_upload()
     echo ""
     verbose_item "Uploading '$1'"
     # aws s3 cp "$DRY_RUN" --region us-west-1 "$1" "$REMOTE_PATH/$1"
-    aws s3 cp "$1" "$REMOTE_PATH/$1" --region us-west-1
-    if [ -z "$DRY_RUN" ]
-    then
-      curl -fs -XDELETE "https://cdn.auth0.com/js/$LIBRARY_NAME/$VERSION/$1"
-    else
-      echo "(dryrun) curl -fs -XDELETE https://cdn.auth0.com/js/$LIBRARY_NAME/$VERSION/$1"
-    fi
+    aws s3 cp "$1" "$REMOTE_PATH/$1" --region us-west-1 --cache-control "public, max-age=84600"
   fi
 }
 
