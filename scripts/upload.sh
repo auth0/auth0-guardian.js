@@ -34,7 +34,6 @@ s3_upload()
   then
     echo ""
     verbose_item "Uploading '$1'"
-    # aws s3 cp "$DRY_RUN" --region us-west-1 "$1" "$REMOTE_PATH/$1"
     aws s3 cp "$1" "$REMOTE_PATH/$1" --region us-west-1 --cache-control "public, max-age=84600"
   fi
 }
