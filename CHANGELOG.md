@@ -38,3 +38,10 @@
 
 **Added**
 - Allow a callback onto .recover method [\#30](https://github.com/auth0/auth0-guardian.js/pull/31) ([dafortune](https://github.com/dafortune)).
+
+
+# [v1.1.1](https://github.com/auth0/auth0-guardian.js/tree/v1.1.1) (2017-06-13)
+[Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.1.1...v1.1.0)
+
+**Fix**
+- Bump dependencies versions (no breaking changes) [\#37](https://github.com/auth0/auth0-guardian.js/pull/37) ([dafortune](https://github.com/dafortune)).
