@@ -8,8 +8,8 @@
   },
   "dependencies": {
     "jwt-decode": "^2.2.0",
-    "socket.io-client": "^1.5.0",
-    "superagent": "^2.3.0"
+    "socket.io-client": "^1.7.2",
+    "superagent": "^3.5.1"
   },
   "devDependencies": {
     "auth0-style": "github:auth0/javascript",
