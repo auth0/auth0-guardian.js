@@ -45,3 +45,9 @@
 
 **Fix**
 - Bump dependencies versions (no breaking changes) [\#37](https://github.com/auth0/auth0-guardian.js/pull/37) ([dafortune](https://github.com/dafortune)).
+
+# [v1.2.1](https://github.com/auth0/auth0-guardian.js/tree/v1.1.1) (2017-06-13)
+[Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.2.1...v1.2.0)
+
+**Fix**
+- Fix enrollment:complete event in polling mode [\#37](https://github.com/auth0/auth0-guardian.js/pull/38) ([dafortune](https://github.com/dafortune)).

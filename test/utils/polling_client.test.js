@@ -227,7 +227,8 @@ describe('utils/polling_client', function () {
           state: 'pending',
           enrollment: {
             id: 'dev_123',
-            test: 'test'
+            test: 'test',
+            available_methods: ['sms']
           }
         },
         events: [
@@ -235,6 +236,7 @@ describe('utils/polling_client', function () {
             name: 'enrollment:confirmed',
             payload: {
               deviceAccount: {
+                availableMethods: ['sms'],
                 id: 'dev_123',
                 test: 'test'
               },
@@ -257,7 +259,8 @@ describe('utils/polling_client', function () {
           state: 'accepted',
           enrollment: {
             id: 'dev_123',
-            test: 'test'
+            test: 'test',
+            available_methods: ['push']
           },
           token: '123.123.1234'
         },
@@ -267,7 +270,8 @@ describe('utils/polling_client', function () {
             payload: {
               deviceAccount: {
                 id: 'dev_123',
-                test: 'test'
+                test: 'test',
+                availableMethods: ['push']
               },
               txId: 'tx_1234'
             }
@@ -296,7 +300,8 @@ describe('utils/polling_client', function () {
           state: 'rejected',
           enrollment: {
             id: 'dev_123',
-            test: 'test'
+            test: 'test',
+            available_methods: ['totp']
           }
         },
         events: [
@@ -305,7 +310,8 @@ describe('utils/polling_client', function () {
             payload: {
               deviceAccount: {
                 id: 'dev_123',
-                test: 'test'
+                test: 'test',
+                availableMethods: ['totp']
               },
               txId: 'tx_1234'
             }
@@ -328,7 +334,8 @@ describe('utils/polling_client', function () {
           state: 'pending',
           enrollment: {
             id: 'dev_123',
-            test: 'test'
+            test: 'test',
+            available_methods: []
           }
         },
         transitionState: {
@@ -336,7 +343,8 @@ describe('utils/polling_client', function () {
           state: 'rejected',
           enrollment: {
             id: 'dev_123',
-            test: 'test'
+            test: 'test',
+            available_methods: []
           }
         },
         events: [
@@ -358,7 +366,8 @@ describe('utils/polling_client', function () {
           state: 'pending',
           enrollment: {
             id: 'dev_123',
-            test: 'test'
+            test: 'test',
+            available_methods: []
           }
         },
         transitionState: {
@@ -366,7 +375,8 @@ describe('utils/polling_client', function () {
           state: 'accepted',
           enrollment: {
             id: 'dev_123',
-            test: 'test'
+            test: 'test',
+            available_methods: []
           },
           token: '123.123.1234'
         },
@@ -395,7 +405,8 @@ describe('utils/polling_client', function () {
           state: 'accepted',
           enrollment: {
             id: 'dev_123',
-            test: 'test'
+            test: 'test',
+            available_methods: ['totp']
           },
           token: '123.123.1234'
         },
@@ -405,7 +416,8 @@ describe('utils/polling_client', function () {
             payload: {
               deviceAccount: {
                 id: 'dev_123',
-                test: 'test'
+                test: 'test',
+                availableMethods: ['totp']
               },
               txId: 'tx_1234'
             }
