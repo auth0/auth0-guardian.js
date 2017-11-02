@@ -2,7 +2,7 @@
 This [example](basic_widget.html) is designed to work on the [Guardian Customization Page](https://manage.auth0.com/#/guardian_mfa_page),
 the parameters will be replaced automatically on this page.
 
-## Try it by yourself, just 4 steps!
+## Try it by yourself, just 3 steps!
 To try it you just need to:
 
 1. Enable Guardian on [Auth0 Dashboard For Guardian](https://manage.auth0.com/#/guardian).
