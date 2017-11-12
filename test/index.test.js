@@ -1,9 +1,11 @@
 'use strict';
 
 const expect = require('chai').expect;
-const guardianjsb = require('../lib');
 const sinon = require('sinon');
+const proxyquire = require('proxyquire');
 const nullClient = require('../lib/utils/null_client');
+const guardianjsb = require('../lib');
+const jwtToken = require('../lib/utils/jwt_token');
 
 describe('guardian.js', function () {
   let httpClient;
@@ -132,8 +134,9 @@ describe('guardian.js', function () {
         });
       });
 
-      describe('when no transaction is returned on reply', function () {
+      describe('when jwtToken fails', function () {
         let response;
+        let jwtTokenFunc;
 
         beforeEach(function () {
           response = {
@@ -144,13 +147,19 @@ describe('guardian.js', function () {
               phoneNumber: '+1234'
             },
             availableEnrollmentMethods: ['otp'],
-            availableAuthenticationMethods: ['push']
+            availableAuthenticationMethods: ['push'],
+            transactionToken
           };
 
           socketClient.connect.yields();
           httpClient.post.yields(null, response);
 
-          guardianjs = guardianjsb({
+          jwtTokenFunc = jwtToken;
+          const guardianStubbed = proxyquire.noPreserveCache()('../lib', {
+            './utils/jwt_token': (...args) => jwtTokenFunc.apply(this, args)
+          });
+
+          guardianjs = guardianStubbed({
             serviceUrl: 'https://tenant.guardian.auth0.com',
             requestToken,
             issuer: {
@@ -166,10 +175,11 @@ describe('guardian.js', function () {
           });
         });
 
-        it('start fails with invalid token error', function (done) {
+        it('callbacks with an error', function (done) {
+          const error = new Error('jwt_error');
+          jwtTokenFunc = () => { throw error; };
           guardianjs.start((err) => {
-            expect(err).to.exist;
-            expect(err.name).to.be.eql('InvalidTokenError');
+            expect(err).to.be.equal(error);
             done();
           });
         });
