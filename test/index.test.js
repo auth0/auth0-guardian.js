@@ -132,6 +132,49 @@ describe('guardian.js', function () {
         });
       });
 
+      describe('when no transaction is returned on reply', function () {
+        let response;
+
+        beforeEach(function () {
+          response = {
+            deviceAccount: {
+              methods: ['otp'],
+              availableMethods: ['otp'],
+              name: 'test',
+              phoneNumber: '+1234'
+            },
+            availableEnrollmentMethods: ['otp'],
+            availableAuthenticationMethods: ['push']
+          };
+
+          socketClient.connect.yields();
+          httpClient.post.yields(null, response);
+
+          guardianjs = guardianjsb({
+            serviceUrl: 'https://tenant.guardian.auth0.com',
+            requestToken,
+            issuer: {
+              label: 'label',
+              name: 'name'
+            },
+            accountLabel: 'accountLabel',
+            globalTrackingId: 'globalTrackingId',
+            dependencies: {
+              httpClient,
+              socketClient
+            }
+          });
+        });
+
+        it('start fails with invalid token error', function (done) {
+          guardianjs.start((err) => {
+            expect(err).to.exist;
+            expect(err.name).to.be.eql('InvalidTokenError');
+            done();
+          });
+        });
+      });
+
       describe('when everything works ok', function () {
         let response;
 
@@ -469,8 +512,6 @@ describe('guardian.js', function () {
 
               expect(tx.getAvailableEnrollmentMethods()).to.eql(['otp']);
               expect(tx.getAvailableAuthenticationMethods()).to.eql(['push']);
-
-              console.log('b!', JSON.stringify(tx.serialize()));
 
               expect(tx.enrollmentAttempt.getEnrollmentTransactionId())
                 .to.eql(response.enrollmentTxId);
