@@ -156,7 +156,8 @@ describe('guardian.js', function () {
 
           jwtTokenFunc = jwtToken;
           const guardianStubbed = proxyquire.noPreserveCache()('../lib', {
-            './utils/jwt_token': (...args) => jwtTokenFunc.apply(this, args)
+            // eslint-disable-next-line
+            './utils/jwt_token': function() { return jwtTokenFunc.apply(this, arguments); }
           });
 
           guardianjs = guardianStubbed({
