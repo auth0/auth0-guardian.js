@@ -26,7 +26,7 @@ var auth0GuardianJS = require('auth0-guardian-js')({
 	// For US tenants: https://{name}.guardian.auth0.com
  	// For AU tenants: https://{name}.au.guardian.auth0.com
  	// For EU tenants: https://{name}.eu.guardian.auth0.com
-	serviceUrl: "https://{{ userData.tenant }}.guardian.auth0.com", 
+	serviceUrl: "https://{{ userData.tenant }}.guardian.auth0.com",
 	requestToken: "{{ requestToken }}", // or ticket: "{{ ticket }}" - see below
 
 	issuer: {
@@ -44,7 +44,7 @@ var auth0GuardianJS = require('auth0-guardian-js')({
 	globalTrackingId: "{{ globalTrackingId }}"
 });
 ```
-Use of `requestToken` or `ticket` depends on the authentication method. Ticket corresponds to a previously generated  _enrollment ticket_. 
+Use of `requestToken` or `ticket` depends on the authentication method. Ticket corresponds to a previously generated  _enrollment ticket_.
 
 ### Enrollment
 To enroll a device is a process composed of the following steps:
@@ -292,8 +292,8 @@ auth0GuardianJS.start(function(err, transaction) {
   //...
 });
 ```
-### auth0GuardianJS.resume(options, transactionState, callback) 
-This continues a transaction saved by `transaction.serialize()`. The options parameter provides 
+### auth0GuardianJS.resume(options, transactionState, callback)
+This continues a transaction saved by `transaction.serialize()`. The options parameter provides
 the library user the opportunity to specify which kind of `transport` to use. Options include:
 
 - `socket`: a socket.io transport
@@ -403,7 +403,7 @@ transaction.requestAuth(enrollments[0], { method: enrollment.getAvailableMethods
 		// ...
 	}
 
-	var data = // otpCode for sms or otp; none for push
+	var data = // otpCode for sms or otp, recoveryCode for recovery-code and none for push
 	authFlow.verify(data)
 });
 ```
@@ -418,11 +418,11 @@ recovery code is the new recovery code you must show to the user from him to sav
 transaction.recover({ recoveryCode: recoveryCode });
 ```
 
-#### transaction.serialize() 
-The .serialize() method creates a plain javascript Object that should remain opaque 
+#### transaction.serialize()
+The .serialize() method creates a plain javascript Object that should remain opaque
 to the library user. This must be stored by the user in a secure way.
 
-This object is used in combination with `auth0GuardianJS.resume` 
+This object is used in combination with `auth0GuardianJS.resume`
 
 #### transaction.on(eventName, handler)
 Listen for `eventName` and execute the handler if that event is received. The
