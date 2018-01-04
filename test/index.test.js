@@ -677,7 +677,7 @@ describe('guardian.js', function () {
           guardianjsb.resume(options, serializedTransaction, (err) => {
             expect(err).to.exist;
             expect(err.message).to.equal('Expected data.method to be one of otp,' +
-            ' sms, push but found invalid');
+            ' sms, push, recovery-code but found invalid');
             expect(err.errorCode).to.equal('unexpected_input');
             done();
           });
@@ -760,7 +760,7 @@ describe('guardian.js', function () {
           guardianjsb.resume(options, serializedTransaction, (err) => {
             expect(err).to.exist;
             expect(err.message).to.equal('Expected data.method to be one of otp,' +
-            ' sms, push but found invalid');
+            ' sms, push, recovery-code but found invalid');
             expect(err.errorCode).to.equal('unexpected_input');
             done();
           });
