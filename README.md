@@ -26,7 +26,7 @@ var auth0GuardianJS = require('auth0-guardian-js')({
 	// For US tenants: https://{name}.guardian.auth0.com
  	// For AU tenants: https://{name}.au.guardian.auth0.com
  	// For EU tenants: https://{name}.eu.guardian.auth0.com
-	serviceUrl: "https://{{ userData.tenant }}.guardian.auth0.com", 
+	serviceUrl: "https://{{ userData.tenant }}.guardian.auth0.com",
 	requestToken: "{{ requestToken }}", // or ticket: "{{ ticket }}" - see below
 
 	issuer: {
@@ -44,7 +44,7 @@ var auth0GuardianJS = require('auth0-guardian-js')({
 	globalTrackingId: "{{ globalTrackingId }}"
 });
 ```
-Use of `requestToken` or `ticket` depends on the authentication method. Ticket corresponds to a previously generated  _enrollment ticket_. 
+Use of `requestToken` or `ticket` depends on the authentication method. Ticket corresponds to a previously generated  _enrollment ticket_.
 
 ### Enrollment
 To enroll a device is a process composed of the following steps:
@@ -150,7 +150,7 @@ authenticate.
 1. Request the auth (the push notification / sms). Request is a noop for OTP
 1. Verify the otp (`.verify` is a noop for push)
 
-Some steps can be omited depending on the method, we provide the same interface
+Some steps can be omitted depending on the method, we provide the same interface
 for all methods so you can write uniform code.
 After the factor is verified or the push accepted you will receive an
 `auth-response` event with the payload to send to the server, you can
@@ -195,11 +195,8 @@ function authenticate(method) {
 
 		var enrollment = transaction.getEnrollments()[0];
 
-		if (enrollment.getAvailableMethods().length === 0) {
-			// If the enrollment does not have any available method
-			// you can only show an error or the recovery view, to let
-			// the user recover its account based on the recovery code.
-			showRecoveryView();
+		if (enrollment.getAvailableAuthentictorTypes().length === 0) {
+			alert('Somethings went wrong, seems that there is no authenticators');
 			return;
 		}
 
@@ -212,6 +209,8 @@ function authenticate(method) {
 			var data = {};
 			if (method === 'sms' || method === 'otp') {
 				data.otpCode = prompt('Otp code');
+			} else if (methods === 'recovery-code') {
+				data.recoveryCode = prompt('Recovery code');
 			}
 
 			return auth.verify(data);
@@ -221,6 +220,9 @@ function authenticate(method) {
 ```
 
 ### Recovery
+**DEPRECATED:** This methods has been deprecated and its usage is discouraged,
+use `.requestAuth` with method recovery code (if available) instead.
+
 Recovery works as authentication, but instead of passing an otpCode, you need
 to pass a recovery code to verify method
 
@@ -292,8 +294,8 @@ auth0GuardianJS.start(function(err, transaction) {
   //...
 });
 ```
-### auth0GuardianJS.resume(options, transactionState, callback) 
-This continues a transaction saved by `transaction.serialize()`. The options parameter provides 
+### auth0GuardianJS.resume(options, transactionState, callback)
+This continues a transaction saved by `transaction.serialize()`. The options parameter provides
 the library user the opportunity to specify which kind of `transport` to use. Options include:
 
 - `socket`: a socket.io transport
@@ -346,6 +348,8 @@ transaction.getAvailableEnrollmentMethods();
 ```
 
 #### transaction.getAvailableAuthenticationMethods()
+**DEPRECATED:** Use `.getAvailableAuthenticatorTypes()` from the enrollment instead.
+
 Returns an array of strings that represent the available authentication methods,
 they are the methods that are currently available for you to authenticate with.
 
@@ -408,6 +412,9 @@ transaction.requestAuth(enrollments[0], { method: enrollment.getAvailableMethods
 });
 ```
 #### transaction.recover({ recoveryCode: string })
+**DEPRECATED:** This methods has been deprecated and its usage is discouraged,
+use `.requestAuth` with method recovery code (if available) instead.
+
 Authenticates using a recovery code, receives the recovery code as an string
 with just alpha numeric characters (no separators, etc.) as result of this
 method an `error` or `auth-response` error could be emitted; in case of
@@ -418,11 +425,11 @@ recovery code is the new recovery code you must show to the user from him to sav
 transaction.recover({ recoveryCode: recoveryCode });
 ```
 
-#### transaction.serialize() 
-The .serialize() method creates a plain javascript Object that should remain opaque 
+#### transaction.serialize()
+The .serialize() method creates a plain javascript Object that should remain opaque
 to the library user. This must be stored by the user in a secure way.
 
-This object is used in combination with `auth0GuardianJS.resume` 
+This object is used in combination with `auth0GuardianJS.resume`
 
 #### transaction.on(eventName, handler)
 Listen for `eventName` and execute the handler if that event is received. The
@@ -456,7 +463,7 @@ also trigger this event since after those enrollments you are assumed to be
 authenticated; push enrollment doesn't trigger it and you should start the
 normal auth flow instead after enrollment.
 If there is an active enrollment in the current transaction, `auth-response` is
-guaranted to be triggered after `enrollment-complete`.
+guaranteed to be triggered after `enrollment-complete`.
 
 ```js
 transaction.on('auth-response', function({ accepted, recoveryCode, signature }) {
@@ -481,7 +488,7 @@ transaction.on('timeout', function () {
 });
 
 ###### error
-Emmited when there is an error on the transaction
+Emitted when there is an error on the transaction
 
 ```
 transaction.on('error', function(error /* instanceOf GuardianError */) {
@@ -556,6 +563,9 @@ Returns the method associated with current auth flow; it might be sms, otp or pu
 ### Enrollment
 
 #### enrollment.getAvailableMethods()
+**DEPRECATED:** Use `.getAvaialbeAuthenticatorTypes` instead. This method does not
+includes recovery authenticator which has become first-class citizen authenticators.
+
 Returns an array of strings that represent the authentication methods that can
 be used for this enrollment in the current transaction (the available methods
 might change from transaction to transaction). They depends on the methods supported
@@ -573,6 +583,12 @@ can be used to authenticate the user based on the given enrollment.
 ```js
 enrollments[i].getMethods();
 ```
+
+#### enrollment.getAvailableAuthenticatorTypes()
+Returns an array of strings that represent the authentication types (that used to
+be called methods) that canbe used for this enrollment in the current transaction
+(the available types might change from transaction to transaction). They depends on
+the types supported by the enrollment and the methods currently allowed by the tenant.
 
 #### enrollment.getName()
 Returns the device name associated with the enrollment, this is a name you can

@@ -241,6 +241,7 @@ describe('guardian.js', function () {
               deviceAccount: {
                 methods: ['otp'],
                 availableMethods: ['otp'],
+                availableAuthenticatorTypes: ['otp', 'recovery-code'],
                 name: 'test',
                 phoneNumber: '+1234'
               },
@@ -277,8 +278,8 @@ describe('guardian.js', function () {
 
               expect(tx.isEnrolled()).to.be.true;
 
-              expect(enrollment.getAvailableMethods())
-                .to.eql(response.deviceAccount.availableMethods);
+              expect(enrollment.getAvailableAuthenticatorTypes())
+                .to.eql(response.deviceAccount.availableAuthenticatorTypes);
               expect(enrollment.getMethods())
                 .to.eql(response.deviceAccount.methods);
               expect(enrollment.getName())
@@ -425,6 +426,7 @@ describe('guardian.js', function () {
               deviceAccount: {
                 methods: ['otp'],
                 availableMethods: ['otp'],
+                availableAuthenticatorTypes: ['otp', 'recovery-codes'],
                 name: 'test',
                 phoneNumber: '+1234'
               },
@@ -463,8 +465,8 @@ describe('guardian.js', function () {
 
               expect(tx.isEnrolled()).to.be.true;
 
-              expect(enrollment.getAvailableMethods())
-                .to.eql(response.deviceAccount.availableMethods);
+              expect(enrollment.getAvailableAuthenticatorTypes())
+                .to.eql(response.deviceAccount.availableAuthenticatorTypes);
               expect(enrollment.getMethods())
                 .to.eql(response.deviceAccount.methods);
               expect(enrollment.getName())
@@ -582,7 +584,8 @@ describe('guardian.js', function () {
         enrollments: [
           {
             availableMethods: ['sms'],
-            phoneNumber: '+1111111'
+            phoneNumber: '+1111111',
+            availableAuthenticatorTypes: ['sms', 'recovery-code']
           }
         ],
         baseUrl: 'http://42.org',
@@ -609,7 +612,7 @@ describe('guardian.js', function () {
 
         const enrollment = tx.getEnrollments()[0];
         expect(enrollment.getPhoneNumber()).to.equal('+1111111');
-        expect(enrollment.getAvailableMethods()).to.eql(['sms']);
+        expect(enrollment.getAvailableAuthenticatorTypes()).to.eql(['sms', 'recovery-code']);
 
         expect(tx.getAvailableEnrollmentMethods()).to.eql(['sms']);
         expect(tx.getAvailableAuthenticationMethods()).to.eql(['push']);
