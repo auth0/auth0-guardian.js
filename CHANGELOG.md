@@ -4,7 +4,7 @@
 
 **Added**
 - `enrollment.getAvailableAuthenticatorTypes()` to replace `enrollment.getAvailableMethods()` [\#47](https://github.com/auth0/auth0-guardian.js/pull/47) ([dafortune](https://github.com/dafortune)).
-- `transaction.requestAuth(...)` support for `recovery-code` type (a.k.a. authenticator type). Recovery
+- `transaction.requestAuth(...)` support for `recovery-code` type (a.k.a. method). Recovery
 code can be used the same way as `otp`, `push`, `sms`; it has become its own autenticator type.
 
 **Changed**
@@ -12,9 +12,9 @@ code can be used the same way as `otp`, `push`, `sms`; it has become its own aut
 
 ## Migration notes:
 As an step to support multiple authenticators associated to a single user, since version 1.3.0
-recovery code has become its own authenticator type (previously know as method),
+recovery code has become its own authenticator type (previously known as method),
 this means that we have to allow the user to verify the recovery code as the only authenticator (instead
-of solely as an fallback for other authenticator types). Recovery code can be the only authenticator type
+of solely as a fallback for other authenticator types). Recovery code can be the only authenticator type
 if the user removes all the authenticators but the recovery code.
 
 If you are using current Auth0 management API, we prevent you from being affected by this change by keeping the old behavior of the API (the recovery-code authenticator is removed together with the non-recovery authenticators
