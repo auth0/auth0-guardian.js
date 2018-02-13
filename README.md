@@ -10,12 +10,12 @@ npm install auth0-guardian-js
 ## CDN
 Full version
 ```
-https://cdn.auth0.com/js/guardian-js/0.4.0/guardian-js.js
+https://cdn.auth0.com/js/guardian-js/1.3.0/guardian-js.js
 ```
 
 Minified version
 ```
-https://cdn.auth0.com/js/guardian-js/0.4.0/guardian-js.min.js
+https://cdn.auth0.com/js/guardian-js/1.3.0/guardian-js.min.js
 ```
 
 ## Basic Usage
@@ -195,7 +195,7 @@ function authenticate(method) {
 
 		var enrollment = transaction.getEnrollments()[0];
 
-		if (enrollment.getAvailableAuthentictorTypes().length === 0) {
+		if (enrollment.getAvailableAuthenticatorTypes().length === 0) {
 			alert('Somethings went wrong, seems that there is no authenticators');
 			return;
 		}
@@ -209,7 +209,7 @@ function authenticate(method) {
 			var data = {};
 			if (method === 'sms' || method === 'otp') {
 				data.otpCode = prompt('Otp code');
-			} else if (methods === 'recovery-code') {
+			} else if (method === 'recovery-code') {
 				data.recoveryCode = prompt('Recovery code');
 			}
 
@@ -220,11 +220,11 @@ function authenticate(method) {
 ```
 
 ### Recovery
-**DEPRECATED:** This methods has been deprecated and its usage is discouraged,
-use `.requestAuth` with method recovery code (if available) instead.
+**DEPRECATED:** This method has been deprecated and its usage is discouraged,
+use `.requestAuth` with method recovery-code (if available) instead.
 
-Recovery works as authentication, but instead of passing an otpCode, you need
-to pass a recovery code to verify method
+Recovery works as authentication, but instead of passing an `otpCode`, you need
+to pass a `recoveryCode` to verify method
 
 ```js
 auth0GuardianJS.start(function(err, transaction) {
@@ -412,8 +412,8 @@ transaction.requestAuth(enrollments[0], { method: enrollment.getAvailableMethods
 });
 ```
 #### transaction.recover({ recoveryCode: string })
-**DEPRECATED:** This methods has been deprecated and its usage is discouraged,
-use `.requestAuth` with method recovery code (if available) instead.
+**DEPRECATED:** This method has been deprecated and its usage is discouraged,
+use `.requestAuth` with method `recovery-code` (if available) instead.
 
 Authenticates using a recovery code, receives the recovery code as an string
 with just alpha numeric characters (no separators, etc.) as result of this
@@ -564,7 +564,7 @@ Returns the method associated with current auth flow; it might be sms, otp or pu
 
 #### enrollment.getAvailableMethods()
 **DEPRECATED:** Use `.getAvaialbeAuthenticatorTypes` instead. This method does not
-includes recovery authenticator which has become first-class citizen authenticators.
+includes recovery authenticator which has become its own specific authenticator type.
 
 Returns an array of strings that represent the authentication methods that can
 be used for this enrollment in the current transaction (the available methods
@@ -585,9 +585,9 @@ enrollments[i].getMethods();
 ```
 
 #### enrollment.getAvailableAuthenticatorTypes()
-Returns an array of strings that represent the authentication types (that used to
-be called methods) that canbe used for this enrollment in the current transaction
-(the available types might change from transaction to transaction). They depends on
+Returns an array of strings that represent the authenticator types (that used to
+be called methods) that can be used for this enrollment in the current transaction
+(the available types might change from transaction to transaction). They depend on
 the types supported by the enrollment and the methods currently allowed by the tenant.
 
 #### enrollment.getName()
