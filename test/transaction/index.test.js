@@ -36,7 +36,8 @@ describe('transaction/index', function () {
 
     enrollment = benrollment({
       availableMethods: ['sms'],
-      phoneNumber: '+1111111'
+      phoneNumber: '+1111111',
+      availableAuthenticatorTypes: ['sms', 'recovery-code']
     });
 
     enrollmentAttempt = benrollmentAttempt({
@@ -135,6 +136,7 @@ describe('transaction/index', function () {
             method: 'sms',
             deviceAccount: {
               availableMethods: ['sms'],
+              availableAuthenticatorTypes: ['sms', 'recovery-code'],
               phoneNumber: '+54 3416 77777777'
             }
           });
@@ -149,6 +151,7 @@ describe('transaction/index', function () {
             expect(newEnrollment.getName()).to.equal(undefined);
             expect(newEnrollment.getPhoneNumber()).to.equal('+54 3416 77777777');
             expect(newEnrollment.getAvailableMethods()).to.eql(['sms']);
+            expect(newEnrollment.getAvailableAuthenticatorTypes()).to.eql(['sms', 'recovery-code']);
             done();
           });
 
@@ -157,6 +160,7 @@ describe('transaction/index', function () {
             method: 'sms',
             deviceAccount: {
               availableMethods: ['sms'],
+              availableAuthenticatorTypes: ['sms', 'recovery-code'],
               phoneNumber: '+54 3416 77777777'
             }
           });
@@ -180,6 +184,7 @@ describe('transaction/index', function () {
               method: 'push',
               deviceAccount: {
                 availableMethods: ['push'],
+                availableAuthenticatorTypes: ['push', 'otp', 'recovery-code'],
                 name: 'Test'
               }
             });
@@ -195,6 +200,8 @@ describe('transaction/index', function () {
             expect(newEnrollment.getName()).to.equal('Test');
             expect(newEnrollment.getPhoneNumber()).to.equal(undefined);
             expect(newEnrollment.getAvailableMethods()).to.eql(['push', 'otp']);
+            expect(newEnrollment.getAvailableAuthenticatorTypes())
+              .to.eql(['push', 'otp', 'recovery-code']);
             done();
           });
 
@@ -204,6 +211,7 @@ describe('transaction/index', function () {
               method: 'push',
               deviceAccount: {
                 availableMethods: ['push', 'otp'],
+                availableAuthenticatorTypes: ['push', 'otp', 'recovery-code'],
                 name: 'Test'
               }
             });
@@ -228,6 +236,7 @@ describe('transaction/index', function () {
               method: 'push',
               deviceAccount: {
                 availableMethods: ['push'],
+                availableAuthenticatorTypes: ['push', 'otp', 'recovery-code'],
                 name: 'Test'
               }
             });
@@ -243,6 +252,8 @@ describe('transaction/index', function () {
             expect(newEnrollment.getName()).to.equal('Test');
             expect(newEnrollment.getPhoneNumber()).to.equal(undefined);
             expect(newEnrollment.getAvailableMethods()).to.eql(['push', 'otp']);
+            expect(newEnrollment.getAvailableAuthenticatorTypes())
+              .to.eql(['push', 'otp', 'recovery-code']);
             done();
           });
 
@@ -252,6 +263,7 @@ describe('transaction/index', function () {
               method: 'push',
               deviceAccount: {
                 availableMethods: ['push', 'otp'],
+                availableAuthenticatorTypes: ['push', 'otp', 'recovery-code'],
                 name: 'Test'
               }
             });
@@ -618,7 +630,7 @@ describe('transaction/index', function () {
       });
     });
 
-    describe('when there are not available methods in the enrollment', function () {
+    describe('when there are not available authenticator types in the enrollment', function () {
       beforeEach(function () {
         enrollment = benrollment({
           availableMethods: [],
@@ -664,71 +676,6 @@ describe('transaction/index', function () {
           transactionEventsReceiver
         });
       });
-
-      it('callbacks with NoMethodAvailableError', function (done) {
-        enrolledTransaction.requestAuth(enrollment, function (err) {
-          expect(err).to.exist;
-          expect(err).to.have.property('errorCode', 'no_method_available');
-          done();
-        });
-      });
-    });
-
-    describe('when requested method is not available in ' +
-      'the available authentication methods', function () {
-      beforeEach(function () {
-        enrollment = benrollment({
-          availableMethods: ['sms'],
-          phoneNumber: '+1111111'
-        });
-
-        enrolledTransaction = btransaction({
-          transactionToken,
-          enrollmentAttempt: null,
-          enrollments: [enrollment],
-          availableEnrollmentMethods: ['push', 'otp', 'sms'],
-          availableAuthenticationMethods: ['push']
-        }, {
-          httpClient,
-          transactionEventsReceiver
-        });
-      });
-
-      it('callbacks with AuthMethodDisabledError', function (done) {
-        enrolledTransaction.requestAuth(enrollment, { method: 'other' }, function (err) {
-          expect(err).to.exist;
-          expect(err).to.have.property('errorCode', 'auth_method_disabled');
-          done();
-        });
-      });
-    });
-
-    describe('when strategy for method is not handled by the client', function () {
-      beforeEach(function () {
-        enrollment = benrollment({
-          availableMethods: ['other'],
-          phoneNumber: '+1111111'
-        });
-
-        enrolledTransaction = btransaction({
-          transactionToken,
-          enrollmentAttempt: null,
-          enrollments: [enrollment],
-          availableEnrollmentMethods: ['push', 'otp', 'sms'],
-          availableAuthenticationMethods: ['other']
-        }, {
-          httpClient,
-          transactionEventsReceiver
-        });
-      });
-
-      it('callbacks with AuthMethodDisabledError', function (done) {
-        enrolledTransaction.requestAuth(enrollment, { method: 'other' }, function (err) {
-          expect(err).to.exist;
-          expect(err).to.have.property('errorCode', 'method_not_found');
-          done();
-        });
-      });
     });
 
     describe('when setup is ok', function () {
@@ -753,6 +700,7 @@ describe('transaction/index', function () {
       describe('for push', function () {
         beforeEach(function () {
           enrollment = benrollment({
+            availableAuthenticatorTypes: ['push', 'recovery-code'],
             availableMethods: ['push'],
             name: 'Name'
           });
@@ -785,7 +733,8 @@ describe('transaction/index', function () {
       describe('for otp', function () {
         beforeEach(function () {
           enrollment = benrollment({
-            availableMethods: ['otp']
+            availableMethods: ['otp'],
+            availableAuthenticatorTypes: ['otp', 'recovery-code']
           });
 
           enrolledTransaction = btransaction({
