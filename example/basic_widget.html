@@ -219,7 +219,7 @@
         // --------------------- Setup Guardian JS ----------------------------
 
         var guardianjs = auth0GuardianJS({
-          serviceUrl: "https://{{ userData.tenant }}.guardian.auth0.com", // https://{name}.guardian.auth0.com
+          serviceUrl: "{{ mfaServerUrl }}",
           {% if ticket %}
           ticket: "{{ ticket }}",
           {% else %}
