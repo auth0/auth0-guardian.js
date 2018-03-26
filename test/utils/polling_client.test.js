@@ -32,7 +32,41 @@ describe('utils/polling_client', function () {
   });
 
   describe('polling', function () {
-    describe('when a 409 is triggered', function () {
+    describe('when an error is triggered', function () {
+      const error = new Error();
+      beforeEach(function () {
+        httpClient.post.yields(error);
+      });
+
+      it('closes the connection', function () {
+        iPollingClient.once('error', () => {});
+        iPollingClient.connect({
+          getToken: () => '1234.1234.12aa4'
+        }, (err) => {
+          expect(err).not.to.exist;
+        });
+
+        clock.tick(2000);
+        expect(iPollingClient.isConnected()).to.be.false;
+      });
+
+      it('emits an error', function (done) {
+        iPollingClient.once('error', (err) => {
+          expect(error).to.equal(err);
+          done();
+        });
+
+        iPollingClient.connect({
+          getToken: () => '1234.1234.12aa4'
+        }, (err) => {
+          expect(err).not.to.exist;
+        });
+
+        clock.tick(2000);
+      });
+    });
+
+    describe('when a 429 is triggered', function () {
       beforeEach(function () {
         const error = new Error();
         error.response = {
