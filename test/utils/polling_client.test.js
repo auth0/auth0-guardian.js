@@ -19,7 +19,7 @@ describe('utils/polling_client', function () {
 
     iPollingClient = pollingClient(null, {
       minPollingIntervalMs: 500,
-      defaultPollingIntervalMs: 2000,
+      pollingIntervalMs: 2000,
       httpClient
     });
 
@@ -51,7 +51,7 @@ describe('utils/polling_client', function () {
           expect(err).not.to.exist;
         });
 
-        clock.tick(6000);
+        clock.tick(2000);
         expect(iPollingClient.isConnected()).to.be.false;
       });
 
@@ -67,7 +67,7 @@ describe('utils/polling_client', function () {
           expect(err).not.to.exist;
         });
 
-        clock.tick(6000);
+        clock.tick(2000);
       });
     });
 
@@ -87,7 +87,7 @@ describe('utils/polling_client', function () {
           expect(err).not.to.exist;
         });
 
-        clock.tick(6000);
+        clock.tick(2000);
         expect(iPollingClient.isConnected()).to.be.true;
       });
 
@@ -103,7 +103,7 @@ describe('utils/polling_client', function () {
           expect(err).not.to.exist;
         });
 
-        clock.tick(6000);
+        clock.tick(2000);
       });
     });
 
@@ -283,7 +283,7 @@ describe('utils/polling_client', function () {
         expect(httpClient.post.callCount).to.equal(2);
         clock.tick(150000);
         expect(httpClient.post.callCount).to.equal(2);
-        clock.tick(490000);
+        clock.tick(487000);
         expect(httpClient.post.callCount).to.equal(3);
       });
     });
