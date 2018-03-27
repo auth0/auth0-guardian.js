@@ -32,10 +32,15 @@ describe('utils/polling_client', function () {
   });
 
   describe('polling', function () {
-    describe('when an error is triggered', function () {
+    describe('when a 401 error is triggered', function () {
       const error = new Error();
+      error.response = {
+        statusCode: 401
+      };
+
       beforeEach(function () {
-        httpClient.post.yields(error);
+        httpClient.post.onFirstCall().yields(null, { headers: {}, body: {} });
+        httpClient.post.onSecondCall().yields(error);
       });
 
       it('closes the connection', function () {
@@ -46,7 +51,7 @@ describe('utils/polling_client', function () {
           expect(err).not.to.exist;
         });
 
-        clock.tick(2000);
+        clock.tick(6000);
         expect(iPollingClient.isConnected()).to.be.false;
       });
 
@@ -62,7 +67,43 @@ describe('utils/polling_client', function () {
           expect(err).not.to.exist;
         });
 
-        clock.tick(2000);
+        clock.tick(6000);
+      });
+    });
+
+    describe('when an generic error is triggered', function () {
+      const error = new Error();
+
+      beforeEach(function () {
+        httpClient.post.onFirstCall().yields(null, { headers: {}, body: {} });
+        httpClient.post.onSecondCall().yields(error);
+      });
+
+      it('does not closes the connection', function () {
+        iPollingClient.once('error', () => {});
+        iPollingClient.connect({
+          getToken: () => '1234.1234.12aa4'
+        }, (err) => {
+          expect(err).not.to.exist;
+        });
+
+        clock.tick(6000);
+        expect(iPollingClient.isConnected()).to.be.true;
+      });
+
+      it('emits an error', function (done) {
+        iPollingClient.once('error', (err) => {
+          expect(error).to.equal(err);
+          done();
+        });
+
+        iPollingClient.connect({
+          getToken: () => '1234.1234.12aa4'
+        }, (err) => {
+          expect(err).not.to.exist;
+        });
+
+        clock.tick(6000);
       });
     });
 
