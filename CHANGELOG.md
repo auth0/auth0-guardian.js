@@ -1,4 +1,10 @@
 # Change Log
+# [v1.3.1](https://github.com/auth0/auth0-guardian.js/tree/v1.3.1) (2018-03-27)
+[Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.3.0...v1.3.1)
+
+**Fixed**
+- `polling` transport stops polling after the first 401 response code is returned.
+
 # [v1.3.0](https://github.com/auth0/auth0-guardian.js/tree/v1.3.0) (2018-02-13)
 [Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.3.0...v1.2.0)
 
