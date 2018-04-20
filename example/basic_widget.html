@@ -230,7 +230,9 @@
             label: "{{ userData.friendlyUserId }}",
             name: "{{ userData.tenant }}",
           },
-
+          {% if stateCheckingMechanism %}
+          stateCheckingMechanism: "{{ stateCheckingMechanism }}",
+          {% endif %}
           globalTrackingId: "{{ globalTrackingId }}"
         });
 
