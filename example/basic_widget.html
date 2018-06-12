@@ -65,7 +65,15 @@
         <button type="button" data-saved-recovery>Got it!</button>
       </div>
 
-      <div data-loading data-screen>Loading...</div>
+      {% if errors %}
+      <ul>
+          {% for error in errors %}
+        <li>{{ error.message }} ({{ error.code }})</li>
+          {% endfor %}
+      </ul>
+      {% else %}
+      <div data-loading data-screen>{{errors}}Loading...</div>
+      {% endif %}
 
       <div class="hidden" data-screen data-enrollment-enroll data-method="sms">
         <div data-enrollment-toolbar>
