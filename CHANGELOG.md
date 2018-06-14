@@ -1,4 +1,9 @@
 # Change Log
+# [v1.3.2](https://github.com/auth0/auth0-guardian.js/tree/v1.3.2) (2018-06-14)
+[Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.3.1...v1.3.2)
+
+- Bump dependency version for `superagent` from 3.5.1 to 3.8.3 (no breaking changes)
+
 # [v1.3.1](https://github.com/auth0/auth0-guardian.js/tree/v1.3.1) (2018-03-27)
 [Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.3.0...v1.3.1)
 
