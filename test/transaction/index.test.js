@@ -585,9 +585,9 @@ describe('transaction/index', function () {
           });
 
           notEnrolledTransaction.enroll('sms',
-                { phoneNumber: '+54 678909' }, function (err, confirmationStep) {
-                  confirmationStep.emit('error', error);
-                });
+            { phoneNumber: '+54 678909' }, function (err, confirmationStep) {
+              confirmationStep.emit('error', error);
+            });
         });
       });
 
@@ -994,16 +994,16 @@ describe('transaction/index', function () {
       beforeEach(function (done) {
         httpClient.post.yields();
         notEnrolledTransaction.enroll('sms', { phoneNumber: '+54 0000000' },
-        function (err, ienrollmentConfirmationStep) {
-          if (err) {
-            done(err);
-            return;
-          }
+          function (err, ienrollmentConfirmationStep) {
+            if (err) {
+              done(err);
+              return;
+            }
 
-          enrollmentConfirmationStep = ienrollmentConfirmationStep;
-          enrollmentAttempt.setActive(true);
-          done();
-        });
+            enrollmentConfirmationStep = ienrollmentConfirmationStep;
+            enrollmentAttempt.setActive(true);
+            done();
+          });
       });
 
       it('returns correct transaction serialization with enrollmentConfirmationStep', function () {
@@ -1030,15 +1030,15 @@ describe('transaction/index', function () {
       beforeEach(function (done) {
         httpClient.post.yields();
         enrolledTransaction.requestAuth(enrollment, { method: 'push' },
-        function (err, iauthVerificationStep) {
-          if (err) {
-            done(err);
-            return;
-          }
+          function (err, iauthVerificationStep) {
+            if (err) {
+              done(err);
+              return;
+            }
 
-          authVerificationStep = iauthVerificationStep;
-          done();
-        });
+            authVerificationStep = iauthVerificationStep;
+            done();
+          });
       });
 
       it('returns correct transaction serialization with authVerificationStep', function () {

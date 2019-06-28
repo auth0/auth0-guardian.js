@@ -294,15 +294,15 @@ describe('utils/object', function () {
     describe('for array', function () {
       it('maps index and values', function () {
         expect(object.mapKeyValue([
-            { value: 1 },
-            { value: 2 },
-            { value: 3 },
-            { value: 4, obj: { value: 2 } }
+          { value: 1 },
+          { value: 2 },
+          { value: 3 },
+          { value: 4, obj: { value: 2 } }
         ],
-          (key) => key + 1,
-          (key, value) => value.value
+        (key) => key + 1,
+        (key, value) => value.value
         ).slice(1))
-        .eql([1, 2, 3, 4]);
+          .eql([1, 2, 3, 4]);
       });
     });
 
@@ -313,14 +313,14 @@ describe('utils/object', function () {
           key2: 'value2',
           key3: 'value3'
         },
-          (key) => key.toUpperCase(),
-          (key, value) => value.toUpperCase()
+        (key) => key.toUpperCase(),
+        (key, value) => value.toUpperCase()
         ))
-        .eql({
-          KEY1: 'VALUE1',
-          KEY2: 'VALUE2',
-          KEY3: 'VALUE3'
-        });
+          .eql({
+            KEY1: 'VALUE1',
+            KEY2: 'VALUE2',
+            KEY3: 'VALUE3'
+          });
       });
     });
   });
