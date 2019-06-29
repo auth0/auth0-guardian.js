@@ -239,7 +239,10 @@
             name: "{{ userData.tenant }}",
           },
 
-          globalTrackingId: "{{ globalTrackingId }}"
+          globalTrackingId: "{{ globalTrackingId }}",
+          {% if stateCheckingMechanism %}
+            stateCheckingMechanism: "{{ stateCheckingMechanism }}",
+          {% endif %}
         });
 
         $root
