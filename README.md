@@ -301,7 +301,7 @@ the library user the opportunity to specify which kind of `transport` to use. Op
 - `socket`: a socket.io transport
 - `polling`: a polling transport.
 
-If not set, the `socket` transport is used as default
+If not set, the `polling` transport is used as default
 
 This is a factory method, you SHOULD NOT instantiate`auth0GuardianJS`.
 
