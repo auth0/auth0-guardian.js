@@ -10,12 +10,12 @@ npm install auth0-guardian-js
 ## CDN
 Full version
 ```
-https://cdn.auth0.com/js/guardian-js/1.3.0/guardian-js.js
+https://cdn.auth0.com/js/guardian-js/1.3.3/guardian-js.js
 ```
 
 Minified version
 ```
-https://cdn.auth0.com/js/guardian-js/1.3.0/guardian-js.min.js
+https://cdn.auth0.com/js/guardian-js/1.3.3/guardian-js.min.js
 ```
 
 ## Basic Usage
