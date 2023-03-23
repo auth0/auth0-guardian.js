@@ -563,7 +563,7 @@ Returns the method associated with current auth flow; it might be sms, otp or pu
 ### Enrollment
 
 #### enrollment.getAvailableMethods()
-**DEPRECATED:** Use `.getAvaialbeAuthenticatorTypes` instead. This method does not
+**DEPRECATED:** Use `.getAvailableAuthenticatorTypes` instead. This method does not
 includes recovery authenticator which has become its own specific authenticator type.
 
 Returns an array of strings that represent the authentication methods that can
