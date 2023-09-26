@@ -23,10 +23,8 @@ https://cdn.auth0.com/js/guardian-js/1.3.3/guardian-js.min.js
 ### Configuration
 ```js
 var auth0GuardianJS = require('auth0-guardian-js')({
-	// For US tenants: https://{name}.guardian.auth0.com
- 	// For AU tenants: https://{name}.guardian.au.auth0.com
- 	// For EU tenants: https://{name}.guardian.eu.auth0.com
-	serviceUrl: "https://{{ userData.tenant }}.guardian.auth0.com",
+	// MFA Service URL
+	serviceUrl: "https://{{ tenantDomain }}/appliance-mfa",
 	requestToken: "{{ requestToken }}", // or ticket: "{{ ticket }}" - see below
 
 	issuer: {
