@@ -212,6 +212,49 @@ describe('transaction/auth_verificatin_step', function () {
       });
     });
 
+    describe('#confirm with a custom otpLength', function () {
+      beforeEach(function () {
+        const customLengthStrategy = bsmsEnrollmentStrategy({
+          transactionToken,
+          enrollmentAttempt: notEnrolledTransaction.enrollmentAttempt,
+          otpLength: 8
+        }, {
+          httpClient
+        });
+
+        step = enrollmentConfirmationStep({
+          strategy: customLengthStrategy,
+          transaction: notEnrolledTransaction,
+          enrollmentCompleteHub: notEnrolledTransaction.enrollmentCompleteHub,
+          enrollmentAttempt: notEnrolledTransaction.enrollmentAttempt
+        });
+      });
+
+      it('accepts an otp of the configured length', function (done) {
+        httpClient.post = function (path, credentials, data, callback) {
+          expect(path).to.equal('api/verify-otp');
+          expect(data).to.eql({
+            code: '12345678',
+            type: 'manual_input'
+          });
+
+          callback();
+          done();
+        };
+
+        step.confirm({ otpCode: '12345678' });
+      });
+
+      it('rejects an otp that does not match the configured length', function (done) {
+        step.on('error', function (err) {
+          expect(err).to.have.property('errorCode', 'invalid_otp_format');
+          done();
+        });
+
+        step.confirm({ otpCode: '123456' });
+      });
+    });
+
     callbackBasedEnrollmentConfirmation();
   });
 
