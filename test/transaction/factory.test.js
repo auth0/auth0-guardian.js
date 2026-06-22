@@ -68,6 +68,23 @@ describe('transaction/factory phone otp length (factor_settings)', function () {
         });
       });
     });
+
+    it('threads the length into the SMS enrollment strategy so it validates that digit count', function (done) {
+      const tx = buildStartFlow(buildTxLegacyData({
+        factorSettings: { phone: { otpLength: 7 } }
+      }));
+
+      // confirm() validates the code length before posting; a 6-digit code is
+      // rejected and a 7-digit one is accepted, mirroring the auth strategy.
+      tx.enrollmentStrategies.sms.confirm({ otpCode: '123456' }, function (sixErr) {
+        expect(sixErr).to.be.an.instanceof(errors.OTPValidationError);
+
+        tx.enrollmentStrategies.sms.confirm({ otpCode: '1234567' }, function (sevenErr) {
+          expect(sevenErr).to.equal(null);
+          done();
+        });
+      });
+    });
   });
 
   describe('when factor_settings is absent (older mfa-api / flag off)', function () {
