@@ -28,6 +28,29 @@ describe('utils/validations', function () {
         expect(validations.validateOtp('555556')).to.be.true;
       });
     });
+
+    describe('when an explicit otpLength is provided', function () {
+      it('accepts an otp matching the configured length', function () {
+        expect(validations.validateOtp('1234567', 7)).to.be.true;
+      });
+
+      it('rejects an otp shorter than the configured length', function () {
+        expect(validations.validateOtp('123456', 7)).to.be.false;
+      });
+
+      it('rejects an otp longer than the configured length', function () {
+        expect(validations.validateOtp('12345678', 7)).to.be.false;
+      });
+
+      it('falls back to the default length of 6 when otpLength is not a number', function () {
+        expect(validations.validateOtp('123456', undefined)).to.be.true;
+        expect(validations.validateOtp('1234567', undefined)).to.be.false;
+      });
+
+      it('exposes DEFAULT_OTP_LENGTH as 6', function () {
+        expect(validations.DEFAULT_OTP_LENGTH).to.equal(6);
+      });
+    });
   });
 
   describe('#validateRecovery', function () {

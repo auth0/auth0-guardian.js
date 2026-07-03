@@ -1,4 +1,19 @@
 # Change Log
+# [v1.4.0](https://github.com/auth0/auth0-guardian.js/tree/v1.4.0) (2026-06-30)
+[Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.3.3...v1.4.0)
+
+**Added**
+- Validate the phone (SMS/voice) OTP code against the OTP length advertised in the transaction start-flow response, instead of always assuming 6 digits. When the response does not include a length, validation falls back to 6, so existing integrations are unaffected. The expected length is persisted by `transaction.serialize()` and restored on resume.
+
+**Changed**
+- `validateOtp(otp, otpLength)` now accepts an optional expected length (defaults to 6) and exposes `DEFAULT_OTP_LENGTH`.
+
+# [v1.3.3](https://github.com/auth0/auth0-guardian.js/tree/v1.3.3) (2024-09-22)
+[Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.3.2...v1.3.3)
+
+**Fixed**
+- Bump dependency versions to reduce vulnerabilities (no breaking changes).
+
 # [v1.3.2](https://github.com/auth0/auth0-guardian.js/tree/v1.3.2) (2018-06-14)
 [Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.3.1...v1.3.2)
 
