@@ -1,4 +1,10 @@
 # Change Log
+# [v1.4.1](https://github.com/auth0/auth0-guardian.js/tree/v1.4.1) (2026-07-29)
+[Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.4.0...v1.4.1)
+
+**Fixed**
+- Fixed the standalone `dist` build (`npm run build`), which was silently producing an unminified `guardian-js.min.js`. Minification now runs via `terser` as a separate step after the webpack bundle, since webpack 1's bundled UglifyJS 2 cannot parse the ES6 syntax shipped by `socket.io-client` 4.x.
+
 # [v1.4.0](https://github.com/auth0/auth0-guardian.js/tree/v1.4.0) (2026-06-30)
 [Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.3.3...v1.4.0)
 
