@@ -3,6 +3,7 @@
 var path = require('path');
 
 module.exports = {
+  mode: 'none',
   context: __dirname,
   entry: {
     'guardian-js': './index.js'
@@ -12,6 +13,7 @@ module.exports = {
     path: path.join(__dirname, '/dist'),
     filename: '[name].js',
     libraryTarget: 'umd',
-    library: 'auth0GuardianJS'
+    library: 'auth0GuardianJS',
+    globalObject: 'this'
   }
 };

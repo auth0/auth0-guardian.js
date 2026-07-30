@@ -11,12 +11,6 @@
     "socket.io-client": "^4.8.0",
     "superagent": "^3.8.3"
   },
-  "overrides": {
-    "engine.io-client": "6.6.1"
-  },
-  "_overridesComment": {
-    "engine.io-client": "Pinned to 6.6.1. socket.io-client@4.8.0 already resolves engine.io-client to ~6.6.1, but npm audit fix can bump it to a newer patch (e.g. 6.6.6) that uses object-spread syntax ({...obj}) in build/cjs/socket.js. webpack 1 (this repo build tool) cannot parse object spread and fails with \"Module parse failed: Unexpected token\". Keep this pinned to 6.6.1 until the build toolchain is modernized (see MFA-4790)."
-  },
   "devDependencies": {
     "auth0-style": "github:auth0/javascript",
     "chai": "^3.5.0",
@@ -38,11 +32,12 @@
     "sinon": "^1.17.6",
     "terser": "^5.49.0",
     "watch": "^1.0.1",
-    "webpack": "^1.13.2"
+    "webpack": "^4.46.0",
+    "webpack-cli": "^3.3.12"
   },
   "scripts": {
     "test": "npm run eslint && mocha --recursive test",
-    "build": "webpack --config webpack.config.js && npm run minify",
+    "build": "NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js && npm run minify",
     "minify": "terser dist/guardian-js.js -c -m --source-map \"content='dist/guardian-js.js.map',url='guardian-js.min.js.map'\" -o dist/guardian-js.min.js",
     "build:clean": "rm -rf ./dist && mkdir dist",
     "dist": "npm run build:clean && npm run build",
