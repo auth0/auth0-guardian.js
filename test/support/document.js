@@ -31,7 +31,7 @@ module.exports = class Document {
     this.body = new Element('body');
   }
 
-  createElement(type) {
+  createElement(type) { // eslint-disable-line class-methods-use-this
     return new Element(type);
   }
 };

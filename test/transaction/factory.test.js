@@ -44,7 +44,7 @@ describe('transaction/factory phone otp length (factor_settings)', function () {
   function buildStartFlow(txLegacyData) {
     return transactionFactory.fromStartFlow({
       transactionToken: jwtToken(token),
-      txLegacyData: txLegacyData,
+      txLegacyData,
       issuer: { label: 'tenant', name: 'tenant' },
       serviceUrl: 'https://tenant.guardian.auth0.com',
       accountLabel: 'user@example.com'
