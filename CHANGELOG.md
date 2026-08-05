@@ -3,7 +3,7 @@
 [Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.4.0...v1.4.1)
 
 **Fixed**
-- Fixed the standalone `dist` build (`npm run build`), which was silently producing an unminified `guardian-js.min.js`. Minification now runs via `terser` as a separate step after the webpack bundle. The build tool itself was upgraded from webpack 1 to webpack 4, which parses modern JS syntax (used by dependencies such as `socket.io-client` 4.x) natively, and several vulnerable devDependencies (`jsonwebtoken`, `js-yaml`, `fsevents`, `acorn`, `tree-kill`, `deep-extend`) were updated to patched versions.
+- Fixed the standalone `dist` build (`npm run build`), which was silently producing an unminified `guardian-js.min.js`. Minification now runs via `terser` as a separate step after the webpack bundle. The build tool itself was upgraded from webpack 1 to webpack 4, which parses modern JS syntax (used by dependencies such as `socket.io-client` 4.x) natively, and several vulnerable devDependencies (`js-yaml`, `fsevents`, `acorn`, `tree-kill`, `deep-extend`) were updated to patched versions. The unused `jsonwebtoken` devDependency was removed rather than updated.
 
 # [v1.4.0](https://github.com/auth0/auth0-guardian.js/tree/v1.4.0) (2026-06-30)
 [Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.3.3...v1.4.0)
