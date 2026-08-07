@@ -146,7 +146,7 @@ describe('utils/polling_client', function () {
 
     describe('when everything goes well', function () {
       beforeEach(function () {
-        for (let i = 1; i <= 10; i++) {
+        for (let i = 1; i <= 10; i += 1) {
           httpClient.post.onCall(i - 1).yields(null, {
             body: {
               id: 'tx_123',
@@ -505,9 +505,9 @@ describe('utils/polling_client', function () {
    */
   function behavesLikeStateTransition(options) {
     const allEvents = ['enrollment:confirmed', 'login:rejected', 'login:complete'];
-    const expectedEmittedEventNames = options.events.map((e) => e.name);
+    const expectedEmittedEventNames = options.events.map(e => e.name);
     const expectedNotEmittedEventNames = allEvents
-      .filter((name) => expectedEmittedEventNames.indexOf(name) < 0);
+      .filter(name => expectedEmittedEventNames.indexOf(name) < 0);
 
     beforeEach(function () {
       httpClient.post

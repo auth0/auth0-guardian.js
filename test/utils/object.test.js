@@ -299,7 +299,7 @@ describe('utils/object', function () {
           { value: 3 },
           { value: 4, obj: { value: 2 } }
         ],
-        (key) => key + 1,
+        key => key + 1,
         (key, value) => value.value
         ).slice(1))
           .eql([1, 2, 3, 4]);
@@ -313,7 +313,7 @@ describe('utils/object', function () {
           key2: 'value2',
           key3: 'value3'
         },
-        (key) => key.toUpperCase(),
+        key => key.toUpperCase(),
         (key, value) => value.toUpperCase()
         ))
           .eql({

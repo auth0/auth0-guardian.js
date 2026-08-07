@@ -1,12 +1,11 @@
 'use strict';
 
 var path = require('path');
-var webpack = require('webpack');
 
 module.exports = {
+  mode: 'none',
   context: __dirname,
   entry: {
-    'guardian-js.min': './index.js',
     'guardian-js': './index.js'
   },
   devtool: 'source-map',
@@ -14,12 +13,7 @@ module.exports = {
     path: path.join(__dirname, '/dist'),
     filename: '[name].js',
     libraryTarget: 'umd',
-    library: 'auth0GuardianJS'
-  },
-  plugins: [
-    new webpack.optimize.UglifyJsPlugin({
-      include: /\.min\.js$/,
-      minimize: true
-    })
-  ]
+    library: 'auth0GuardianJS',
+    globalObject: 'this'
+  }
 };

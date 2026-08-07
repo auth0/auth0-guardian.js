@@ -35,9 +35,9 @@ describe('utils/async', function () {
       it('calls the final callback with the results of the ' +
       'intermediate functions in the given order', function (done) {
         asyncHelpers.all([
-          (pdone) => setTimeout(() => pdone(null, 1), 30),
-          (pdone) => setTimeout(() => pdone(null, 2), 20),
-          (pdone) => setTimeout(() => pdone(null, 3), 10)
+          pdone => setTimeout(() => pdone(null, 1), 30),
+          pdone => setTimeout(() => pdone(null, 2), 20),
+          pdone => setTimeout(() => pdone(null, 3), 10)
         ], function (err, result) {
           expect(err).to.not.exist;
           expect(result).to.eql([1, 2, 3]);
@@ -49,9 +49,9 @@ describe('utils/async', function () {
     describe('when there is one or more errors', function () {
       it('calls final callback with the error', function (done) {
         asyncHelpers.all([
-          (pdone) => setTimeout(() => pdone(new Error('error1'), 1), 30),
-          (pdone) => setTimeout(() => pdone(null, 2), 20),
-          (pdone) => setTimeout(() => pdone(null, 3), 10)
+          pdone => setTimeout(() => pdone(new Error('error1'), 1), 30),
+          pdone => setTimeout(() => pdone(null, 2), 20),
+          pdone => setTimeout(() => pdone(null, 3), 10)
         ], function (err, result) {
           expect(err).to.exist;
           expect(err.message).to.equal('error1');
@@ -67,9 +67,9 @@ describe('utils/async', function () {
       it('calls the final callback with the ' +
       'result of the one that finished first', function (done) {
         asyncHelpers.any([
-          (pdone) => setTimeout(() => pdone(null, 1), 30),
-          (pdone) => setTimeout(() => pdone(null, 2), 20),
-          (pdone) => setTimeout(() => pdone(null, 3), 10)
+          pdone => setTimeout(() => pdone(null, 1), 30),
+          pdone => setTimeout(() => pdone(null, 2), 20),
+          pdone => setTimeout(() => pdone(null, 3), 10)
         ], function (err, result) {
           expect(err).to.not.exist;
           expect(result).to.equal(3);
@@ -81,9 +81,9 @@ describe('utils/async', function () {
     describe('when there is one error after one has finished', function () {
       it('ignores the error', function (done) {
         asyncHelpers.any([
-          (pdone) => setTimeout(() => pdone(new Error('error1'), 1), 30),
-          (pdone) => setTimeout(() => pdone(null, 2), 20),
-          (pdone) => setTimeout(() => pdone(null, 3), 10)
+          pdone => setTimeout(() => pdone(new Error('error1'), 1), 30),
+          pdone => setTimeout(() => pdone(null, 2), 20),
+          pdone => setTimeout(() => pdone(null, 3), 10)
         ], function (err, result) {
           expect(err).to.not.exist;
           expect(result).to.equal(3);
@@ -95,9 +95,9 @@ describe('utils/async', function () {
     describe('when there is one error before one has finished', function () {
       it('ignores the error', function (done) {
         asyncHelpers.any([
-          (pdone) => setTimeout(() => pdone(new Error('error1'), 1), 1),
-          (pdone) => setTimeout(() => pdone(null, 2), 200),
-          (pdone) => setTimeout(() => pdone(null, 3), 100)
+          pdone => setTimeout(() => pdone(new Error('error1'), 1), 1),
+          pdone => setTimeout(() => pdone(null, 2), 200),
+          pdone => setTimeout(() => pdone(null, 3), 100)
         ], function (err, result) {
           expect(err).to.not.exist;
           expect(result).to.equal(3);
@@ -109,9 +109,9 @@ describe('utils/async', function () {
     describe('when all tasks ends with error', function () {
       it('calls the final callback with the errors', function (done) {
         asyncHelpers.any([
-          (pdone) => setTimeout(() => pdone(new Error('error1'), 1), 1),
-          (pdone) => setTimeout(() => pdone(new Error('error2'), 2), 20),
-          (pdone) => setTimeout(() => pdone(new Error('error3'), 3), 10)
+          pdone => setTimeout(() => pdone(new Error('error1'), 1), 1),
+          pdone => setTimeout(() => pdone(new Error('error2'), 2), 20),
+          pdone => setTimeout(() => pdone(new Error('error3'), 3), 10)
         ], function (err, result) {
           expect(err).to.exist;
           expect(err.message).to.equal('All events have failed');
