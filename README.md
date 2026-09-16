@@ -10,12 +10,12 @@ npm install auth0-guardian-js
 ## CDN
 Full version
 ```
-https://cdn.auth0.com/js/guardian-js/1.4.1/guardian-js.js
+https://cdn.auth0.com/js/guardian-js/1.5.0/guardian-js.js
 ```
 
 Minified version
 ```
-https://cdn.auth0.com/js/guardian-js/1.4.1/guardian-js.min.js
+https://cdn.auth0.com/js/guardian-js/1.5.0/guardian-js.min.js
 ```
 
 ## Basic Usage
@@ -298,12 +298,10 @@ auth0GuardianJS.start(function(err, transaction) {
 This continues a transaction saved by `transaction.serialize()`. The options parameter provides
 the library user the opportunity to specify which kind of `transport` to use. Options include:
 
-- `socket`: a socket.io transport
-- `polling`: a polling transport.
+- `polling`: a polling transport (default)
+- `manual`: no automatic transport; the consuming application handles event delivery
 
-If not set, the `polling` transport is used as default
-
-This is a factory method, you SHOULD NOT instantiate`auth0GuardianJS`.
+This is a factory method, you SHOULD NOT instantiate `auth0GuardianJS`.
 
 at some point in your code you stored the transaction:
 ```js
@@ -492,7 +490,7 @@ Emitted when there is an error on the transaction
 
 ```
 transaction.on('error', function(error /* instanceOf GuardianError */) {
-	// Errors that cannot be associated to a particular action, like socket.io errors or so
+	// Errors that cannot be associated to a particular action
 });
 ```
 

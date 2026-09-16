@@ -3,7 +3,6 @@
 const expect = require('chai').expect;
 const clientFactory = require('../../lib/utils/client_factory');
 const pollingClient = require('../../lib/utils/polling_client');
-const socketClient = require('../../lib/utils/socket_client');
 const nullClient = require('../../lib/utils/null_client');
 
 describe('client factory', function () {
@@ -29,8 +28,8 @@ describe('client factory', function () {
     });
 
     describe('if options.transport is not defined', function () {
-      it('returns an instance of socket client', function () {
-        expect(clientFactory.create({ serviceUrl: 'http://localhost' })).to.be.an.instanceOf(socketClient);
+      it('returns an instance of polling client', function () {
+        expect(clientFactory.create({ serviceUrl: 'http://localhost', httpClient: {} })).to.be.an.instanceOf(pollingClient);
       });
     });
   });

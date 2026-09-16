@@ -1,6 +1,6 @@
 {
   "name": "auth0-guardian-js",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Interface",
   "main": "index.js",
   "directories": {
@@ -8,7 +8,6 @@
   },
   "dependencies": {
     "jwt-decode": "^2.2.0",
-    "socket.io-client": "^4.8.0",
     "superagent": "^3.8.3"
   },
   "devDependencies": {
