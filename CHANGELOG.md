@@ -1,4 +1,13 @@
 # Change Log
+# [v1.5.0](https://github.com/auth0/auth0-guardian.js/tree/v1.5.0) (2026-09-28)
+[Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.4.1...v1.5.0)
+
+**Removed**
+- Removed the `socket` (socket.io) transport and dropped the `socket.io-client` dependency, along with its transitive dependencies (`engine.io-client`, `engine.io-parser`, `socket.io-parser`, `@socket.io/component-emitter`) [\#108](https://github.com/auth0/auth0-guardian.js/pull/108) ([PavelKorobchuk](https://github.com/PavelKorobchuk)). The socket transport had no known consumers — `mfa-widget` uses `polling` and `auth0-server` uses `manual`.
+
+**Changed**
+- `polling` is now the default transport when none is specified (previously `socket`). Passing `transport: 'socket'` or `stateCheckingMechanism: 'socket'` is no longer supported; use `polling` (the default) or `manual`.
+
 # [v1.4.1](https://github.com/auth0/auth0-guardian.js/tree/v1.4.1) (2026-07-29)
 [Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.4.0...v1.4.1)
 
