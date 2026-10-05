@@ -19,3 +19,4 @@ build:
 publish:
 	@echo "Running publish..."
 	npm publish
+	npm run publish:cdn
