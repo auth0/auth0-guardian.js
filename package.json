@@ -3,6 +3,11 @@
   "version": "1.5.0",
   "description": "Interface",
   "main": "index.js",
+  "files": [
+    "index.js",
+    "lib/",
+    "CHANGELOG.md"
+  ],
   "directories": {
     "test": "test"
   },
