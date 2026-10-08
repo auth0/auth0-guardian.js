@@ -15,6 +15,17 @@
     "jwt-decode": "^2.2.0",
     "superagent": "^3.8.3"
   },
+  "ccu": {
+    "name": "guardian-js",
+    "cdn": "https://cdn.auth0.com",
+    "bucket": "assets.us.auth0.com",
+    "localPath": "dist",
+    "mainBundleFile": "guardian-js.min.js",
+    "digest": {
+      "hashes": ["sha384"],
+      "extensions": [".js"]
+    }
+  },
   "devDependencies": {
     "auth0-style": "github:auth0/javascript",
     "chai": "^3.5.0",
@@ -36,7 +47,8 @@
     "terser": "^5.49.0",
     "watch": "^1.0.1",
     "webpack": "^4.46.0",
-    "webpack-cli": "^3.3.12"
+    "webpack-cli": "^3.3.12",
+    "@auth0/component-cdn-uploader": "^3.0.2"
   },
   "scripts": {
     "test": "npm run eslint && mocha --recursive test",
@@ -51,7 +63,8 @@
     "eslintfix": "eslint --fix .",
     "prepublish": "npm run build",
     "serve:https": "node ./tools/serve.js",
-    "dev": "concurrently \"npm run watch:build\" \"npm run serve:https\""
+    "dev": "concurrently \"npm run watch:build\" \"npm run serve:https\"",
+    "publish:cdn": "ccu --trace"
   },
   "repository": {
     "type": "git",
