@@ -1,4 +1,10 @@
 # Change Log
+# [v1.5.1](https://github.com/auth0/auth0-guardian.js/tree/v1.5.1) (2026-10-08)
+[Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.5.0...v1.5.1)
+
+**Note**
+- Republish of the 1.5.0 release under a new version number. `1.5.0` was briefly published to npm and then unpublished; npm permanently reserves unpublished version numbers, so `1.5.0` can never be republished. `1.5.1` ships the **identical** code to the intended 1.5.0 release — see the 1.5.0 notes below for the socket.io transport removal and the change of the default transport to `polling` — plus the published-files allowlist added in [\#114](https://github.com/auth0/auth0-guardian.js/pull/114).
+
 # [v1.5.0](https://github.com/auth0/auth0-guardian.js/tree/v1.5.0) (2026-09-28)
 [Full Changelog](https://github.com/auth0/auth0-guardian.js/compare/v1.4.1...v1.5.0)
 
